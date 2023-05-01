@@ -1,0 +1,95 @@
+workspace(name = "ecsact_cli")
+
+load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
+
+http_archive(
+    name = "bazelregistry_docopt_cpp",
+    sha256 = "a06e705978b1c09427f130a187cb361916c1e7d66b69e91b865ebcd5390a6774",
+    strip_prefix = "docopt.cpp-1e38ceb67655f576814ae1c95f138eb8b61453c9",
+    url = "https://github.com/bazelregistry/docopt.cpp/archive/1e38ceb67655f576814ae1c95f138eb8b61453c9.zip",
+)
+
+http_archive(
+    name = "boost",
+    sha256 = "4a79c389add7e3d54d0e12c83098d471d24536ba2d6b8593d3a95f151f25eebb",
+    strip_prefix = "boost-da62319c330d81ef032517cbe13b6f35d97387cb",
+    urls = ["https://github.com/bazelboost/boost/archive/da62319c330d81ef032517cbe13b6f35d97387cb.zip"],
+)
+
+load("@boost//:index.bzl", "boost_http_archives")
+
+boost_http_archives()
+
+http_archive(
+    name = "rules_cc_stamp",
+    strip_prefix = "rules_cc_stamp-63d4861f4d420b574fa0f112599aae2b8aee785e",
+    urls = ["https://github.com/zaucy/rules_cc_stamp/archive/63d4861f4d420b574fa0f112599aae2b8aee785e.zip"],
+    sha256 = "f469a3b97eeabeb850c655f59ea17799ff40badd3a0b3e9de38534c89ad2f87d",
+)
+
+http_archive(
+    name = "ecsact_si_wasm",
+    sha256 = "e208a94d4f4a9c09f32b8a9ea91a4f799492e11c7c852b0329b4a3595a45cee6",
+    strip_prefix = "ecsact_si_wasm-0.1.0",
+    urls = ["https://github.com/seaube/ecsact_si_wasm/archive/refs/tags/0.1.0.tar.gz"],
+)
+
+http_archive(
+    name = "ecsact_parse",
+    sha256 = "3f83ae8af26b08472fceef768d2c719a7ea9bedfc907303b9d80d9a7c9b937e9",
+    strip_prefix = "ecsact_parse-0.2.0",
+    urls = ["https://github.com/ecsact-dev/ecsact_parse/archive/refs/tags/0.2.0.tar.gz"],
+)
+
+http_archive(
+    name = "ecsact_runtime",
+    sha256 = "dfc71e519d24b943c855d288d19f539fc9b9c65636c0376c7febb865233161b6",
+    strip_prefix = "ecsact_runtime-0.2.0",
+    urls = ["https://github.com/ecsact-dev/ecsact_runtime/archive/refs/tags/0.2.0.tar.gz"],
+)
+
+http_archive(
+    name = "ecsact_interpret",
+    sha256 = "daee9a1924ae169ef64456487c24e72ab3e6a8ab04c8534bd06cd1ef00f58131",
+    strip_prefix = "ecsact_interpret-0.2.0",
+    urls = ["https://github.com/ecsact-dev/ecsact_interpret/archive/refs/tags/0.2.0.tar.gz"],
+)
+
+load("@ecsact_parse//:repositories.bzl", "ecsact_parse_dependencies")
+
+ecsact_parse_dependencies()
+
+http_archive(
+    name = "hedron_compile_commands",
+    sha256 = "99bc3106eb6ce5ffab3c31de8501d4d628de5f1acd74b8b563a876bd39a2e32f",
+    strip_prefix = "bazel-compile-commands-extractor-b33a4b05c2287372c8e932c55ff4d3a37e6761ed",
+    url = "https://github.com/hedronvision/bazel-compile-commands-extractor/archive/b33a4b05c2287372c8e932c55ff4d3a37e6761ed.tar.gz",
+)
+
+load("@hedron_compile_commands//:workspace_setup.bzl", "hedron_compile_commands_setup")
+
+hedron_compile_commands_setup()
+
+http_archive(
+    name = "com_grail_bazel_toolchain",
+    sha256 = "ba89390c2fff1a498456de977dab5c6833b4dcb364b88c405dc375b99e1f5c46",
+    strip_prefix = "bazel-toolchain-d52ce5d96915428a5ee6f7079078df706c5fddab",
+    url = "https://github.com/grailbio/bazel-toolchain/archive/d52ce5d96915428a5ee6f7079078df706c5fddab.zip",
+)
+
+load("@com_grail_bazel_toolchain//toolchain:deps.bzl", "bazel_toolchain_dependencies")
+
+bazel_toolchain_dependencies()
+
+load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
+
+llvm_toolchain(
+    name = "llvm_toolchain",
+    cxx_standard = {"linux": "c++20"},
+    distribution = "clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz",
+    llvm_version = "15.0.6",
+)
+
+load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")
+
+llvm_register_toolchains()

@@ -36,23 +36,23 @@ http_archive(
 
 http_archive(
     name = "ecsact_parse",
-    sha256 = "3f83ae8af26b08472fceef768d2c719a7ea9bedfc907303b9d80d9a7c9b937e9",
-    strip_prefix = "ecsact_parse-0.2.0",
-    urls = ["https://github.com/ecsact-dev/ecsact_parse/archive/refs/tags/0.2.0.tar.gz"],
+    sha256 = "706066e8870aa07f6937ca5f3187c7f3bb970255d028790b5f441e24e22d37f6",
+    strip_prefix = "ecsact_parse-0.2.1",
+    urls = ["https://github.com/ecsact-dev/ecsact_parse/archive/refs/tags/0.2.1.tar.gz"],
 )
 
 http_archive(
     name = "ecsact_runtime",
-    sha256 = "dfc71e519d24b943c855d288d19f539fc9b9c65636c0376c7febb865233161b6",
-    strip_prefix = "ecsact_runtime-0.2.0",
-    urls = ["https://github.com/ecsact-dev/ecsact_runtime/archive/refs/tags/0.2.0.tar.gz"],
+    sha256 = "35b03aaef0925fda5b5aefb2d6a6e2c9593f31d6414ab157091f9ca26a992da3",
+    strip_prefix = "ecsact_runtime-0.3.0",
+    urls = ["https://github.com/ecsact-dev/ecsact_runtime/archive/refs/tags/0.3.0.tar.gz"],
 )
 
 http_archive(
     name = "ecsact_interpret",
-    sha256 = "daee9a1924ae169ef64456487c24e72ab3e6a8ab04c8534bd06cd1ef00f58131",
-    strip_prefix = "ecsact_interpret-0.2.0",
-    urls = ["https://github.com/ecsact-dev/ecsact_interpret/archive/refs/tags/0.2.0.tar.gz"],
+    sha256 = "27c42403d6dc9a435346ca94ac6cd385246c22caa2388e1283ca1dbb679167e1",
+    strip_prefix = "ecsact_interpret-0.3.0",
+    urls = ["https://github.com/ecsact-dev/ecsact_interpret/archive/refs/tags/0.3.0.tar.gz"],
 )
 
 load("@ecsact_parse//:repositories.bzl", "ecsact_parse_dependencies")

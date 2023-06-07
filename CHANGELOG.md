@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.1.1 - 2023-06-07
+#### Miscellaneous Chores
+- **(deps)** update escact repositories (#6) - (6852043) - renovate[bot]
+- **(deps)** update com_grail_bazel_toolchain digest to ceeedcc (#11) - (7af05d9) - renovate[bot]
+- **(deps)** update com_grail_bazel_toolchain digest to b397ad2 (#10) - (b5528b3) - renovate[bot]
+- **(deps)** update com_grail_bazel_toolchain digest to 41ff2a0 (#9) - (c73a3b5) - renovate[bot]
+- **(deps)** update hedron_compile_commands digest to 3dddf20 (#8) - (4379847) - renovate[bot]
+- **(deps)** update hedron_compile_commands digest to 80ac7ef (#7) - (563cfa8) - renovate[bot]
+
+- - -
+
 ## 0.1.0 - 2023-05-01
 #### Miscellaneous Chores
 - add github actions (#1) - (9b82e95) - Ezekiel Warren

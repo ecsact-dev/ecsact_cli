@@ -1,0 +1,19 @@
+load("@bazel_skylib//rules:native_binary.bzl", "native_test")
+
+native_test(
+    name = "build_recipe",
+    src = "//:ecsact",
+    out = "build_recipe",
+    data = [
+        "test.ecsact",
+        "ecsact_build_test_recipe.yml",
+    ],
+    args = [
+        "build",
+        "test.ecsact",
+        "-r",
+        "$(execpath ecsact_build_test_recipe.yml)",
+        "-o",
+        "test",
+    ],
+)

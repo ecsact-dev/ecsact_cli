@@ -59,3 +59,17 @@ cc_library(
         "@nlohmann_json//:json",
     ],
 )
+
+cc_library(
+    name = "build",
+    srcs = ["build.cc"] + glob(["build/**/*"]),
+    hdrs = ["build.hh"],
+    copts = copts,
+    deps = [
+        ":command",
+        "//executable_path",
+        "@bazelregistry_docopt_cpp//:docopt",
+        "@com_github_jbeder_yaml_cpp//:yaml-cpp",
+        "@magic_enum",
+    ],
+)

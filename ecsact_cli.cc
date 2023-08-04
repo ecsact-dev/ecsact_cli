@@ -6,6 +6,7 @@
 #include "bazel_stamp_header.hh"
 
 // #include "./commands/benchmark.hh"
+#include "./commands/build.hh"
 #include "./commands/codegen.hh"
 #include "./commands/command.hh"
 #include "./commands/config.hh"
@@ -32,6 +33,7 @@ Usage:
 	ecsact (--help | -h)
 	ecsact (--version | -v)
 	ecsact benchmark ([<options>...] | --help)
+	ecsact build ([<options>...] | --help)
 	ecsact codegen ([<options>...] | --help)
 	ecsact config ([<options>...] | --help)
 )";
@@ -73,6 +75,7 @@ int main(int argc, char* argv[]) {
 
 	const std::unordered_map<std::string, command_fn_t> commands{
 		// {"benchmark", &ecsact::cli::detail::benchmark_command},
+		{"build", &ecsact::cli::detail::build_command},
 		{"codegen", &ecsact::cli::detail::codegen_command},
 		{"config", &ecsact::cli::detail::config_command},
 	};

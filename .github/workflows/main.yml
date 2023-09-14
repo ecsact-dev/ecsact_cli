@@ -1,24 +1,23 @@
-name: CI
+# This file is maintained by ecsact-dev/ecsact_common
+# If changes are required please make them there
+
+name: main
 
 on:
   push:
     branches:
       - "**"
 
-concurrency:
-  group: ${{ github.ref }}
-  cancel-in-progress: true
-
 jobs:
   formatting-check:
     name: Formatting Check
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - uses: jidicula/clang-format-action@v4.9.0
-        with: { clang-format-version: "15" }
+        with: { clang-format-version: "16" }
 
-  build-windows:
+  test-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/cache@v3
@@ -27,10 +26,13 @@ jobs:
             /Users/runneradmin/AppData/Local/bazelisk
             /Users/runneradmin/.cache/bazel-disk-cache
           key: ${{runner.os}}-bazel-cache
-      - uses: actions/checkout@v3
-      - run: bazel build --config=ci //...
+      - uses: actions/checkout@v4
+      - run: bazelisk build --config=ci //...
+      - if: ${{ hashfiles('test/MODULE.bazel') != '' }}
+        run: bazelisk test --config=ci ...
+        working-directory: test
 
-  build-linux:
+  test-linux:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/cache@v3
@@ -39,5 +41,8 @@ jobs:
             ~/.cache/bazelisk
             ~/.cache/bazel-disk-cache
           key: ${{runner.os}}-bazel-cache
-      - uses: actions/checkout@v3
-      - run: bazel build --config=ci //...
+      - uses: actions/checkout@v4
+      - run: bazelisk build --config=ci //...
+      - if: ${{ hashfiles('test/MODULE.bazel') != '' }}
+        run: bazelisk test --config=ci ...
+        working-directory: test

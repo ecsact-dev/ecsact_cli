@@ -6,6 +6,7 @@
 #include <span>
 #include <filesystem>
 #include <expected>
+#include <optional>
 
 namespace ecsact {
 
@@ -23,15 +24,18 @@ public:
 	) -> std::expected<build_recipe, build_recipe_parse_error>;
 
 	struct source_path {
-			std::filesystem::path path;
-		};
+		std::filesystem::path path;
+		std::optional<std::string> outdir;
+	};
 
 	struct source_fetch {
 		std::string url;
+		std::optional<std::string> outdir;
 	};
 
 	struct source_codegen {
-		std::vector<std::string> plugins;
+		std::vector<std::string>   plugins;
+		std::optional<std::string> outdir;
 	};
 
 	using source = std::variant<source_path, source_fetch, source_codegen>;
@@ -44,10 +48,10 @@ public:
 	auto sources() const -> std::span<const source>;
 
 private:
-		std::vector<std::string> _exports;
-		std::vector<std::string> _imports;
-		std::vector<source> _sources;
-		
-		build_recipe();
+	std::vector<std::string> _exports;
+	std::vector<std::string> _imports;
+	std::vector<source>      _sources;
+
+	build_recipe();
 };
 } // namespace ecsact

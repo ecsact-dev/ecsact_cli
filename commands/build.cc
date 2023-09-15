@@ -6,7 +6,7 @@
 
 #include "./build/build_recipe.hh"
 
-constexpr auto USAGE = R"(Ecsact Build Command
+constexpr auto USAGE = R"docopt(Ecsact Build Command
 
 Usage:
 	ecsact build (-h | --help)
@@ -16,7 +16,7 @@ Options:
 	<files>             Ecsact files used to build Ecsact Runtime
 	-r --recipe=<name>  Name or path to recipe
 	-o --output=<path>  Runtime output path
-)";
+)docopt";
 
 auto ecsact::cli::detail::build_command( //
 	int   argc,

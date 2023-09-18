@@ -1,24 +1,4 @@
-workspace(name = "ecsact_cli")
-
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
-
-http_archive(
-    name = "bazelregistry_docopt_cpp",
-    sha256 = "a06e705978b1c09427f130a187cb361916c1e7d66b69e91b865ebcd5390a6774",
-    strip_prefix = "docopt.cpp-1e38ceb67655f576814ae1c95f138eb8b61453c9",
-    url = "https://github.com/bazelregistry/docopt.cpp/archive/1e38ceb67655f576814ae1c95f138eb8b61453c9.zip",
-)
-
-http_archive(
-    name = "boost",
-    sha256 = "4a79c389add7e3d54d0e12c83098d471d24536ba2d6b8593d3a95f151f25eebb",
-    strip_prefix = "boost-da62319c330d81ef032517cbe13b6f35d97387cb",
-    urls = ["https://github.com/bazelboost/boost/archive/da62319c330d81ef032517cbe13b6f35d97387cb.zip"],
-)
-
-load("@boost//:index.bzl", "boost_http_archives")
-
-boost_http_archives()
 
 http_archive(
     name = "rules_cc_stamp",
@@ -33,31 +13,6 @@ http_archive(
     strip_prefix = "ecsact_si_wasm-0.1.0",
     urls = ["https://github.com/seaube/ecsact_si_wasm/archive/refs/tags/0.1.0.tar.gz"],
 )
-
-http_archive(
-    name = "ecsact_parse",
-    sha256 = "706066e8870aa07f6937ca5f3187c7f3bb970255d028790b5f441e24e22d37f6",
-    strip_prefix = "ecsact_parse-0.2.1",
-    urls = ["https://github.com/ecsact-dev/ecsact_parse/archive/refs/tags/0.2.1.tar.gz"],
-)
-
-http_archive(
-    name = "ecsact_runtime",
-    sha256 = "35b03aaef0925fda5b5aefb2d6a6e2c9593f31d6414ab157091f9ca26a992da3",
-    strip_prefix = "ecsact_runtime-0.3.0",
-    urls = ["https://github.com/ecsact-dev/ecsact_runtime/archive/refs/tags/0.3.0.tar.gz"],
-)
-
-http_archive(
-    name = "ecsact_interpret",
-    sha256 = "27c42403d6dc9a435346ca94ac6cd385246c22caa2388e1283ca1dbb679167e1",
-    strip_prefix = "ecsact_interpret-0.3.0",
-    urls = ["https://github.com/ecsact-dev/ecsact_interpret/archive/refs/tags/0.3.0.tar.gz"],
-)
-
-load("@ecsact_parse//:repositories.bzl", "ecsact_parse_dependencies")
-
-ecsact_parse_dependencies()
 
 http_archive(
     name = "hedron_compile_commands",

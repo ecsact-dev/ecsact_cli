@@ -606,7 +606,7 @@ int ecsact::cli::detail::benchmark_command(int argc, char* argv[]) {
 		);
 	auto reporter = stdout_json_benchmark_reporter{};
 
-	auto ec = boost::system::error_code{};
+	auto ec = std::error_code{};
 	auto runtime = boost::dll::shared_library();
 
 	exists_or_exit(runtime_path);

@@ -12,7 +12,7 @@
 #include "ecsact/interpret/eval.hh"
 #include "ecsact/runtime/meta.h"
 #include "ecsact/runtime/dylib.h"
-#include "ecsact/codegen_plugin.h"
+#include "ecsact/codegen/plugin.h"
 #include "ecsact/codegen/plugin_validate.hh"
 #include "magic_enum.hpp"
 
@@ -135,8 +135,8 @@ int ecsact::cli::detail::codegen_command(int argc, char* argv[]) {
 		);
 
 		if(plugin_path) {
-			boost::system::error_code ec;
-			auto&                     plugin = plugins.emplace_back();
+			std::error_code ec;
+			auto&           plugin = plugins.emplace_back();
 			plugin.load(plugin_path->string(), ec);
 			auto validate_result = ecsact::codegen::plugin_validate(*plugin_path);
 			if(validate_result.ok()) {

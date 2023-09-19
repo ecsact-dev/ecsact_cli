@@ -1,4 +1,8 @@
-module(name = "ecsact_cli")
+module(
+    name = "ecsact_cli",
+    version = "0.1.1",
+    compatibility_level = 1,
+)
 
 bazel_dep(name = "nlohmann_json", version = "3.11.2")
 bazel_dep(name = "rules_cc", version = "0.0.8")

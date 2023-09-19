@@ -2,6 +2,29 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.1.2 - 2023-09-19
+#### Features
+- bzlmodify (#30) - (3b0d8ea) - Ezekiel Warren
+#### Miscellaneous Chores
+- **(deps)** update com_grail_bazel_toolchain digest to 3e6d4d9 (#31) - (a906d3c) - renovate[bot]
+- **(deps)** update com_grail_bazel_toolchain digest to edc058a (#29) - (93a0d7c) - renovate[bot]
+- **(deps)** update com_grail_bazel_toolchain digest to e4fad4e (#27) - (8d272af) - renovate[bot]
+- **(deps)** update com_grail_bazel_toolchain digest to c217c03 (#26) - (de26be4) - renovate[bot]
+- **(deps)** update com_grail_bazel_toolchain digest to 9d8cc8a (#24) - (c21d98c) - renovate[bot]
+- **(deps)** update hedron_compile_commands digest to e160627 (#22) - (6fe367c) - renovate[bot]
+- **(deps)** update hedron_compile_commands digest to ecafb96 (#21) - (196f413) - renovate[bot]
+- **(deps)** update hedron_compile_commands digest to aaa2fda (#20) - (0b4e271) - renovate[bot]
+- **(deps)** update dependency rules_pkg to v0.9.1 (#16) - (30758ed) - renovate[bot]
+- **(deps)** update dependency rules_cc to v0.0.8 (#17) - (82a709e) - renovate[bot]
+- **(deps)** update dependency bazel_skylib to v1.4.2 (#15) - (bc8b24f) - renovate[bot]
+- **(deps)** update hedron_compile_commands digest to 86dbf52 (#19) - (1bb11a7) - renovate[bot]
+- **(deps)** update com_grail_bazel_toolchain digest to f94335f (#14) - (eed9fde) - renovate[bot]
+- **(deps)** update dependency platforms to v0.0.7 (#18) - (fc65ae7) - renovate[bot]
+- add module version - (4f57817) - Ezekiel Warren
+- sync with ecsact_common (#23) - (5347bc1) - seaubot
+
+- - -
+
 ## 0.1.1 - 2023-06-07
 #### Miscellaneous Chores
 - **(deps)** update escact repositories (#6) - (6852043) - renovate[bot]

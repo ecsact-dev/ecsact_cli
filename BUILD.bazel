@@ -18,7 +18,7 @@ cc_binary(
     copts = copts,
     stamp = 1,
     deps = [
-        "//commands:benchmark",
+        # "//commands:benchmark",
         "//commands:codegen",
         "//commands:command",
         "//commands:config",

@@ -9,24 +9,24 @@ cc_library(
     copts = copts,
 )
 
-cc_library(
-    name = "benchmark",
-    srcs = ["benchmark.cc"],
-    hdrs = ["benchmark.hh"],
-    copts = copts,
-    deps = [
-        ":command",
-        "//executable_path",
-        "@magic_enum",
-        "@docopt.cpp//:docopt",
-        "@boost.dll",
-        "@ecsact_runtime//:core",
-        "@ecsact_runtime//:async",
-        "@ecsact_runtime//:serialize",
-        "@ecsact_si_wasm//:ecsactsi_wasm",
-        "@nlohmann_json//:json",
-    ],
-)
+# cc_library(
+#     name = "benchmark",
+#     srcs = ["benchmark.cc"],
+#     hdrs = ["benchmark.hh"],
+#     copts = copts,
+#     deps = [
+#         ":command",
+#         "//executable_path",
+#         "@magic_enum",
+#         "@docopt.cpp//:docopt",
+#         "@boost.dll",
+#         "@ecsact_runtime//:core",
+#         "@ecsact_runtime//:async",
+#         "@ecsact_runtime//:serialize",
+#         "@ecsact_si_wasm",
+#         "@nlohmann_json//:json",
+#     ],
+# )
 
 cc_library(
     name = "codegen",

@@ -1,13 +1,6 @@
 load("@bazel_tools//tools/build_defs/repo:http.bzl", "http_archive", "http_file")
 
 http_archive(
-    name = "ecsact_si_wasm",
-    sha256 = "e208a94d4f4a9c09f32b8a9ea91a4f799492e11c7c852b0329b4a3595a45cee6",
-    strip_prefix = "ecsact_si_wasm-0.1.0",
-    urls = ["https://github.com/seaube/ecsact_si_wasm/archive/refs/tags/0.1.0.tar.gz"],
-)
-
-http_archive(
     name = "hedron_compile_commands",
     sha256 = "ed5aea1dc87856aa2029cb6940a51511557c5cac3dbbcb05a4abd989862c36b4",
     strip_prefix = "bazel-compile-commands-extractor-e16062717d9b098c3c2ac95717d2b3e661c50608",
@@ -33,9 +26,7 @@ load("@com_grail_bazel_toolchain//toolchain:rules.bzl", "llvm_toolchain")
 
 llvm_toolchain(
     name = "llvm_toolchain",
-    cxx_standard = {"linux": "c++20"},
-    distribution = "clang+llvm-15.0.6-x86_64-linux-gnu-ubuntu-18.04.tar.xz",
-    llvm_version = "15.0.6",
+    llvm_version = "16.0.4",
 )
 
 load("@llvm_toolchain//:toolchains.bzl", "llvm_register_toolchains")

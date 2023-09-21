@@ -1,7 +1,7 @@
 module(
     name = "ecsact_cli",
-    version = "0.1.2",
-    compatibility_level = 1,
+    version = "0.2.0",
+    compatibility_level = 2,
 )
 
 bazel_dep(name = "nlohmann_json", version = "3.11.2")

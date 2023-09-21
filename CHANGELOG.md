@@ -2,6 +2,21 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.2.0 - 2023-09-21
+#### Bug Fixes
+- remove rules_cc_stamp dep (#35) - (c37aa71) - Ezekiel Warren
+#### Features
+- temporarily disable benchmark (#36) - (b8f702e) - Ezekiel Warren
+#### Miscellaneous Chores
+- **(deps)** update escact repositories (#28) - (9dcc061) - renovate[bot]
+- **(deps)** update actions/checkout action to v4 (#25) - (38d796f) - renovate[bot]
+- **(deps)** update com_grail_bazel_toolchain digest to 885e692 (#32) - (48403fc) - renovate[bot]
+- sync with ecsact_common (#34) - (0113ec5) - seaubot
+- sync with ecsact_common (#33) - (de5d466) - seaubot
+- update ascii logo - (4f40e9e) - Ezekiel Warren
+
+- - -
+
 ## 0.1.2 - 2023-09-19
 #### Features
 - bzlmodify (#30) - (3b0d8ea) - Ezekiel Warren

@@ -83,10 +83,19 @@ int main(int argc, char* argv[]) {
 		if(command == "-h" || command == "--help") {
 			print_usage();
 			return 0;
-		} else if(command == "-v" || command == "--version") {
+		}
+
+		if(command == "-v" || command == "--version") {
+#ifdef ECSACT_CLI_USE_SDK_VERSION
 			std::cout << STABLE_ECSACT_SDK_VERSION << "\n";
 			return 0;
-		} else if(command.starts_with('-')) {
+#else
+			std::cerr << "No version available in this build\n";
+			return 1;
+#endif
+		}
+
+		if(command.starts_with('-')) {
 			std::cerr << "Expected subcommand and instead got '" << command << "'\n";
 			print_usage();
 			return 1;

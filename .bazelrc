@@ -1,6 +1,7 @@
 import %workspace%/bazel/common.bazelrc
 
 common --@boost.dll//:use_std_fs
+common --//:use_sdk_version
 build:windows --workspace_status_command=bazel/tools/wsc.cmd
 build:linux --workspace_status_command=bazel/tools/wsc.sh
 

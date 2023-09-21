@@ -1,0 +1,38 @@
+load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_ecsact//ecsact:defs.bzl", "ecsact_codegen", "ecsact_codegen_plugin")
+load("@ecsact_cli//bazel:copts.bzl", "copts")
+
+cc_binary(
+    name = "test_codegen_plugin_bin",
+    linkshared = True,
+    copts = copts,
+    srcs = [
+        "test_codegen_plugin.cc",
+        "@ecsact_runtime//dylib:dylib.cc",
+    ],
+    deps = [
+        "@ecsact_codegen//:plugin",
+        "@ecsact_runtime//dylib:meta",
+        "@ecsact_runtime//dylib:util",
+    ],
+)
+
+ecsact_codegen_plugin(
+    name = "test_codegen_plugin",
+    plugin = ":test_codegen_plugin_bin",
+    output_extension = "txt",
+)
+
+ecsact_codegen(
+    name = "codegen_test",
+    srcs = ["test.ecsact"],
+    plugins = [":test_codegen_plugin"],
+)
+
+build_test(
+    name = "build_test",
+    targets = [
+        ":codegen_test",
+    ],
+)

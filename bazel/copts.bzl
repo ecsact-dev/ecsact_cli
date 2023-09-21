@@ -2,7 +2,7 @@ load("@bazel_skylib//lib:selects.bzl", "selects")
 
 # Ecsact repositories currently only support clang, cl, and emscripten
 copts = selects.with_or({
-    ("//bazel:compiler_emscripten"): [
+    (Label("//bazel:compiler_emscripten")): [
         "-std=c++20",
     ],
     ("@rules_cc//cc/compiler:clang"): [

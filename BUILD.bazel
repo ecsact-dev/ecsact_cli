@@ -1,5 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
-load("@rules_cc_stamp//:index.bzl", "cc_stamp_header")
+load("//bazel/tools:cc_stamp_header.bzl", "cc_stamp_header")
 load("//bazel:copts.bzl", "copts")
 
 package(default_visibility = ["//visibility:public"])

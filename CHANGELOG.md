@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.2.1 - 2023-09-21
+#### Features
+- make --version flag optional build (#39) - (3a99019) - Ezekiel Warren
+- allow ecsact cli used as a toolchain (#38) - (22d360b) - Ezekiel Warren
+#### Miscellaneous Chores
+- **(deps)** update com_grail_bazel_toolchain digest to 2733561 (#37) - (0fdab8d) - renovate[bot]
+
+- - -
+
 ## 0.2.0 - 2023-09-21
 #### Bug Fixes
 - remove rules_cc_stamp dep (#35) - (c37aa71) - Ezekiel Warren

@@ -1,0 +1,7 @@
+import %workspace%/../bazel/common.bazelrc
+
+common --@boost.dll//:use_std_fs
+build:windows --workspace_status_command=../bazel/tools/wsc.cmd
+build:linux --workspace_status_command=../bazel/tools/wsc.sh
+
+try-import %workspace%/user.bazelrc

@@ -1,4 +1,5 @@
 load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_ecsact//ecsact:toolchain.bzl", "ecsact_toolchain")
 load("//bazel/tools:cc_stamp_header.bzl", "cc_stamp_header")
 load("//bazel:copts.bzl", "copts")
 
@@ -28,4 +29,15 @@ cc_binary(
 alias(
     name = "ecsact_cli",
     actual = ":ecsact",
+)
+
+ecsact_toolchain(
+    name = "ecsact_toolchain",
+    target_tool = ":ecsact",
+)
+
+toolchain(
+    name = "toolchain",
+    toolchain = ":ecsact_toolchain",
+    toolchain_type = "@rules_ecsact//ecsact:toolchain_type",
 )

@@ -5,7 +5,6 @@
 #include <vector>
 #include <span>
 #include <filesystem>
-#include <expected>
 #include <optional>
 
 namespace ecsact {
@@ -21,7 +20,7 @@ class build_recipe {
 public:
 	static auto from_yaml_file( //
 		std::filesystem::path p
-	) -> std::expected<build_recipe, build_recipe_parse_error>;
+	) -> std::variant<build_recipe, build_recipe_parse_error>;
 
 	struct source_path {
 		std::filesystem::path path;

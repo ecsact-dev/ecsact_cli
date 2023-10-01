@@ -1,6 +1,7 @@
 #include "build.hh"
 
 #include <iostream>
+#include <format>
 #include "docopt.h"
 #include "magic_enum.hpp"
 
@@ -18,6 +19,13 @@ Options:
 	-o --output=<path>  Runtime output path
 )docopt";
 
+
+static auto start_build_recipe(
+	const ecsact::build_recipe& recipe
+) -> int {
+	return 0;
+}
+
 auto ecsact::cli::detail::build_command( //
 	int   argc,
 	char* argv[]
@@ -27,11 +35,14 @@ auto ecsact::cli::detail::build_command( //
 	auto files = args.at("<files>");
 	auto recipe = build_recipe::from_yaml_file(args.at("--recipe").asString());
 
-	if(!recipe) {
-		std::cerr << "Recipe Error: " << magic_enum::enum_name(recipe.error()) << "\n";
+	if(std::holds_alternative<build_recipe_parse_error>(recipe)) {
+		auto recipe_error = std::get<build_recipe_parse_error>(recipe);
+		std::cerr << std::format(
+			"Recipe Error: {}\n",
+			magic_enum::enum_name(recipe_error)
+		);
 		return 1;
 	}
 
-
-	return 0;
+	return start_build_recipe(std::get<build_recipe>(recipe));
 }

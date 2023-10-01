@@ -62,7 +62,7 @@ cc_library(
 
 cc_library(
     name = "build",
-    srcs = ["build.cc"] + glob(["build/**/*"]),
+    srcs = ["build.cc"] + glob(["build/**/*.cc", "build/**/*.hh"]),
     hdrs = ["build.hh"],
     copts = copts,
     deps = [

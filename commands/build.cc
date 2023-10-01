@@ -2,28 +2,96 @@
 
 #include <iostream>
 #include <format>
+#include <filesystem>
+#include <variant>
+#include <format>
 #include "docopt.h"
 #include "magic_enum.hpp"
 
-#include "./build/build_recipe.hh"
+#include "commands/build/build_recipe.hh"
+#include "commands/build/cc_compiler.hh"
+
+namespace fs = std::filesystem;
 
 constexpr auto USAGE = R"docopt(Ecsact Build Command
 
 Usage:
 	ecsact build (-h | --help)
-	ecsact build <files>... --recipe=<name> --output=<path>
+	ecsact build <files>... --recipe=<name> --output=<path> [--temp_dir=<path>]
 
 Options:
 	<files>             Ecsact files used to build Ecsact Runtime
 	-r --recipe=<name>  Name or path to recipe
 	-o --output=<path>  Runtime output path
+	--temp_dir          Optional temporary directoy to use instead of generated one
 )docopt";
 
-
-static auto start_build_recipe(
-	const ecsact::build_recipe& recipe
+auto handle_source( //
+	ecsact::build_recipe::source_fetch,
+	fs::path work_dir
 ) -> int {
+	std::cerr << std::format("Fetching source not yet supported\n");
+	return 1;
+}
+
+auto handle_source( //
+	ecsact::build_recipe::source_codegen,
+	fs::path work_dir
+) -> int {
+	std::cerr << std::format("Codegen source not yet supported\n");
+	return 1;
+}
+
+auto handle_source( //
+	ecsact::build_recipe::source_path src,
+	fs::path                          work_dir
+) -> int {
+	auto outdir = src.outdir //
+		? work_dir / *src.outdir
+		: work_dir;
+
+	auto ec = std::error_code{};
+	fs::copy(src.path, outdir, ec);
+
+	if(ec) {
+		std::cerr << std::format(
+			"Failed to copy source {} to {}: {}\n",
+			src.path.generic_string(),
+			outdir.generic_string(),
+			ec.message()
+		);
+		return 1;
+	}
+
 	return 0;
+}
+
+auto start_build_recipe( //
+	std::vector<fs::path>       files,
+	const ecsact::build_recipe& recipe,
+	fs::path                    work_dir
+) -> int {
+	auto exit_code = int{};
+
+	for(auto& src : recipe.sources()) {
+		exit_code =
+			std::visit([&](auto& src) { return handle_source(src, work_dir); }, src);
+
+		if(exit_code != 0) {
+			break;
+		}
+	}
+
+	auto compiler = ecsact::detect_cc_compiler();
+
+	if(!compiler) {
+		std::cerr << std::format(
+			"Failed to detect C++ compiler installed on your system\n"
+		);
+		return 1;
+	}
+
+	return exit_code;
 }
 
 auto ecsact::cli::detail::build_command( //
@@ -32,17 +100,39 @@ auto ecsact::cli::detail::build_command( //
 ) -> int {
 	auto args = docopt::docopt(USAGE, {argv + 1, argv + argc});
 
-	auto files = args.at("<files>");
+	auto files = args.at("<files>").asStringList();
+	auto file_paths = std::vector<fs::path>{};
+	file_paths.reserve(files.size());
+
 	auto recipe = build_recipe::from_yaml_file(args.at("--recipe").asString());
+
+	auto temp_dir = args["temp_dir"].isString() //
+		? fs::path{args["temp_dir"].asString()}
+		: fs::temp_directory_path();
+
+	// TODO(zaucy): Generate stable directory based on file input
+	auto work_dir = temp_dir / "ecsact-build";
+
+	for(auto file : files) {
+		if(!fs::exists(file)) {
+			std::cerr << std::format( //
+				"Input file {} does not exist\n",
+				file
+			);
+			return 1;
+		}
+
+		file_paths.emplace_back(file);
+	}
 
 	if(std::holds_alternative<build_recipe_parse_error>(recipe)) {
 		auto recipe_error = std::get<build_recipe_parse_error>(recipe);
-		std::cerr << std::format(
+		std::cerr << std::format( //
 			"Recipe Error: {}\n",
 			magic_enum::enum_name(recipe_error)
 		);
 		return 1;
 	}
 
-	return start_build_recipe(std::get<build_recipe>(recipe));
+	return start_build_recipe(file_paths, std::get<build_recipe>(recipe), work_dir);
 }

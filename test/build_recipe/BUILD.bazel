@@ -2,7 +2,7 @@ load("@bazel_skylib//rules:native_binary.bzl", "native_test")
 
 native_test(
     name = "build_recipe",
-    src = "//:ecsact",
+    src = "@ecsact_cli",
     out = "build_recipe",
     data = [
         "test.ecsact",

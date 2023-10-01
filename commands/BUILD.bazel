@@ -68,8 +68,8 @@ cc_library(
     deps = [
         ":command",
         "//executable_path",
-        "@bazelregistry_docopt_cpp//:docopt",
-        "@com_github_jbeder_yaml_cpp//:yaml-cpp",
+        "@docopt.cpp//:docopt",
+        "@yaml-cpp",
         "@magic_enum",
     ],
 )

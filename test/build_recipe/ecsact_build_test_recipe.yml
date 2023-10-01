@@ -1,0 +1,7 @@
+name: test
+
+exports:
+  - ecsact_execute_systems
+
+sources:
+  - ecsact_build_test.cc

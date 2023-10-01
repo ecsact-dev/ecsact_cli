@@ -124,9 +124,9 @@ auto ecsact::build_recipe::from_yaml_file( //
 		}
 
 		auto recipe = build_recipe{};
-		recipe._exports = std::move(get_value(exports));
-		recipe._imports = std::move(get_value(imports));
-		recipe._sources = std::move(get_value(sources));
+		recipe._exports = get_value(exports);
+		recipe._imports = get_value(imports);
+		recipe._sources = get_value(sources);
 
 		return recipe;
 	} catch(const YAML::BadFile&) {

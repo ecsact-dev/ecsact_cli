@@ -1,4 +1,4 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_ecsact//ecsact:toolchain.bzl", "ecsact_toolchain")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
 load("//bazel/tools:cc_stamp_header.bzl", "cc_stamp_header")
@@ -13,6 +13,47 @@ config_setting(name = "use_sdk_version_disabled", flag_values = {":use_sdk_versi
 cc_stamp_header(
     name = "bazel_stamp_header",
     out = "bazel_stamp_header.hh",
+)
+
+cc_library(
+    name = "cli_json_report",
+    visibility = ["//:__subpackages__"],
+    copts = copts,
+    hdrs = ["ecsact/cli/detail/json_report.hh"],
+    srcs = ["ecsact/cli/detail/json_report.cc"],
+    deps = [
+        ":cli_report_message",
+        "@nlohmann_json//:json",
+    ],
+)
+
+cc_library(
+    name = "cli_text_report",
+    visibility = ["//:__subpackages__"],
+    copts = copts,
+    hdrs = ["ecsact/cli/detail/text_report.hh"],
+    srcs = ["ecsact/cli/detail/text_report.cc"],
+    deps = [
+        ":cli_report_message",
+    ],
+)
+
+cc_library(
+    name = "cli_report_message",
+    visibility = ["//:__subpackages__"],
+    copts = copts,
+    hdrs = ["ecsact/cli/report_message.hh"],
+)
+
+cc_library(
+    name = "cli_report",
+    visibility = ["//:__subpackages__"],
+    copts = copts,
+    hdrs = ["ecsact/cli/report.hh"],
+    srcs = ["ecsact/cli/report.cc"],
+    deps = [
+        ":cli_report_message",
+    ],
 )
 
 cc_binary(

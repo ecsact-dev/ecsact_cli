@@ -7,6 +7,9 @@
 #include <format>
 #include "docopt.h"
 #include "magic_enum.hpp"
+#include "ecsact/cli/report.hh"
+#include "ecsact/cli/detail/json_report.hh"
+#include "ecsact/cli/detail/text_report.hh"
 
 #include "commands/build/build_recipe.hh"
 #include "commands/build/cc_compiler.hh"
@@ -16,14 +19,19 @@ namespace fs = std::filesystem;
 constexpr auto USAGE = R"docopt(Ecsact Build Command
 
 Usage:
-	ecsact build (-h | --help)
-	ecsact build <files>... --recipe=<name> --output=<path> [--temp_dir=<path>]
+  ecsact build (-h | --help)
+  ecsact build <files>... --recipe=<name> --output=<path> [--format=<type>] [--temp_dir=<path>]
 
 Options:
-	<files>             Ecsact files used to build Ecsact Runtime
-	-r --recipe=<name>  Name or path to recipe
-	-o --output=<path>  Runtime output path
-	--temp_dir          Optional temporary directoy to use instead of generated one
+  <files>             Ecsact files used to build Ecsact Runtime
+  -r --recipe=<name>  Name or path to recipe
+  -o --output=<path>  Runtime output path
+  --temp_dir=<path>   Optional temporary directoy to use instead of generated one
+  -f --format=<type>  The format used to report progress of the build [default: text]
+                      Allowed Formats:
+                        none - No output
+                        json - Each line of stdout/stderr is a JSON object
+                        text - Human readable text format
 )docopt";
 
 auto handle_source( //
@@ -99,6 +107,19 @@ auto ecsact::cli::detail::build_command( //
 	char* argv[]
 ) -> int {
 	auto args = docopt::docopt(USAGE, {argv + 1, argv + argc});
+	auto format = args["--format"].asString();
+
+	if(format == "text") {
+		set_report_handler(text_report{});
+	} else if(format == "json") {
+		set_report_handler(json_report{});
+	} else if(format == "none") {
+		set_report_handler({});
+	} else {
+		std::cerr << "Invalid --format value: " << format << "\n";
+		std::cout << USAGE;
+		return 1;
+	}
 
 	auto files = args.at("<files>").asStringList();
 	auto file_paths = std::vector<fs::path>{};

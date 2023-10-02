@@ -67,6 +67,10 @@ cc_library(
     copts = copts,
     deps = [
         ":command",
+        "//:cli_report",
+        "//:cli_report_message",
+        "//:cli_json_report",
+        "//:cli_text_report",
         "//executable_path",
         "@docopt.cpp//:docopt",
         "@yaml-cpp",

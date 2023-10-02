@@ -18,7 +18,6 @@ bazel_dep(name = "magic_enum", version = "0.9.3")
 bazel_dep(name = "docopt.cpp", version = "0.6.2")
 bazel_dep(name = "rules_ecsact", version = "0.4.2")
 bazel_dep(name = "yaml-cpp")
-
 git_override(
     module_name = "yaml-cpp",
     commit = "37f1b8b8c9e5172ff3a79a3d5fdbb87f2994842b",

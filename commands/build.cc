@@ -63,7 +63,7 @@ auto handle_source( //
 
 	if(ec) {
 		ecsact::cli::report_error(
-			"Failed to copy source {} to {}: {}\n",
+			"Failed to copy source {} to {}: {}",
 			src.path.generic_string(),
 			outdir.generic_string(),
 			ec.message()
@@ -98,6 +98,12 @@ auto cook_recipe( //
 		);
 		return 1;
 	}
+
+	ecsact::cli::report_info(
+		"Using compiler: {} ({})",
+		compiler->compiler_type,
+		compiler->compiler_version
+	);
 
 	return exit_code;
 }

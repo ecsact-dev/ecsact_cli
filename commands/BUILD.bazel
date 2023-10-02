@@ -75,5 +75,6 @@ cc_library(
         "@docopt.cpp//:docopt",
         "@yaml-cpp",
         "@magic_enum",
+        "@boost.process",
     ],
 )

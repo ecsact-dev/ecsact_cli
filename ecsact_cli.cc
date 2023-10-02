@@ -12,6 +12,7 @@
 #include "./commands/config.hh"
 
 using namespace std::string_view_literals;
+namespace fs = std::filesystem;
 
 constexpr auto LOGO_RAW = R"(
          /##########\
@@ -71,6 +72,11 @@ void print_usage() {
 }
 
 int main(int argc, char* argv[]) {
+	auto build_working_dir = std::getenv("BUILD_WORKING_DIRECTORY");
+	if(build_working_dir != nullptr) {
+		fs::current_path(build_working_dir);
+	}
+	
 	using ecsact::cli::detail::command_fn_t;
 
 	const std::unordered_map<std::string, command_fn_t> commands{

@@ -5,14 +5,3 @@ exports:
 
 sources:
   - ecsact_build_test.cc
-  - Makefile
-  - codegen:
-      - cpp_header
-    outdir: include
-  - fetch: https://some/url/yo
-    strip_prefix: some-pkg/include
-    outdir: include
-
-compile:
-  steps:
-  - make all

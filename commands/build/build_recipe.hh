@@ -39,17 +39,19 @@ public:
 
 	using source = std::variant<source_path, source_fetch, source_codegen>;
 
-	build_recipe(build_recipe&&);
+		build_recipe(build_recipe&&);
 	~build_recipe();
 
 	auto exports() const -> std::span<const std::string>;
 	auto imports() const -> std::span<const std::string>;
 	auto sources() const -> std::span<const source>;
+	auto system_libs() const -> std::span<const std::string>;
 
 private:
 	std::vector<std::string> _exports;
 	std::vector<std::string> _imports;
 	std::vector<source>      _sources;
+	std::vector<std::string> _system_libs;
 
 	build_recipe();
 };

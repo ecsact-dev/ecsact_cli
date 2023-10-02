@@ -72,6 +72,7 @@ cc_library(
         "//:cli_json_report",
         "//:cli_text_report",
         "//executable_path",
+        "@ecsact_interpret",
         "@docopt.cpp//:docopt",
         "@yaml-cpp",
         "@magic_enum",

@@ -20,6 +20,10 @@ auto ecsact::build_recipe::sources() const -> std::span<const source> {
 	return _sources;
 }
 
+auto ecsact::build_recipe::system_libs() const -> std::span<const std::string> {
+	return _system_libs;
+}
+
 static auto get_if_error( //
 	const auto& result
 ) -> std::optional<ecsact::build_recipe_parse_error> {
@@ -57,6 +61,16 @@ static auto parse_imports( //
 	return imports.as<std::vector<std::string>>();
 }
 
+static auto parse_system_libs( //
+	YAML::Node system_libs
+) -> std::variant<std::vector<std::string>, ecsact::build_recipe_parse_error> {
+	if(!system_libs) {
+		return {};
+	}
+
+	return system_libs.as<std::vector<std::string>>();
+}
+
 static auto parse_sources( //
 	YAML::Node sources
 )
@@ -90,7 +104,7 @@ static auto parse_sources( //
 			}
 		} else if(src.IsScalar()) {
 			auto path = src.as<std::string>();
-			result.emplace_back(source_path{path});
+			result.emplace_back(source_path{.path = path, .outdir = "src"});
 		}
 	}
 
@@ -123,10 +137,16 @@ auto ecsact::build_recipe::from_yaml_file( //
 			return *err;
 		}
 
+		auto system_libs = parse_system_libs(doc["system_libs"]);
+		if(auto err = get_if_error(system_libs)) {
+			return *err;
+		}
+
 		auto recipe = build_recipe{};
 		recipe._exports = get_value(exports);
 		recipe._imports = get_value(imports);
 		recipe._sources = get_value(sources);
+		recipe._system_libs = get_value(system_libs);
 
 		return recipe;
 	} catch(const YAML::BadFile&) {

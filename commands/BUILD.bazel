@@ -65,6 +65,10 @@ cc_library(
     srcs = ["build.cc"] + glob(["build/**/*.cc", "build/**/*.hh"]),
     hdrs = ["build.hh"],
     copts = copts,
+    defines = select({
+        "//:use_sdk_version_enabled": ["ECSACT_CLI_USE_SDK_VERSION"],
+        "//:use_sdk_version_disabled": [],
+    }),
     deps = [
         ":command",
         "//:cli_report",
@@ -77,5 +81,31 @@ cc_library(
         "@yaml-cpp",
         "@magic_enum",
         "@boost.process",
-    ],
+    ] + select({
+        "//:use_sdk_version_enabled": [],
+        "//:use_sdk_version_disabled": [
+            "@bazel_tools//tools/cpp/runfiles",
+        ],
+    }),
+    data = select({
+        "//:use_sdk_version_enabled": [
+        ],
+        "//:use_sdk_version_disabled": [
+            "@ecsact_runtime//:ecsact/lib.hh",
+            "@ecsact_runtime//:ecsact/runtime.h",
+            "@ecsact_runtime//:ecsact/runtime/async.h",
+            "@ecsact_runtime//:ecsact/runtime/async.hh",
+            "@ecsact_runtime//:ecsact/runtime/common.h",
+            "@ecsact_runtime//:ecsact/runtime/core.h",
+            "@ecsact_runtime//:ecsact/runtime/core.hh",
+            "@ecsact_runtime//:ecsact/runtime/definitions.h",
+            "@ecsact_runtime//:ecsact/runtime/dylib.h",
+            "@ecsact_runtime//:ecsact/runtime/dynamic.h",
+            "@ecsact_runtime//:ecsact/runtime/meta.h",
+            "@ecsact_runtime//:ecsact/runtime/meta.hh",
+            "@ecsact_runtime//:ecsact/runtime/serialize.h",
+            "@ecsact_runtime//:ecsact/runtime/serialize.hh",
+            "@ecsact_runtime//:ecsact/runtime/static.h",
+        ],
+    }),
 )

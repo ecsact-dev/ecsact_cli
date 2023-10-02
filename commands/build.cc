@@ -1,9 +1,11 @@
 #include "build.hh"
 
+#include <memory>
 #include <iostream>
 #include <format>
 #include <filesystem>
 #include <variant>
+#include <string_view>
 #include <format>
 #include <boost/process.hpp>
 #include "docopt.h"
@@ -13,6 +15,9 @@
 #include "ecsact/cli/report.hh"
 #include "ecsact/cli/detail/json_report.hh"
 #include "ecsact/cli/detail/text_report.hh"
+#ifndef ECSACT_CLI_USE_SDK_VERSION
+#	include "tools/cpp/runfiles/runfiles.h"
+#endif
 
 #include "commands/build/build_recipe.hh"
 #include "commands/build/cc_compiler.hh"
@@ -23,6 +28,8 @@ using ecsact::cli::subcommand_start_message;
 
 namespace fs = std::filesystem;
 namespace bp = boost::process;
+
+using namespace std::string_view_literals;
 
 constexpr auto USAGE = R"docopt(Ecsact Build Command
 
@@ -190,10 +197,11 @@ auto cl_compile(compile_options options) -> int {
 }
 
 auto cook_recipe( //
-	std::vector<fs::path>       files,
-	const ecsact::build_recipe& recipe,
-	fs::path                    work_dir,
-	fs::path                    output_path
+	[[maybe_unused]] const char* argv0,
+	std::vector<fs::path>        files,
+	const ecsact::build_recipe&  recipe,
+	fs::path                     work_dir,
+	fs::path                     output_path
 ) -> int {
 	auto exit_code = int{};
 
@@ -224,6 +232,9 @@ auto cook_recipe( //
 	auto src_dir = work_dir / "src";
 	auto inc_dir = work_dir / "include";
 
+	auto ec = std::error_code{};
+	fs::create_directories(inc_dir, ec);
+
 	auto source_files = std::vector<fs::path>{};
 
 	for(auto entry : fs::recursive_directory_iterator(src_dir)) {
@@ -237,6 +248,61 @@ auto cook_recipe( //
 		ecsact::cli::report_error("No source files");
 		return 1;
 	}
+
+#ifndef ECSACT_CLI_USE_SDK_VERSION
+	using bazel::tools::cpp::runfiles::Runfiles;
+	auto runfiles_error = std::string{};
+	auto runfiles =
+		std::unique_ptr<Runfiles>(Runfiles::Create(argv0, BAZEL_CURRENT_REPOSITORY, &runfiles_error));
+	if(!runfiles) {
+		ecsact::cli::report_error("Failed to load runfiles: {}", runfiles_error);
+		return 1;
+	}
+
+	auto ecsact_runtime_headers_from_runfiles = std::vector<std::string>{
+		"ecsact_runtime/ecsact/lib.hh",
+		"ecsact_runtime/ecsact/runtime.h",
+		"ecsact_runtime/ecsact/runtime/async.h",
+		"ecsact_runtime/ecsact/runtime/async.hh",
+		"ecsact_runtime/ecsact/runtime/common.h",
+		"ecsact_runtime/ecsact/runtime/core.h",
+		"ecsact_runtime/ecsact/runtime/core.hh",
+		"ecsact_runtime/ecsact/runtime/definitions.h",
+		"ecsact_runtime/ecsact/runtime/dylib.h",
+		"ecsact_runtime/ecsact/runtime/dynamic.h",
+		"ecsact_runtime/ecsact/runtime/meta.h",
+		"ecsact_runtime/ecsact/runtime/meta.hh",
+		"ecsact_runtime/ecsact/runtime/serialize.h",
+		"ecsact_runtime/ecsact/runtime/serialize.hh",
+		"ecsact_runtime/ecsact/runtime/static.h",
+	};
+
+	for(auto hdr : ecsact_runtime_headers_from_runfiles) {
+		auto full_hdr_path = runfiles->Rlocation(hdr);
+
+		if(full_hdr_path.empty()) {
+			ecsact::cli::report_error(
+				"Cannot find ecsact_runtime header in runfiles: {}",
+				hdr
+			);
+			return 1;
+		}
+
+		auto rel_hdr_path = hdr.substr("ecsact_runtime/"sv.size());
+		fs::create_directories((inc_dir / rel_hdr_path).parent_path(), ec);
+
+		fs::copy_file(full_hdr_path, inc_dir / rel_hdr_path, ec);
+		if(ec) {
+			ecsact::cli::report_error(
+				"Failed to copy ecsact runtime header from runfiles. {} -> {}\n{}",
+				full_hdr_path,
+				(inc_dir / rel_hdr_path).generic_string(),
+				ec.message()
+			);
+			return 1;
+		}
+	}
+#endif
 
 	if(is_cl_like(compiler->compiler_type)) {
 		auto system_libs = std::vector<std::string>{};
@@ -349,6 +415,7 @@ auto ecsact::cli::detail::build_command( //
 	);
 
 	return cook_recipe(
+		argv[0],
 		file_paths,
 		std::get<build_recipe>(recipe),
 		work_dir,

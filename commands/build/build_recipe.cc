@@ -1,8 +1,11 @@
 #include "build_recipe.hh"
 
 #include <fstream>
+#include <filesystem>
 #include <cassert>
 #include "yaml-cpp/yaml.h"
+
+namespace fs = std::filesystem;
 
 ecsact::build_recipe::build_recipe() = default;
 ecsact::build_recipe::build_recipe(build_recipe&&) = default;
@@ -72,6 +75,7 @@ static auto parse_system_libs( //
 }
 
 static auto parse_sources( //
+	fs::path   recipe_path,
 	YAML::Node sources
 )
 	-> std::variant<
@@ -103,8 +107,14 @@ static auto parse_sources( //
 				});
 			}
 		} else if(src.IsScalar()) {
-			auto path = src.as<std::string>();
-			result.emplace_back(source_path{.path = path, .outdir = "src"});
+			auto path = fs::path{src.as<std::string>()};
+			if(!path.is_absolute()) {
+				path = recipe_path.parent_path() / path;
+			}
+			result.emplace_back(source_path{
+				.path = path,
+				.outdir = "src",
+			});
 		}
 	}
 
@@ -132,7 +142,7 @@ auto ecsact::build_recipe::from_yaml_file( //
 			return *err;
 		}
 
-		auto sources = parse_sources(doc["sources"]);
+		auto sources = parse_sources(p, doc["sources"]);
 		if(auto err = get_if_error(sources)) {
 			return *err;
 		}

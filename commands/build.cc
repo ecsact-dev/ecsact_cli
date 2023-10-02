@@ -38,7 +38,7 @@ auto handle_source( //
 	ecsact::build_recipe::source_fetch,
 	fs::path work_dir
 ) -> int {
-	std::cerr << std::format("Fetching source not yet supported\n");
+	ecsact::cli::report_error("Fetching source not yet supported\n");
 	return 1;
 }
 
@@ -46,7 +46,7 @@ auto handle_source( //
 	ecsact::build_recipe::source_codegen,
 	fs::path work_dir
 ) -> int {
-	std::cerr << std::format("Codegen source not yet supported\n");
+	ecsact::cli::report_error("Codegen source not yet supported\n");
 	return 1;
 }
 
@@ -62,7 +62,7 @@ auto handle_source( //
 	fs::copy(src.path, outdir, ec);
 
 	if(ec) {
-		std::cerr << std::format(
+		ecsact::cli::report_error(
 			"Failed to copy source {} to {}: {}\n",
 			src.path.generic_string(),
 			outdir.generic_string(),
@@ -74,7 +74,7 @@ auto handle_source( //
 	return 0;
 }
 
-auto start_build_recipe( //
+auto cook_recipe( //
 	std::vector<fs::path>       files,
 	const ecsact::build_recipe& recipe,
 	fs::path                    work_dir
@@ -93,7 +93,7 @@ auto start_build_recipe( //
 	auto compiler = ecsact::detect_cc_compiler();
 
 	if(!compiler) {
-		std::cerr << std::format(
+		ecsact::cli::report_error(
 			"Failed to detect C++ compiler installed on your system\n"
 		);
 		return 1;
@@ -136,10 +136,7 @@ auto ecsact::cli::detail::build_command( //
 
 	for(auto file : files) {
 		if(!fs::exists(file)) {
-			std::cerr << std::format( //
-				"Input file {} does not exist\n",
-				file
-			);
+			ecsact::cli::report_error("Input file {} does not exist\n", file);
 			return 1;
 		}
 
@@ -148,12 +145,12 @@ auto ecsact::cli::detail::build_command( //
 
 	if(std::holds_alternative<build_recipe_parse_error>(recipe)) {
 		auto recipe_error = std::get<build_recipe_parse_error>(recipe);
-		std::cerr << std::format( //
-			"Recipe Error: {}\n",
+		ecsact::cli::report_error(
+			"Recipe Error {}",
 			magic_enum::enum_name(recipe_error)
 		);
 		return 1;
 	}
 
-	return start_build_recipe(file_paths, std::get<build_recipe>(recipe), work_dir);
+	return cook_recipe(file_paths, std::get<build_recipe>(recipe), work_dir);
 }

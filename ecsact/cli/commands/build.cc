@@ -135,7 +135,7 @@ auto ecsact::cli::detail::build_command( //
 		ecsact::meta::package_name(main_pkg_id)
 	);
 
-	auto exit_code = cook_recipe(
+	auto runtime_output_path = cook_recipe(
 		argv[0],
 		file_paths,
 		std::get<build_recipe>(recipe),
@@ -143,12 +143,16 @@ auto ecsact::cli::detail::build_command( //
 		output_path
 	);
 
-	if(exit_code == 0) {
-		exit_code = ecsact::cli::taste_recipe( //
-			std::get<build_recipe>(recipe),
-			output_path
-		);
+
+	if(!runtime_output_path) {
+		ecsact::cli::report_error("Failed to cook recipe");
+		return 1;
 	}
+
+	auto exit_code = ecsact::cli::taste_recipe( //
+		std::get<build_recipe>(recipe),
+		*runtime_output_path
+	);
 
 	if(exit_code == 0) {
 		ecsact::cli::report_success(

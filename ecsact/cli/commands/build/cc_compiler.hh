@@ -62,6 +62,9 @@ struct cc_compiler {
 
 	std::vector<std::filesystem::path> std_inc_paths;
 	std::vector<std::filesystem::path> std_lib_paths;
+
+	std::string              preferred_output_extension;
+	std::vector<std::string> allowed_output_extensions;
 };
 
 auto detect_cc_compiler( //

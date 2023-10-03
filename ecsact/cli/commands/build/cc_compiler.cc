@@ -14,7 +14,6 @@ using ecsact::cli::subcommand_start_message;
 namespace fs = std::filesystem;
 namespace bp = boost::process;
 
-
 auto ecsact::to_string(cc_compiler_type type) -> std::string_view {
 	switch(type) {
 		case ecsact::cc_compiler_type::msvc_cl:
@@ -99,6 +98,14 @@ static auto cc_from_string( //
 		.compiler_type = compiler_type,
 		.compiler_path = compiler_path,
 		.compiler_version = compiler_version,
+	// TODO(zaucy): Detect actual output extension
+#ifdef _WIN32
+		.preferred_output_extension = ".dll",
+		.allowed_output_extensions = {".dll"},
+#else
+		.preferred_output_extension = ".so",
+		.allowed_output_extensions = {".so"},
+#endif
 	};
 }
 
@@ -210,7 +217,7 @@ static auto find_vswhere() -> std::optional<fs::path> {
 #endif // _WIN32
 
 auto as_vec_path(auto&& vec) -> std::vector<fs::path> {
-	auto result =std::vector<fs::path>{};
+	auto result = std::vector<fs::path>{};
 	result.reserve(vec.size());
 	for(auto entry : vec) {
 		result.emplace_back(entry);
@@ -347,23 +354,31 @@ static auto cc_vswhere( //
 		.compiler_version = tools_version,
 		.std_inc_paths = as_vec_path(standard_include_paths),
 		.std_lib_paths = as_vec_path(standard_lib_paths),
+		.preferred_output_extension = ".dll",
+		.allowed_output_extensions = {".dll"},
 	};
 }
 #endif
 
-static auto cc_default(fs::path work_dir) -> std::optional<ecsact::cc_compiler> {
+static auto cc_default( //
+	fs::path work_dir
+) -> std::optional<ecsact::cc_compiler> {
 #ifdef _WIN32
 	return cc_vswhere(work_dir);
 #else
-	return {};
+	return cc_from_string("clang");
 #endif
 }
 
-static auto cc_from_env_path(fs::path work_dir) -> std::optional<ecsact::cc_compiler> {
+static auto cc_from_env_path( //
+	fs::path work_dir
+) -> std::optional<ecsact::cc_compiler> {
 	return {};
 }
 
-auto ecsact::detect_cc_compiler(fs::path work_dir) -> std::optional<cc_compiler> {
+auto ecsact::detect_cc_compiler( //
+	fs::path work_dir
+) -> std::optional<cc_compiler> {
 	auto compiler = cc_from_env();
 
 	if(!compiler) {

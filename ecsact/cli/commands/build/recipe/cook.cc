@@ -15,8 +15,8 @@ namespace bp = boost::process;
 
 using namespace std::string_view_literals;
 
-using ecsact::cli::subcommand_start_message;
 using ecsact::cli::subcommand_end_message;
+using ecsact::cli::subcommand_start_message;
 
 static auto handle_source( //
 	ecsact::build_recipe::source_fetch,
@@ -70,8 +70,151 @@ struct compile_options {
 	fs::path                 output_path;
 };
 
-
 auto clang_gcc_compile(compile_options options) -> int {
+	const fs::path clang = options.compiler.compiler_path;
+
+	auto compile_proc_args = std::vector<std::string>{};
+
+	compile_proc_args.push_back("-c");
+#if !defined(_WIN32)
+	compile_proc_args.push_back("-fPIC");
+#endif
+	compile_proc_args.push_back("-std=c++20");
+
+	compile_proc_args.push_back("-isystem");
+	compile_proc_args.push_back(
+		fs::relative(options.inc_dir, options.work_dir).generic_string()
+	);
+	compile_proc_args.push_back("-isystem"); // TODO(zaucy): why two of these?
+
+	// TODO(zaucy): Maybe need these
+	compile_proc_args.push_back("-DECSACT_CORE_API_EXPORT");
+	compile_proc_args.push_back("-DECSACT_DYNAMIC_API_EXPORT");
+	compile_proc_args.push_back("-DECSACT_STATIC_API_EXPORT");
+	compile_proc_args.push_back("-DECSACT_SERIALIZE_API_EXPORT");
+	compile_proc_args.push_back("-DECSACT_SERIALIZE_API_EXPORT");
+#ifdef _WIN32
+	compile_proc_args.push_back("-D_CRT_SECURE_NO_WARNINGS");
+#endif
+	compile_proc_args.push_back("-fvisibility=hidden");
+	compile_proc_args.push_back("-fvisibility-inlines-hidden");
+	compile_proc_args.push_back("-ffunction-sections");
+	compile_proc_args.push_back("-fdata-sections");
+
+	compile_proc_args.push_back("-O3");
+
+	for(auto src : options.srcs) {
+		if(src.extension().string().starts_with(".h")) {
+			continue;
+		}
+
+		compile_proc_args.push_back(fs::relative(src, options.work_dir).string());
+	}
+
+	ecsact::cli::report_info("Compiling runtime...");
+
+	auto compile_proc_stdout = bp::ipstream{};
+	auto compile_proc_stderr = bp::ipstream{};
+	auto compile_proc = bp::child{
+		bp::exe(clang.string()),
+		bp::start_dir(options.work_dir.string()),
+		bp::args(compile_proc_args),
+		bp::std_out > compile_proc_stdout,
+		bp::std_err > compile_proc_stderr,
+	};
+
+	auto compile_subcommand_id = static_cast<ecsact::cli::subcommand_id_t>( //
+		compile_proc.id()
+	);
+
+	ecsact::cli::report(subcommand_start_message{
+		.id = compile_subcommand_id,
+		.executable = clang.string(),
+		.arguments = compile_proc_args,
+	});
+
+	ecsact::cli::report_stdout(compile_subcommand_id, compile_proc_stdout);
+	ecsact::cli::report_stderr(compile_subcommand_id, compile_proc_stderr);
+
+	compile_proc.wait();
+
+	auto compile_proc_exit_code = compile_proc.exit_code();
+
+	ecsact::cli::report(subcommand_end_message{
+		.id = compile_subcommand_id,
+	});
+
+	if(compile_proc_exit_code != 0) {
+		ecsact::cli::report_error(
+			"Runtime compoile failed. Exited with code {}",
+			compile_proc_exit_code
+		);
+		return 1;
+	}
+
+	auto link_proc_args = std::vector<std::string>{};
+
+	link_proc_args.push_back("-shared");
+#if !defined(_WIN32)
+	// link_proc_args.push_back("-Wl,-s");
+	link_proc_args.push_back("-Wl,--gc-sections");
+	link_proc_args.push_back("-Wl,--exclude-libs,ALL");
+#endif
+	link_proc_args.push_back("-o");
+	link_proc_args.push_back(options.output_path.generic_string());
+
+	for(auto p : fs::recursive_directory_iterator(options.work_dir)) {
+		if(!p.is_regular_file()) {
+			continue;
+		}
+
+		if(p.path().extension() == ".o") {
+			link_proc_args.push_back(p.path().string());
+		}
+	}
+
+	ecsact::cli::report_info("Linking runtime...");
+
+	auto link_proc_stdout = bp::ipstream{};
+	auto link_proc_stderr = bp::ipstream{};
+	auto link_proc = bp::child{
+		bp::exe(clang.string()),
+		bp::start_dir(options.work_dir.string()),
+		bp::args(link_proc_args),
+		bp::std_out > link_proc_stdout,
+		bp::std_err > link_proc_stderr,
+	};
+
+	auto link_subcommand_id = static_cast<ecsact::cli::subcommand_id_t>( //
+		link_proc.id()
+	);
+
+	ecsact::cli::report(subcommand_start_message{
+		.id = link_subcommand_id,
+		.executable = clang.string(),
+		.arguments = link_proc_args,
+	});
+
+	ecsact::cli::report_stdout(link_subcommand_id, link_proc_stdout);
+	ecsact::cli::report_stderr(link_subcommand_id, link_proc_stderr);
+
+	link_proc.wait();
+
+	auto link_proc_exit_code = link_proc.exit_code();
+
+	ecsact::cli::report(subcommand_end_message{
+		.id = link_subcommand_id,
+		.exit_code = link_proc_exit_code,
+	});
+
+	if(link_proc_exit_code != 0) {
+		ecsact::cli::report_error(
+			"Linking failed. Exited with code {}",
+			link_proc_exit_code
+		);
+		return 1;
+	}
+
 	return 0;
 }
 
@@ -184,7 +327,7 @@ auto ecsact::cli::cook_recipe( //
 	const ecsact::build_recipe&  recipe,
 	fs::path                     work_dir,
 	fs::path                     output_path
-) -> int {
+) -> std::optional<std::filesystem::path> {
 	auto exit_code = int{};
 
 	for(auto& src : recipe.sources()) {
@@ -202,7 +345,7 @@ auto ecsact::cli::cook_recipe( //
 		ecsact::cli::report_error(
 			"Failed to detect C++ compiler installed on your system"
 		);
-		return 1;
+		return {};
 	}
 
 	ecsact::cli::report_info(
@@ -210,6 +353,29 @@ auto ecsact::cli::cook_recipe( //
 		to_string(compiler->compiler_type),
 		compiler->compiler_version
 	);
+
+	if(output_path.has_extension()) {
+		auto has_allowed_output_extension = false;
+		for(auto allowed_ext : compiler->allowed_output_extensions) {
+			if(allowed_ext == output_path.extension().string()) {
+				has_allowed_output_extension = true;
+			}
+		}
+
+		if(!has_allowed_output_extension) {
+			ecsact::cli::report_error(
+				"Invalid output extension {}",
+				output_path.extension().string()
+			);
+
+			return {};
+		}
+
+	} else {
+		output_path.replace_extension(compiler->preferred_output_extension);
+	}
+
+	ecsact::cli::report_info("Compiling {}", output_path.string());
 
 	auto src_dir = work_dir / "src";
 	auto inc_dir = work_dir / "include";
@@ -228,7 +394,7 @@ auto ecsact::cli::cook_recipe( //
 
 	if(source_files.empty()) {
 		ecsact::cli::report_error("No source files");
-		return 1;
+		return {};
 	}
 
 #ifndef ECSACT_CLI_USE_SDK_VERSION
@@ -239,8 +405,10 @@ auto ecsact::cli::cook_recipe( //
 	);
 	if(!runfiles) {
 		ecsact::cli::report_error("Failed to load runfiles: {}", runfiles_error);
-		return 1;
+		return {};
 	}
+
+	ecsact::cli::report_info("Using ecsact headers from runfiles");
 
 	auto ecsact_runtime_headers_from_runfiles = std::vector<std::string>{
 		"ecsact_runtime/ecsact/lib.hh",
@@ -268,7 +436,7 @@ auto ecsact::cli::cook_recipe( //
 				"Cannot find ecsact_runtime header in runfiles: {}",
 				hdr
 			);
-			return 1;
+			return {};
 		}
 
 		auto rel_hdr_path = hdr.substr("ecsact_runtime/"sv.size());
@@ -282,7 +450,7 @@ auto ecsact::cli::cook_recipe( //
 				(inc_dir / rel_hdr_path).generic_string(),
 				ec.message()
 			);
-			return 1;
+			return {};
 		}
 	}
 #endif
@@ -293,7 +461,6 @@ auto ecsact::cli::cook_recipe( //
 	}
 
 	if(is_cl_like(compiler->compiler_type)) {
-
 		exit_code = cl_compile({
 			.work_dir = work_dir,
 			.compiler = *compiler,
@@ -314,8 +481,8 @@ auto ecsact::cli::cook_recipe( //
 	}
 
 	if(exit_code != 0) {
-		return exit_code;
+		return {};
 	}
 
-	return exit_code;
+	return output_path;
 }

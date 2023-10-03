@@ -17,7 +17,7 @@ alias(
 ecsact_toolchain(
     name = "ecsact_toolchain",
     visibility = ["//visibility:public"],
-    target_tool = ":ecsact",
+    target_tool = ":ecsact_cli",
 )
 
 toolchain(

@@ -2,9 +2,25 @@
 
 #include <format>
 #include <algorithm>
+#include <memory>
 #include <boost/dll.hpp>
 #include <boost/dll/library_info.hpp>
 #include "ecsact/cli/report.hh"
+
+static auto maybe_library_info( //
+	std::filesystem::path library_path
+) -> std::unique_ptr<boost::dll::library_info> {
+	try {
+		return std::unique_ptr<boost::dll::library_info>(
+			new boost::dll::library_info{
+				library_path.string(),
+				false,
+			}
+		);
+	} catch(const std::exception&) {
+		return nullptr;
+	}
+}
 
 auto ecsact::cli::taste_recipe( //
 	const ecsact::build_recipe& recipe,
@@ -12,10 +28,15 @@ auto ecsact::cli::taste_recipe( //
 ) -> int {
 	auto ec = std::error_code{};
 
-	auto runtime_lib_info = boost::dll::library_info{
-		output_path.string(),
-		false,
-	};
+	auto runtime_lib_info = maybe_library_info(output_path.string());
+
+	if(!runtime_lib_info) {
+		ecsact::cli::report_error(
+			"Unable to load library info for {}",
+			output_path.string()
+		);
+		return 1;
+	}
 
 	auto runtime_lib = boost::dll::shared_library{
 		output_path.string(),
@@ -38,7 +59,7 @@ auto ecsact::cli::taste_recipe( //
 
 	for(auto recipe_export : recipe_exports) {
 		auto has_export_symbol = false;
-		for(auto symbol : runtime_lib_info.symbols()) {
+		for(auto symbol : runtime_lib_info->symbols()) {
 			if(recipe_export == symbol) {
 				has_export_symbol = true;
 			}
@@ -51,7 +72,7 @@ auto ecsact::cli::taste_recipe( //
 
 	for(auto recipe_import : recipe_imports) {
 		auto has_import_symbol = false;
-		for(auto symbol : runtime_lib_info.symbols()) {
+		for(auto symbol : runtime_lib_info->symbols()) {
 			if(recipe_import == symbol) {
 				has_import_symbol = true;
 			}
@@ -70,6 +91,15 @@ auto ecsact::cli::taste_recipe( //
 	}
 
 	if(!missing_export_symbols.empty() || !missing_import_symbols.empty()) {
+		auto found_symbols = runtime_lib_info->symbols();
+		if(found_symbols.empty()) {
+			ecsact::cli::report_warning("No symbols found");
+		} else {
+		for(auto symbol : runtime_lib_info->symbols()) {
+			ecsact::cli::report_info("Found symbol: {}", symbol);
+		}
+			}
+
 		runtime_lib.unload();
 		return 1;
 	}

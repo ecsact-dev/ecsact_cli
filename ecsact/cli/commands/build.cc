@@ -143,10 +143,19 @@ auto ecsact::cli::detail::build_command( //
 		output_path
 	);
 
-	if(exit_code != 0) {
-		exit_code = ecsact::cli::taste_recipe(std::get<build_recipe>(recipe), output_path);
+	if(exit_code == 0) {
+		exit_code = ecsact::cli::taste_recipe( //
+			std::get<build_recipe>(recipe),
+			output_path
+		);
 	}
 
+	if(exit_code == 0) {
+		ecsact::cli::report_success(
+			"Successfully cooked and tasted {}",
+			output_path.generic_string()
+		);
+	}
 
 	return exit_code;
 }

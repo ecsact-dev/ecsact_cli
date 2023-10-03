@@ -146,16 +146,17 @@ auto cl_compile(compile_options options) -> int {
 
 	cl_args.push_back(std::format("/I{}", options.inc_dir.string()));
 
-	for(auto lib_dir : options.compiler.std_lib_paths) {
-		cl_args.push_back(std::format("/LIBPATH:{}", lib_dir.string()));
-	}
-
 	for(auto sys_lib : options.system_libs) {
 		cl_args.push_back(std::format("/DEFAULTLIB:{}", sys_lib));
 	}
 
-	cl_args.push_back("/DLL");
 	cl_args.push_back("/link");
+	cl_args.push_back("/DLL");
+
+	for(auto lib_dir : options.compiler.std_lib_paths) {
+		cl_args.push_back(std::format("/LIBPATH:{}", lib_dir.string()));
+	}
+
 	cl_args.push_back("/MACHINE:x64"); // TODO(zaucy): configure from triple
 
 	cl_args.push_back(std::format("/OUT:{}", options.output_path.string()));
@@ -214,7 +215,7 @@ auto cook_recipe( //
 		}
 	}
 
-	auto compiler = ecsact::detect_cc_compiler();
+	auto compiler = ecsact::detect_cc_compiler(work_dir);
 
 	if(!compiler) {
 		ecsact::cli::report_error(

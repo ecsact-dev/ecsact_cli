@@ -122,6 +122,47 @@ static auto cc_from_env() -> std::optional<ecsact::cc_compiler> {
 	return compiler;
 }
 
+static auto vsdevcmd_env_var(
+	const fs::path&    vsdevcmd_path,
+	const std::string& env_var_name
+) -> std::vector<std::string> {
+	auto result = std::vector<std::string>{};
+	auto is = bp::ipstream{};
+	auto extract_script_proc = bp::child{
+		vsdevcmd_path.string(),
+		bp::args({env_var_name}),
+		bp::std_out > is,
+		bp::std_err > bp::null,
+	};
+
+	auto subcommand_id =
+		static_cast<ecsact::cli::subcommand_id_t>(extract_script_proc.id());
+	ecsact::cli::report(subcommand_start_message{
+		.id = subcommand_id,
+		.executable = vsdevcmd_path.string(),
+		.arguments = {env_var_name},
+	});
+
+	for(;;) {
+		std::string var;
+		std::getline(is, var, ';');
+		boost::trim_right(var);
+		if(var.empty()) {
+			break;
+		}
+		result.emplace_back(std::move(var));
+	}
+
+	extract_script_proc.detach();
+
+	ecsact::cli::report(subcommand_end_message{
+		.id = subcommand_id,
+		.exit_code = 0, // We detached, so we don't have an exit code
+	});
+
+	return result;
+}
+
 static auto find_vswhere() -> std::optional<fs::path> {
 	auto vswhere_path = std::string{};
 
@@ -149,7 +190,19 @@ static auto find_vswhere() -> std::optional<fs::path> {
 	return fs::path{vswhere_path};
 }
 
-static auto cc_vswhere() -> std::optional<ecsact::cc_compiler> {
+auto as_vec_path(auto&& vec) -> std::vector<fs::path> {
+	auto result =std::vector<fs::path>{};
+	result.reserve(vec.size());
+	for(auto entry : vec) {
+		result.emplace_back(entry);
+	}
+
+	return result;
+}
+
+static auto cc_vswhere( //
+	fs::path work_dir
+) -> std::optional<ecsact::cc_compiler> {
 	auto vswhere = find_vswhere();
 	if(!vswhere) {
 		return {};
@@ -223,6 +276,29 @@ static auto cc_vswhere() -> std::optional<ecsact::cc_compiler> {
 
 	std::string vs_installation_path = vs_config_itr->at("installationPath");
 
+	const std::string vsdevcmd_path =
+		vs_installation_path + "\\Common7\\Tools\\vsdevcmd.bat";
+	const auto vs_extract_env_path = work_dir / "vs_extract_env.bat";
+
+	{
+		auto env_extract_script_stream = std::ofstream{vs_extract_env_path};
+		env_extract_script_stream //
+			<< "@echo off\n"
+			<< "setlocal EnableDelayedExpansion\n"
+			<< "call \"" << vsdevcmd_path << "\" -arch=x64 > NUL\n"
+			<< "echo !%*!\n";
+		env_extract_script_stream.flush();
+		env_extract_script_stream.close();
+	}
+
+	// Quick labmda for convenience
+	auto vsdevcmd_env_varl = [&](const std::string& env_var) {
+		return vsdevcmd_env_var(vs_extract_env_path, env_var);
+	};
+
+	auto standard_include_paths = vsdevcmd_env_varl("INCLUDE");
+	auto standard_lib_paths = vsdevcmd_env_varl("LIB");
+
 	// https://github.com/microsoft/vswhere/wiki/Find-VC
 	auto version_text_path = std::format(
 		"{}\\VC\\Auxiliary\\Build\\Microsoft.VCToolsVersion.default.txt",
@@ -249,30 +325,32 @@ static auto cc_vswhere() -> std::optional<ecsact::cc_compiler> {
 		.compiler_type = ecsact::cc_compiler_type::msvc_cl,
 		.compiler_path = cl_path,
 		.compiler_version = tools_version,
+		.std_inc_paths = as_vec_path(standard_include_paths),
+		.std_lib_paths = as_vec_path(standard_lib_paths),
 	};
 }
 
-static auto cc_default() -> std::optional<ecsact::cc_compiler> {
+static auto cc_default(fs::path work_dir) -> std::optional<ecsact::cc_compiler> {
 #ifdef _WIN32
-	return cc_vswhere();
+	return cc_vswhere(work_dir);
 #else
 	return {};
 #endif
 }
 
-static auto cc_from_env_path() -> std::optional<ecsact::cc_compiler> {
+static auto cc_from_env_path(fs::path work_dir) -> std::optional<ecsact::cc_compiler> {
 	return {};
 }
 
-auto ecsact::detect_cc_compiler() -> std::optional<cc_compiler> {
+auto ecsact::detect_cc_compiler(fs::path work_dir) -> std::optional<cc_compiler> {
 	auto compiler = cc_from_env();
 
 	if(!compiler) {
-		compiler = cc_default();
+		compiler = cc_default(work_dir);
 	}
 
 	if(!compiler) {
-		compiler = cc_from_env_path();
+		compiler = cc_from_env_path(work_dir);
 	}
 
 	return compiler;

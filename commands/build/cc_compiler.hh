@@ -62,7 +62,9 @@ struct cc_compiler {
 	std::vector<std::filesystem::path> std_lib_paths;
 };
 
-auto detect_cc_compiler() -> std::optional<cc_compiler>;
+auto detect_cc_compiler( //
+	std::filesystem::path work_dir
+) -> std::optional<cc_compiler>;
 } // namespace ecsact
 
 template<>

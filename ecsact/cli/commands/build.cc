@@ -135,11 +135,18 @@ auto ecsact::cli::detail::build_command( //
 		ecsact::meta::package_name(main_pkg_id)
 	);
 
-	return cook_recipe(
+	auto exit_code = cook_recipe(
 		argv[0],
 		file_paths,
 		std::get<build_recipe>(recipe),
 		work_dir,
 		output_path
 	);
+
+	if(exit_code != 0) {
+		exit_code = ecsact::cli::taste_recipe(std::get<build_recipe>(recipe), output_path);
+	}
+
+
+	return exit_code;
 }

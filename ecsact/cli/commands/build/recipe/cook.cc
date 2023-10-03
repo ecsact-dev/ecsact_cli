@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <format>
+#include <string_view>
 #include <boost/process.hpp>
 #include "ecsact/cli/commands/build/cc_compiler.hh"
 #include "ecsact/cli/report.hh"
@@ -11,6 +12,8 @@
 
 namespace fs = std::filesystem;
 namespace bp = boost::process;
+
+using namespace std::string_view_literals;
 
 using ecsact::cli::subcommand_start_message;
 using ecsact::cli::subcommand_end_message;

@@ -30,6 +30,8 @@ enum class cc_compiler_type : std::uint32_t {
 
 // clang-format on
 
+auto to_string(cc_compiler_type type) -> std::string_view;
+
 constexpr auto is_cl_like(cc_compiler_type type) -> bool {
 	return static_cast<std::uint32_t>(type) &
 		static_cast<std::uint32_t>(cc_compiler_type::cl_like);
@@ -66,23 +68,3 @@ auto detect_cc_compiler( //
 	std::filesystem::path work_dir
 ) -> std::optional<cc_compiler>;
 } // namespace ecsact
-
-template<>
-struct std::formatter<ecsact::cc_compiler_type> : std::formatter<std::string> {
-	inline auto format(ecsact::cc_compiler_type type, format_context& ctx) const {
-		switch(type) {
-			case ecsact::cc_compiler_type::msvc_cl:
-				return formatter<string>::format("MSVC Compiler", ctx);
-			case ecsact::cc_compiler_type::clang_cl:
-				return formatter<string>::format("clang-cl", ctx);
-			case ecsact::cc_compiler_type::clang:
-				return formatter<string>::format("clang", ctx);
-			case ecsact::cc_compiler_type::gcc:
-				return formatter<string>::format("gcc", ctx);
-			case ecsact::cc_compiler_type::emcc:
-				return formatter<string>::format("emscripten", ctx);
-		}
-
-		return formatter<string>::format("unknown", ctx);
-	}
-};

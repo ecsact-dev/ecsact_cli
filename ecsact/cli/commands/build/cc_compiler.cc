@@ -14,6 +14,24 @@ using ecsact::cli::subcommand_start_message;
 namespace fs = std::filesystem;
 namespace bp = boost::process;
 
+
+auto ecsact::to_string(cc_compiler_type type) -> std::string_view {
+	switch(type) {
+		case ecsact::cc_compiler_type::msvc_cl:
+			return "MSVC Compiler";
+		case ecsact::cc_compiler_type::clang_cl:
+			return "clang-cl";
+		case ecsact::cc_compiler_type::clang:
+			return "clang";
+		case ecsact::cc_compiler_type::gcc:
+			return "gcc";
+		case ecsact::cc_compiler_type::emcc:
+			return "emscripten";
+		default:
+			return "unknown";
+	}
+}
+
 static auto get_compiler_type( //
 	fs::path compiler_path
 ) -> ecsact::cc_compiler_type {
@@ -54,7 +72,7 @@ static auto cc_from_string( //
 	if(!is_gcc_clang_like(compiler_type) && compiler_type != ecsact::cc_compiler_type::clang_cl) {
 		ecsact::cli::report_warning(
 			"Getting compiler info from path for {} is not supported",
-			compiler_type
+			to_string(compiler_type)
 		);
 		return {};
 	}

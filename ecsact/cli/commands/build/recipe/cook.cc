@@ -166,7 +166,7 @@ auto cl_compile(compile_options options) -> int {
 	if(compile_exit_code != 0) {
 		ecsact::cli::report_error(
 			"Failed to compile ecsact runtime. Compiler {} exited with code {}",
-			options.compiler.compiler_type,
+			to_string(options.compiler.compiler_type),
 			compile_exit_code
 		);
 		return 1;
@@ -204,7 +204,7 @@ auto ecsact::cli::cook_recipe( //
 
 	ecsact::cli::report_info(
 		"Using compiler: {} ({})",
-		compiler->compiler_type,
+		to_string(compiler->compiler_type),
 		compiler->compiler_version
 	);
 

@@ -60,8 +60,6 @@ static auto handle_source( //
 	return 0;
 }
 
-
-
 struct compile_options {
 	fs::path work_dir;
 
@@ -71,6 +69,11 @@ struct compile_options {
 	std::vector<fs::path>    srcs;
 	fs::path                 output_path;
 };
+
+
+auto clang_gcc_compile(compile_options options) -> int {
+	return 0;
+}
 
 auto cl_compile(compile_options options) -> int {
 	auto abs_from_wd = [&options](fs::path rel_path) {
@@ -135,7 +138,7 @@ auto cl_compile(compile_options options) -> int {
 	auto cl_proc_stdout = bp::ipstream{};
 	auto cl_proc_stderr = bp::ipstream{};
 	auto cl_proc = bp::child{
-		bp::exe(options.compiler.compiler_path),
+		bp::exe(options.compiler.compiler_path.string()),
 		bp::args(cl_args),
 		bp::std_out > cl_proc_stdout,
 		bp::std_err > cl_proc_stderr,
@@ -284,11 +287,12 @@ auto ecsact::cli::cook_recipe( //
 	}
 #endif
 
+	auto system_libs = std::vector<std::string>{};
+	for(auto sys_lib : recipe.system_libs()) {
+		system_libs.push_back(sys_lib);
+	}
+
 	if(is_cl_like(compiler->compiler_type)) {
-		auto system_libs = std::vector<std::string>{};
-		for(auto sys_lib : recipe.system_libs()) {
-			system_libs.push_back(sys_lib);
-		}
 
 		exit_code = cl_compile({
 			.work_dir = work_dir,
@@ -299,8 +303,14 @@ auto ecsact::cli::cook_recipe( //
 			.output_path = output_path,
 		});
 	} else {
-		// TODO(zaucy): gcc/clang like compile
-		// clang_gcc_compile(*compiler, inc_dir, source_files);
+		exit_code = clang_gcc_compile({
+			.work_dir = work_dir,
+			.compiler = *compiler,
+			.inc_dir = inc_dir,
+			.system_libs = system_libs,
+			.srcs = source_files,
+			.output_path = output_path,
+		});
 	}
 
 	if(exit_code != 0) {

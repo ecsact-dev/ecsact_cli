@@ -139,6 +139,7 @@ static auto cc_from_env() -> std::optional<ecsact::cc_compiler> {
 	return compiler;
 }
 
+#ifdef _WIN32
 static auto vsdevcmd_env_var(
 	const fs::path&    vsdevcmd_path,
 	const std::string& env_var_name
@@ -206,6 +207,7 @@ static auto find_vswhere() -> std::optional<fs::path> {
 
 	return fs::path{vswhere_path};
 }
+#endif // _WIN32
 
 auto as_vec_path(auto&& vec) -> std::vector<fs::path> {
 	auto result =std::vector<fs::path>{};
@@ -217,6 +219,7 @@ auto as_vec_path(auto&& vec) -> std::vector<fs::path> {
 	return result;
 }
 
+#ifdef _WIN32
 static auto cc_vswhere( //
 	fs::path work_dir
 ) -> std::optional<ecsact::cc_compiler> {
@@ -242,7 +245,7 @@ static auto cc_vswhere( //
 
 	auto vswhere_output_stream = bp::ipstream{};
 	auto vswhere_proc = bp::child{
-		bp::exe(*vswhere),
+		bp::exe(vswhere->string()),
 		bp::args(vswhere_proc_args),
 		bp::std_out > vswhere_output_stream,
 		bp::std_err > bp::null,
@@ -346,6 +349,7 @@ static auto cc_vswhere( //
 		.std_lib_paths = as_vec_path(standard_lib_paths),
 	};
 }
+#endif
 
 static auto cc_default(fs::path work_dir) -> std::optional<ecsact::cc_compiler> {
 #ifdef _WIN32

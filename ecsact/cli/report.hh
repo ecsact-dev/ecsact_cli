@@ -1,6 +1,7 @@
 #pragma once
 
 #include <format>
+#include <string>
 #include "ecsact/cli/report_message.hh"
 
 namespace ecsact::cli {
@@ -34,6 +35,28 @@ auto report_success(std::format_string<Args...> fmt, Args&&... args) -> void {
 	report(success_message{
 		.content = std::format<Args...>(fmt, std::forward<Args>(args)...),
 	});
+}
+
+template<typename OutputStream>
+auto report_stdout(subcommand_id_t id, OutputStream&& output) -> void {
+	auto line = std::string{};
+	while(output && std::getline(output, line)) {
+		report(subcommand_stdout_message{
+			.id = id,
+			.line = line,
+		});
+	}
+}
+
+template<typename OutputStream>
+auto report_stderr(subcommand_id_t id, OutputStream&& output) -> void {
+	auto line = std::string{};
+	while(output && std::getline(output, line)) {
+		report(subcommand_stderr_message{
+			.id = id,
+			.line = line,
+		});
+	}
 }
 
 } // namespace ecsact::cli

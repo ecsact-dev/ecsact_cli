@@ -161,9 +161,13 @@ auto cl_compile(compile_options options) -> int {
 
 	cl_args.push_back(std::format("/OUT:{}", options.output_path.string()));
 
+	auto cl_proc_stdout = bp::ipstream{};
+	auto cl_proc_stderr = bp::ipstream{};
 	auto cl_proc = bp::child{
 		bp::exe(options.compiler.compiler_path),
 		bp::args(cl_args),
+		bp::std_out > cl_proc_stdout,
+		bp::std_err > cl_proc_stderr,
 	};
 
 	auto compile_subcommand_id = static_cast<ecsact::cli::subcommand_id_t>( //
@@ -175,6 +179,9 @@ auto cl_compile(compile_options options) -> int {
 		.executable = options.compiler.compiler_path.string(),
 		.arguments = cl_args,
 	});
+
+	ecsact::cli::report_stdout(compile_subcommand_id, cl_proc_stdout);
+	ecsact::cli::report_stderr(compile_subcommand_id, cl_proc_stderr);
 
 	cl_proc.wait();
 
@@ -253,8 +260,9 @@ auto cook_recipe( //
 #ifndef ECSACT_CLI_USE_SDK_VERSION
 	using bazel::tools::cpp::runfiles::Runfiles;
 	auto runfiles_error = std::string{};
-	auto runfiles =
-		std::unique_ptr<Runfiles>(Runfiles::Create(argv0, BAZEL_CURRENT_REPOSITORY, &runfiles_error));
+	auto runfiles = std::unique_ptr<Runfiles>(
+		Runfiles::Create(argv0, BAZEL_CURRENT_REPOSITORY, &runfiles_error)
+	);
 	if(!runfiles) {
 		ecsact::cli::report_error("Failed to load runfiles: {}", runfiles_error);
 		return 1;

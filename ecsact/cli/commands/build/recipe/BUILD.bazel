@@ -4,82 +4,30 @@ load("//bazel:copts.bzl", "copts")
 package(default_visibility = ["//:__subpackages__"])
 
 cc_library(
-    name = "command",
-    hdrs = ["command.hh"],
+    name = "taste",
     copts = copts,
-)
-
-# cc_library(
-#     name = "benchmark",
-#     srcs = ["benchmark.cc"],
-#     hdrs = ["benchmark.hh"],
-#     copts = copts,
-#     deps = [
-#         ":command",
-#         "//executable_path",
-#         "@magic_enum",
-#         "@docopt.cpp//:docopt",
-#         "@boost.dll",
-#         "@ecsact_runtime//:core",
-#         "@ecsact_runtime//:async",
-#         "@ecsact_runtime//:serialize",
-#         "@ecsact_si_wasm",
-#         "@nlohmann_json//:json",
-#     ],
-# )
-
-cc_library(
-    name = "codegen",
-    srcs = ["codegen.cc"],
-    hdrs = ["codegen.hh"],
-    copts = copts,
+    srcs = ["taste.cc"],
+    hdrs = ["taste.hh"],
     deps = [
-        ":command",
-        "//executable_path",
-        "@magic_enum",
-        "@docopt.cpp//:docopt",
+        "//ecsact/cli:report",
+        "//ecsact/cli/commands/build:build_recipe",
         "@boost.dll",
-        "@ecsact_interpret",
-        "@ecsact_codegen//:plugin",
-        "@ecsact_codegen//:plugin_validate",
-        "@ecsact_runtime//:dylib",
-        "@ecsact_runtime//:meta",
     ],
 )
 
 cc_library(
-    name = "config",
-    srcs = ["config.cc"],
-    hdrs = ["config.hh"],
+    name = "cook",
     copts = copts,
-    deps = [
-        ":command",
-        "//executable_path",
-        "@docopt.cpp//:docopt",
-        "@nlohmann_json//:json",
-    ],
-)
-
-cc_library(
-    name = "build",
-    srcs = ["build.cc"] + glob(["build/**/*.cc", "build/**/*.hh"]),
-    hdrs = ["build.hh"],
-    copts = copts,
+    srcs = ["cook.cc"],
+    hdrs = ["cook.hh"],
     defines = select({
         "//:use_sdk_version_enabled": ["ECSACT_CLI_USE_SDK_VERSION"],
         "//:use_sdk_version_disabled": [],
     }),
     deps = [
-        ":command",
-        "//:cli_report",
-        "//:cli_report_message",
-        "//:cli_json_report",
-        "//:cli_text_report",
-        "//executable_path",
-        "@ecsact_interpret",
-        "@docopt.cpp//:docopt",
-        "@yaml-cpp",
-        "@magic_enum",
+        "//ecsact/cli:report",
+        "//ecsact/cli/commands/build:build_recipe",
+        "//ecsact/cli/commands/build:cc_compiler",
         "@boost.process",
     ] + select({
         "//:use_sdk_version_enabled": [],

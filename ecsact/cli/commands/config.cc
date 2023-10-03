@@ -6,8 +6,7 @@
 #include <string>
 #include "docopt.h"
 #include "nlohmann/json.hpp"
-
-#include "executable_path/executable_path.hh"
+#include "ecsact/cli/detail/executable_path/executable_path.hh"
 
 namespace fs = std::filesystem;
 

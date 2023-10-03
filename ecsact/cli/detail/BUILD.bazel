@@ -1,0 +1,25 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//bazel:copts.bzl", "copts")
+
+package(default_visibility = ["//:__subpackages__"])
+
+cc_library(
+    name = "json_report",
+    copts = copts,
+    hdrs = ["json_report.hh"],
+    srcs = ["json_report.cc"],
+    deps = [
+        "//ecsact/cli:report_message",
+        "@nlohmann_json//:json",
+    ],
+)
+
+cc_library(
+    name = "text_report",
+    copts = copts,
+    hdrs = ["text_report.hh"],
+    srcs = ["text_report.cc"],
+    deps = [
+        "//ecsact/cli:report_message",
+    ],
+)

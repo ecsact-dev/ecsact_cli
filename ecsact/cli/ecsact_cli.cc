@@ -3,13 +3,11 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include "bazel_stamp_header.hh"
-
-// #include "./commands/benchmark.hh"
-#include "./commands/build.hh"
-#include "./commands/codegen.hh"
-#include "./commands/command.hh"
-#include "./commands/config.hh"
+#include "ecsact/cli/bazel_stamp_header.hh"
+#include "ecsact/cli/commands/build.hh"
+#include "ecsact/cli/commands/codegen.hh"
+#include "ecsact/cli/commands/command.hh"
+#include "ecsact/cli/commands/config.hh"
 
 using namespace std::string_view_literals;
 namespace fs = std::filesystem;

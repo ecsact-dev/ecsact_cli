@@ -17,4 +17,4 @@ auto cook_recipe(
 	std::filesystem::path              output_path
 ) -> std::optional<std::filesystem::path>;
 
-}
+} // namespace ecsact::cli

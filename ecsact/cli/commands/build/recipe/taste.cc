@@ -95,10 +95,10 @@ auto ecsact::cli::taste_recipe( //
 		if(found_symbols.empty()) {
 			ecsact::cli::report_warning("No symbols found");
 		} else {
-		for(auto symbol : runtime_lib_info->symbols()) {
-			ecsact::cli::report_info("Found symbol: {}", symbol);
-		}
+			for(auto symbol : runtime_lib_info->symbols()) {
+				ecsact::cli::report_info("Found symbol: {}", symbol);
 			}
+		}
 
 		runtime_lib.unload();
 		return 1;

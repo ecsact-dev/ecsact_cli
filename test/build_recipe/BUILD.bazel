@@ -1,12 +1,12 @@
 load("@bazel_skylib//rules:native_binary.bzl", "native_test")
-# load("@rules_ecsact//ecsact:defs.bzl", "ecsact_binary")
+load("@rules_ecsact//ecsact:defs.bzl", "ecsact_binary")
 
-# ecsact_binary(
-#     name = "test",
-#     srcs = [
-#         "test.ecsact",
-#     ],
-#     recipes = [
-#         "ecsact_build_test_recipe.yml",
-#     ],
-# )
+ecsact_binary(
+    name = "test",
+    srcs = [
+        "test.ecsact",
+    ],
+    recipes = [
+        "ecsact_build_test_recipe.yml",
+    ],
+)

@@ -24,8 +24,8 @@ auto resolve_plugin_path(
 ) -> std::optional<std::filesystem::path>;
 
 auto resolve_plugin_path(
-	const std::string&                  plugin_arg,
-	const std::filesystem::path&        default_plugins_dir
+	const std::string&           plugin_arg,
+	const std::filesystem::path& default_plugins_dir
 ) -> std::optional<std::filesystem::path>;
 
 auto current_platform_codegen_plugin_extension() -> std::string;

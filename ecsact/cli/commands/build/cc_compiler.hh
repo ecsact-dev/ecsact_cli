@@ -19,4 +19,4 @@ auto find_cc_compiler(
 auto detect_cc_compiler( //
 	std::filesystem::path work_dir
 ) -> std::optional<cc_compiler>;
-} // namespace ecsact
+} // namespace ecsact::cli

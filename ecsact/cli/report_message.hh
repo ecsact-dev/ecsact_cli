@@ -10,7 +10,6 @@ namespace ecsact::cli {
 
 using subcommand_id_t = long;
 
-
 struct alert_message {
 	static constexpr auto type = std::string_view{"alert"};
 	std::string           content;
@@ -115,4 +114,4 @@ using message_variant_t = std::variant<
 	subcommand_stderr_message,
 	subcommand_progress_message,
 	subcommand_end_message>;
-}
+} // namespace ecsact::cli

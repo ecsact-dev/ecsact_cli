@@ -23,12 +23,12 @@ public:
 	) -> std::variant<build_recipe, build_recipe_parse_error>;
 
 	struct source_path {
-		std::filesystem::path path;
+		std::filesystem::path      path;
 		std::optional<std::string> outdir;
 	};
 
 	struct source_fetch {
-		std::string url;
+		std::string                url;
 		std::optional<std::string> outdir;
 	};
 
@@ -39,7 +39,7 @@ public:
 
 	using source = std::variant<source_path, source_fetch, source_codegen>;
 
-		build_recipe(build_recipe&&);
+	build_recipe(build_recipe&&);
 	~build_recipe();
 
 	auto exports() const -> std::span<const std::string>;

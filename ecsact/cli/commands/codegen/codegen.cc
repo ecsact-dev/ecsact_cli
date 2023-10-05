@@ -10,7 +10,7 @@
 
 namespace fs = std::filesystem;
 
-auto ecsact::cli::get_default_plugins_dir() ->  fs::path{
+auto ecsact::cli::get_default_plugins_dir() -> fs::path {
 	using executable_path::executable_path;
 
 	return fs::weakly_canonical(

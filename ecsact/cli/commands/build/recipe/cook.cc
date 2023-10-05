@@ -5,6 +5,7 @@
 #include <string_view>
 #include <boost/process.hpp>
 #include "ecsact/cli/commands/build/cc_compiler_config.hh"
+#include "ecsact/cli/commands/codegen/codegen.hh"
 #include "ecsact/cli/report.hh"
 #ifndef ECSACT_CLI_USE_SDK_VERSION
 #	include "tools/cpp/runfiles/runfiles.h"
@@ -27,11 +28,29 @@ static auto handle_source( //
 }
 
 static auto handle_source( //
-	ecsact::build_recipe::source_codegen,
-	fs::path work_dir
+	ecsact::build_recipe::source_codegen src,
+	fs::path                             work_dir
 ) -> int {
-	ecsact::cli::report_error("Codegen source not yet supported\n");
-	return 1;
+	auto default_plugins_dir = ecsact::cli::get_default_plugins_dir();
+	auto plugin_paths = std::vector<fs::path>{};
+
+	for(auto plugin : src.plugins) {
+		auto plugin_path = ecsact::cli::resolve_plugin_path( //
+			plugin,
+			default_plugins_dir
+		);
+
+		if(!plugin_path) {
+			return 1;
+		}
+	}
+
+	auto exit_code = ecsact::cli::codegen({
+		.plugin_paths = plugin_paths,
+		.outdir = src.outdir ? *src.outdir : "",
+	});
+
+	return exit_code;
 }
 
 static auto handle_source( //

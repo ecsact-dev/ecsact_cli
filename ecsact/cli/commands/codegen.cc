@@ -16,7 +16,7 @@
 #include "ecsact/codegen/plugin.h"
 #include "ecsact/codegen/plugin_validate.hh"
 #include "ecsact/cli/detail/executable_path/executable_path.hh"
-
+#include "ecsact/cli/commands/codegen/codegen.hh"
 
 namespace fs = std::filesystem;
 constexpr auto file_readonly_perms = fs::perms::others_read |
@@ -49,44 +49,6 @@ static fs::path get_default_plugins_dir() {
 
 static auto platform_plugin_extension() {
 	return boost::dll::shared_library::suffix().string();
-}
-
-static std::optional<fs::path> resolve_plugin_path(
-	const std::string&     plugin_arg,
-	const fs::path&        default_plugins_dir,
-	std::vector<fs::path>& checked_plugin_paths
-) {
-	using namespace std::string_literals;
-
-	const bool is_maybe_named_plugin = plugin_arg.find('/') ==
-			std::string::npos &&
-		plugin_arg.find('\\') == std::string::npos &&
-		plugin_arg.find('.') == std::string::npos;
-
-	if(is_maybe_named_plugin) {
-		fs::path& default_plugin_path = checked_plugin_paths.emplace_back(
-			default_plugins_dir / ("ecsact_"s + plugin_arg + "_codegen"s)
-		);
-
-		default_plugin_path.replace_extension(platform_plugin_extension());
-
-		if(fs::exists(default_plugin_path)) {
-			return default_plugin_path;
-		}
-	}
-
-	fs::path plugin_path = fs::weakly_canonical(plugin_arg);
-	if(plugin_path.extension().empty()) {
-		plugin_path.replace_extension(platform_plugin_extension());
-	}
-
-	if(fs::exists(plugin_path)) {
-		return plugin_path;
-	}
-
-	checked_plugin_paths.emplace_back(plugin_path);
-
-	return {};
 }
 
 static void stdout_write_fn(const char* str, int32_t str_len) {

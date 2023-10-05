@@ -15,9 +15,6 @@ ecsact_build_recipe(
         "local_dep.cc",
         "local_dep.hh",
     ],
-    # deps = [
-    #     ":local_dep",
-    # ],
     exports = [
         "ecsact_execute_systems",
     ],

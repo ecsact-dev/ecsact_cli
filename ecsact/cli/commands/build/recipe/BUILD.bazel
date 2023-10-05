@@ -28,6 +28,7 @@ cc_library(
         "//ecsact/cli:report",
         "//ecsact/cli/commands/build:build_recipe",
         "//ecsact/cli/commands/build:cc_compiler_config",
+        "//ecsact/cli/commands/codegen:codegen",
         "@boost.process",
     ] + select({
         "//:use_sdk_version_enabled": [],

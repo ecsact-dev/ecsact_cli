@@ -36,6 +36,7 @@ cc_library(
     deps = [
         ":command",
         "//ecsact/cli/detail/executable_path",
+        "//ecsact/cli/commands/codegen:codegen",
         "@magic_enum",
         "@docopt.cpp//:docopt",
         "@boost.dll",

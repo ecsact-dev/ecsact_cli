@@ -8,6 +8,6 @@ ecsact_execute_systems_error ecsact_execute_systems( //
   const ecsact_execution_options*,
   const ecsact_execution_events_collector*
 ) {
-  local_dep::example();
-  return ECSACT_EXEC_SYS_OK;
+	local_dep::example();
+	return ECSACT_EXEC_SYS_OK;
 }

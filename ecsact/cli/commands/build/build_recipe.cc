@@ -92,8 +92,9 @@ static auto parse_sources( //
 		if(src.IsMap()) {
 			auto codegen = src["codegen"];
 			auto fetch = src["fetch"];
+			auto path = src["path"];
 
-			if((codegen && fetch) || (!codegen || !fetch)) {
+			if((codegen && fetch) || (codegen && path) || (fetch && path) || (!codegen && !fetch && !path)) {
 				return ecsact::build_recipe_parse_error::invalid_source;
 			}
 
@@ -104,6 +105,22 @@ static auto parse_sources( //
 			} else if(fetch) {
 				result.emplace_back(source_fetch{
 					.url = fetch.as<std::string>(),
+				});
+			} else if(path) {
+				auto src_path = fs::path{path.as<std::string>()};
+				auto outdir = std::optional<std::string>{};
+				auto relative_to_cwd = src["relative_to_cwd"].as<bool>();
+				if(src["outdir"]) {
+					outdir = src["outdir"].as<std::string>();
+				}
+
+				if(!relative_to_cwd && !src_path.is_absolute()) {
+					src_path = recipe_path.parent_path() / src_path;
+				}
+
+				result.emplace_back(source_path{
+					.path = src_path,
+					.outdir = outdir,
 				});
 			}
 		} else if(src.IsScalar()) {

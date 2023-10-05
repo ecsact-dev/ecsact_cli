@@ -20,10 +20,6 @@
 #include "ecsact/cli/commands/build/recipe/cook.hh"
 #include "ecsact/cli/commands/build/recipe/taste.hh"
 
-using ecsact::cli::ecsact_error_message;
-using ecsact::cli::subcommand_end_message;
-using ecsact::cli::subcommand_start_message;
-
 namespace fs = std::filesystem;
 
 using namespace std::string_view_literals;
@@ -32,19 +28,22 @@ constexpr auto USAGE = R"docopt(Ecsact Build Command
 
 Usage:
   ecsact build (-h | --help)
-  ecsact build <files>... --recipe=<name> --output=<path> [--format=<type>] [--temp_dir=<path>]
+  ecsact build <files>... --recipe=<name> --output=<path> [--format=<type>] [--temp_dir=<path>] [--compiler_config=<path>]
 
 Options:
-  <files>             Ecsact files used to build Ecsact Runtime
-  -r --recipe=<name>  Name or path to recipe
-  -o --output=<path>  Runtime output path
-  --temp_dir=<path>   Optional temporary directoy to use instead of generated one
-  -f --format=<type>  The format used to report progress of the build [default: text]
-                      Allowed Formats:
-                        none - No output
-                        json - Each line of stdout/stderr is a JSON object
-                        text - Human readable text format
+  <files>                   Ecsact files used to build Ecsact Runtime
+  -r --recipe=<name>        Name or path to recipe
+  -o --output=<path>        Runtime output path
+  --temp_dir=<path>         Optional temporary directoy to use instead of generated one
+	--compiler_config=<path>  Optionally specify the compiler by name or path
+  -f --format=<type>        The format used to report progress of the build [default: text]
 )docopt";
+
+// TODO(zaucy): Add this documentation to docopt (msvc regex fails)
+// Allowed Formats:
+//   none : No output
+//   json : Each line of stdout/stderr is a JSON object
+//   text : Human readable text format
 
 auto ecsact::cli::detail::build_command( //
 	int   argc,
@@ -135,14 +134,35 @@ auto ecsact::cli::detail::build_command( //
 		ecsact::meta::package_name(main_pkg_id)
 	);
 
+	auto compiler_config_path = args["--compiler_config"].isString() //
+		? std::optional{fs::path{args["--compiler_config"].asString()}}
+		: std::nullopt;
+
+	auto compiler = compiler_config_path //
+		? ecsact::cli::load_compiler_config(*compiler_config_path)
+		: ecsact::cli::detect_cc_compiler(work_dir);
+
+	if(!compiler) {
+		ecsact::cli::report_error(
+			"Failed to detect C++ compiler installed on your system"
+		);
+		return 1;
+	}
+
+	ecsact::cli::report_info(
+		"Using compiler: {} ({})",
+		to_string(compiler->compiler_type),
+		compiler->compiler_version
+	);
+
 	auto runtime_output_path = cook_recipe(
 		argv[0],
 		file_paths,
 		std::get<build_recipe>(recipe),
+		*compiler,
 		work_dir,
 		output_path
 	);
-
 
 	if(!runtime_output_path) {
 		ecsact::cli::report_error("Failed to cook recipe");

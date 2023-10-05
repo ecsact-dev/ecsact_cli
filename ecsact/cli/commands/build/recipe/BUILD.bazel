@@ -27,7 +27,7 @@ cc_library(
     deps = [
         "//ecsact/cli:report",
         "//ecsact/cli/commands/build:build_recipe",
-        "//ecsact/cli/commands/build:cc_compiler",
+        "//ecsact/cli/commands/build:cc_compiler_config",
         "@boost.process",
     ] + select({
         "//:use_sdk_version_enabled": [],

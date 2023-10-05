@@ -4,7 +4,7 @@
 #include <format>
 #include <string_view>
 #include <boost/process.hpp>
-#include "ecsact/cli/commands/build/cc_compiler.hh"
+#include "ecsact/cli/commands/build/cc_compiler_config.hh"
 #include "ecsact/cli/report.hh"
 #ifndef ECSACT_CLI_USE_SDK_VERSION
 #	include "tools/cpp/runfiles/runfiles.h"
@@ -45,6 +45,14 @@ static auto handle_source( //
 	auto ec = std::error_code{};
 	fs::create_directories(outdir, ec);
 
+	if(!fs::exists(src.path)) {
+		ecsact::cli::report_error(
+			"Source file {} does not exist",
+			src.path.generic_string()
+		);
+		return 1;
+	}
+
 	fs::copy(src.path, outdir, ec);
 
 	if(ec) {
@@ -63,7 +71,7 @@ static auto handle_source( //
 struct compile_options {
 	fs::path work_dir;
 
-	ecsact::cc_compiler      compiler;
+	ecsact::cli::cc_compiler compiler;
 	fs::path                 inc_dir;
 	std::vector<std::string> system_libs;
 	std::vector<fs::path>    srcs;
@@ -325,6 +333,7 @@ auto ecsact::cli::cook_recipe( //
 	[[maybe_unused]] const char* argv0,
 	std::vector<fs::path>        files,
 	const ecsact::build_recipe&  recipe,
+	cc_compiler                  compiler,
 	fs::path                     work_dir,
 	fs::path                     output_path
 ) -> std::optional<std::filesystem::path> {
@@ -339,24 +348,9 @@ auto ecsact::cli::cook_recipe( //
 		}
 	}
 
-	auto compiler = ecsact::detect_cc_compiler(work_dir);
-
-	if(!compiler) {
-		ecsact::cli::report_error(
-			"Failed to detect C++ compiler installed on your system"
-		);
-		return {};
-	}
-
-	ecsact::cli::report_info(
-		"Using compiler: {} ({})",
-		to_string(compiler->compiler_type),
-		compiler->compiler_version
-	);
-
 	if(output_path.has_extension()) {
 		auto has_allowed_output_extension = false;
-		for(auto allowed_ext : compiler->allowed_output_extensions) {
+		for(auto allowed_ext : compiler.allowed_output_extensions) {
 			if(allowed_ext == output_path.extension().string()) {
 				has_allowed_output_extension = true;
 			}
@@ -372,7 +366,7 @@ auto ecsact::cli::cook_recipe( //
 		}
 
 	} else {
-		output_path.replace_extension(compiler->preferred_output_extension);
+		output_path.replace_extension(compiler.preferred_output_extension);
 	}
 
 	ecsact::cli::report_info("Compiling {}", output_path.string());
@@ -382,6 +376,7 @@ auto ecsact::cli::cook_recipe( //
 
 	auto ec = std::error_code{};
 	fs::create_directories(inc_dir, ec);
+	fs::create_directories(src_dir, ec);
 
 	auto source_files = std::vector<fs::path>{};
 
@@ -460,10 +455,10 @@ auto ecsact::cli::cook_recipe( //
 		system_libs.push_back(sys_lib);
 	}
 
-	if(is_cl_like(compiler->compiler_type)) {
+	if(is_cl_like(compiler.compiler_type)) {
 		exit_code = cl_compile({
 			.work_dir = work_dir,
-			.compiler = *compiler,
+			.compiler = compiler,
 			.inc_dir = inc_dir,
 			.system_libs = system_libs,
 			.srcs = source_files,
@@ -472,7 +467,7 @@ auto ecsact::cli::cook_recipe( //
 	} else {
 		exit_code = clang_gcc_compile({
 			.work_dir = work_dir,
-			.compiler = *compiler,
+			.compiler = compiler,
 			.inc_dir = inc_dir,
 			.system_libs = system_libs,
 			.srcs = source_files,

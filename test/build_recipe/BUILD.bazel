@@ -1,5 +1,15 @@
 load("@bazel_skylib//rules:native_binary.bzl", "native_test")
-load("@rules_ecsact//ecsact:defs.bzl", "ecsact_binary")
+load("@rules_ecsact//ecsact:defs.bzl", "ecsact_binary", "ecsact_build_recipe")
+
+ecsact_build_recipe(
+    name = "ecsact_build_test_recipe",
+    srcs = [
+        "ecsact_build_test.cc",
+    ],
+    exports = [
+        "ecsact_execute_systems",
+    ],
+)
 
 ecsact_binary(
     name = "test",
@@ -7,6 +17,6 @@ ecsact_binary(
         "test.ecsact",
     ],
     recipes = [
-        "ecsact_build_test_recipe.yml",
+        ":ecsact_build_test_recipe",
     ],
 )

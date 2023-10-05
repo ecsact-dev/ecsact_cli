@@ -6,6 +6,7 @@
 #include <boost/process.hpp>
 #include "nlohmann/json.hpp"
 #include "magic_enum.hpp"
+#include "ecsact/cli/commands/build/cc_compiler.hh"
 #include "ecsact/cli/report.hh"
 
 using ecsact::cli::subcommand_end_message;
@@ -14,61 +15,23 @@ using ecsact::cli::subcommand_start_message;
 namespace fs = std::filesystem;
 namespace bp = boost::process;
 
-auto ecsact::to_string(cc_compiler_type type) -> std::string_view {
-	switch(type) {
-		case ecsact::cc_compiler_type::msvc_cl:
-			return "MSVC Compiler";
-		case ecsact::cc_compiler_type::clang_cl:
-			return "clang-cl";
-		case ecsact::cc_compiler_type::clang:
-			return "clang";
-		case ecsact::cc_compiler_type::gcc:
-			return "gcc";
-		case ecsact::cc_compiler_type::emcc:
-			return "emscripten";
-		default:
-			return "unknown";
-	}
-}
-
-static auto get_compiler_type( //
-	fs::path compiler_path
-) -> ecsact::cc_compiler_type {
-	auto compiler_filename = compiler_path.filename().replace_extension("");
-
-	if(compiler_filename == "cl") {
-		return ecsact::cc_compiler_type::msvc_cl;
-	}
-	if(compiler_filename == "clang-cl") {
-		return ecsact::cc_compiler_type::clang_cl;
-	}
-
-	if(compiler_filename == "clang") {
-		return ecsact::cc_compiler_type::clang;
-	}
-	if(compiler_filename == "gcc") {
-		return ecsact::cc_compiler_type::gcc;
-	}
-	if(compiler_filename == "emcc") {
-		return ecsact::cc_compiler_type::emcc;
-	}
-
-	return ecsact::cc_compiler_type::unknown;
-}
-
 static auto cc_from_string( //
-	std::string_view str
-) -> std::optional<ecsact::cc_compiler> {
-	auto compiler_path = fs::path{bp::search_path(str)};
+	std::string_view str,
+	fs::path         work_dir
+) -> std::optional<ecsact::cli::cc_compiler> {
+	auto compiler_path = fs::exists(str) //
+		? fs::path{str}
+		: fs::path{bp::search_path(str)};
 
 	if(compiler_path.empty()) {
 		return {};
 	}
 
-	auto compiler_type = get_compiler_type(compiler_path);
+	auto compiler_type = ecsact::cli::get_compiler_type_by_path(compiler_path);
 	auto compiler_version = std::string{};
 
-	if(!is_gcc_clang_like(compiler_type) && compiler_type != ecsact::cc_compiler_type::clang_cl) {
+	if(!is_gcc_clang_like(compiler_type) && compiler_type != ecsact::cli::cc_compiler_type::clang_cl) {
+		ecsact::cli::report_info("Compiler path: {}", compiler_path.string());
 		ecsact::cli::report_warning(
 			"Getting compiler info from path for {} is not supported",
 			to_string(compiler_type)
@@ -94,7 +57,7 @@ static auto cc_from_string( //
 		return {};
 	}
 
-	return ecsact::cc_compiler{
+	return ecsact::cli::cc_compiler{
 		.compiler_type = compiler_type,
 		.compiler_path = compiler_path,
 		.compiler_version = compiler_version,
@@ -109,15 +72,20 @@ static auto cc_from_string( //
 	};
 }
 
-static auto cc_from_env() -> std::optional<ecsact::cc_compiler> {
-	auto compiler = std::optional<ecsact::cc_compiler>{};
+static auto cc_from_env( //
+	fs::path work_dir
+) -> std::optional<ecsact::cli::cc_compiler> {
+	auto compiler = std::optional<ecsact::cli::cc_compiler>{};
 	auto cxx_env = std::getenv("CXX");
 
 	if(cxx_env != nullptr) {
-		compiler = cc_from_string(std::string_view{
-			cxx_env,
-			std::strlen(cxx_env),
-		});
+		compiler = cc_from_string(
+			std::string_view{
+				cxx_env,
+				std::strlen(cxx_env),
+			},
+			work_dir
+		);
 
 		if(!compiler) {
 			ecsact::cli::report_warning(
@@ -130,10 +98,13 @@ static auto cc_from_env() -> std::optional<ecsact::cc_compiler> {
 		auto cc_env = std::getenv("CC");
 
 		if(cc_env != nullptr) {
-			compiler = cc_from_string(std::string_view{
-				cc_env,
-				std::strlen(cc_env),
-			});
+			compiler = cc_from_string(
+				std::string_view{
+					cc_env,
+					std::strlen(cc_env),
+				},
+				work_dir
+			);
 
 			if(!compiler) {
 				ecsact::cli::report_warning(
@@ -229,7 +200,7 @@ auto as_vec_path(auto&& vec) -> std::vector<fs::path> {
 #ifdef _WIN32
 static auto cc_vswhere( //
 	fs::path work_dir
-) -> std::optional<ecsact::cc_compiler> {
+) -> std::optional<ecsact::cli::cc_compiler> {
 	auto vswhere = find_vswhere();
 	if(!vswhere) {
 		return {};
@@ -348,8 +319,8 @@ static auto cc_vswhere( //
 		tools_version
 	);
 
-	return ecsact::cc_compiler{
-		.compiler_type = ecsact::cc_compiler_type::msvc_cl,
+	return ecsact::cli::cc_compiler{
+		.compiler_type = ecsact::cli::cc_compiler_type::msvc_cl,
 		.compiler_path = cl_path,
 		.compiler_version = tools_version,
 		.std_inc_paths = as_vec_path(standard_include_paths),
@@ -362,7 +333,7 @@ static auto cc_vswhere( //
 
 static auto cc_default( //
 	fs::path work_dir
-) -> std::optional<ecsact::cc_compiler> {
+) -> std::optional<ecsact::cli::cc_compiler> {
 #ifdef _WIN32
 	return cc_vswhere(work_dir);
 #else
@@ -372,14 +343,14 @@ static auto cc_default( //
 
 static auto cc_from_env_path( //
 	fs::path work_dir
-) -> std::optional<ecsact::cc_compiler> {
+) -> std::optional<ecsact::cli::cc_compiler> {
 	return {};
 }
 
-auto ecsact::detect_cc_compiler( //
+auto ecsact::cli::detect_cc_compiler( //
 	fs::path work_dir
 ) -> std::optional<cc_compiler> {
-	auto compiler = cc_from_env();
+	auto compiler = cc_from_env(work_dir);
 
 	if(!compiler) {
 		compiler = cc_default(work_dir);
@@ -390,4 +361,11 @@ auto ecsact::detect_cc_compiler( //
 	}
 
 	return compiler;
+}
+
+auto ecsact::cli::find_cc_compiler(
+	std::filesystem::path work_dir,
+	std::string           compiler_name_or_path
+) -> std::optional<cc_compiler> {
+	return cc_from_string(compiler_name_or_path, work_dir);
 }

@@ -3,6 +3,8 @@ load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_ecsact//ecsact:defs.bzl", "ecsact_codegen", "ecsact_codegen_plugin")
 load("@ecsact_cli//bazel:copts.bzl", "copts")
 
+package(default_visibility = ["//:__subpackages__"])
+
 cc_binary(
     name = "test_codegen_plugin_bin",
     linkshared = True,

@@ -337,7 +337,7 @@ static auto cc_default( //
 #ifdef _WIN32
 	return cc_vswhere(work_dir);
 #else
-	return cc_from_string("clang");
+	return cc_from_string("clang", work_dir);
 #endif
 }
 

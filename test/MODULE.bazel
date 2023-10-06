@@ -14,9 +14,11 @@ local_path_override(
     module_name = "ecsact_cli",
     path = "..",
 )
-local_path_override(
+
+git_override(
     module_name = "rules_ecsact",
-    path = "../../rules_ecsact",
+    commit = "270352213ac6af83db99edaeb8d6b3a7c63f83c1",
+    remote = "https://github.com/ecsact-dev/rules_ecsact",
 )
 
 git_override(

@@ -1,0 +1,51 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("//bazel:copts.bzl", "copts")
+
+package(default_visibility = ["//:__subpackages__"])
+
+cc_library(
+    name = "build_recipe",
+    copts = copts,
+    srcs = ["build_recipe.cc"],
+    hdrs = ["build_recipe.hh"],
+    deps = [
+        "@yaml-cpp",
+    ],
+)
+
+cc_library(
+    name = "cc_compiler",
+    copts = copts,
+    srcs = ["cc_compiler.cc"],
+    hdrs = ["cc_compiler.hh"],
+    deps = [
+        ":cc_compiler_config",
+        ":cc_compiler_util",
+        "//ecsact/cli:report",
+        "@magic_enum",
+        "@nlohmann_json//:json",
+        "@boost.process",
+    ],
+)
+
+cc_library(
+    name = "cc_compiler_config",
+    copts = copts,
+    srcs = ["cc_compiler_config.cc"],
+    hdrs = ["cc_compiler_config.hh"],
+    deps = [
+        ":cc_compiler_util",
+        "//ecsact/cli:report",
+        "@nlohmann_json//:json",
+    ],
+)
+
+cc_library(
+    name = "cc_compiler_util",
+    copts = copts,
+    srcs = ["cc_compiler_util.cc"],
+    hdrs = ["cc_compiler_util.hh"],
+    deps = [
+        "@boost.process",
+    ],
+)

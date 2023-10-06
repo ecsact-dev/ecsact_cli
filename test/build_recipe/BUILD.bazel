@@ -1,0 +1,34 @@
+load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@bazel_skylib//rules:native_binary.bzl", "native_test")
+load("@rules_ecsact//ecsact:defs.bzl", "ecsact_binary", "ecsact_build_recipe")
+
+cc_library(
+    name = "local_dep",
+    srcs = ["local_dep.cc"],
+    hdrs = ["local_dep.hh"],
+)
+
+ecsact_build_recipe(
+    name = "ecsact_build_test_recipe",
+    srcs = [
+        "ecsact_build_test.cc",
+        "local_dep.cc",
+        "local_dep.hh",
+    ],
+    codegen_plugins = {
+        "//:test_codegen_plugin": "src",
+    },
+    exports = [
+        "ecsact_execute_systems",
+    ],
+)
+
+ecsact_binary(
+    name = "test",
+    srcs = [
+        "test.ecsact",
+    ],
+    recipes = [
+        ":ecsact_build_test_recipe",
+    ],
+)

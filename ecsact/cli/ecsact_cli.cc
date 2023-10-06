@@ -3,14 +3,14 @@
 #include <string>
 #include <string_view>
 #include <unordered_map>
-#include "bazel_stamp_header.hh"
-
-// #include "./commands/benchmark.hh"
-#include "./commands/codegen.hh"
-#include "./commands/command.hh"
-#include "./commands/config.hh"
+#include "ecsact/cli/bazel_stamp_header.hh"
+#include "ecsact/cli/commands/build.hh"
+#include "ecsact/cli/commands/codegen.hh"
+#include "ecsact/cli/commands/command.hh"
+#include "ecsact/cli/commands/config.hh"
 
 using namespace std::string_view_literals;
+namespace fs = std::filesystem;
 
 constexpr auto LOGO_RAW = R"(
          /##########\
@@ -32,6 +32,7 @@ Usage:
 	ecsact (--help | -h)
 	ecsact (--version | -v)
 	ecsact benchmark ([<options>...] | --help)
+	ecsact build ([<options>...] | --help)
 	ecsact codegen ([<options>...] | --help)
 	ecsact config ([<options>...] | --help)
 )";
@@ -73,6 +74,7 @@ int main(int argc, char* argv[]) {
 
 	const std::unordered_map<std::string, command_fn_t> commands{
 		// {"benchmark", &ecsact::cli::detail::benchmark_command},
+		{"build", &ecsact::cli::detail::build_command},
 		{"codegen", &ecsact::cli::detail::codegen_command},
 		{"config", &ecsact::cli::detail::config_command},
 	};

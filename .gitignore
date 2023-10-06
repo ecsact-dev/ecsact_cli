@@ -7,3 +7,6 @@ external
 
 # ecsact codegen
 *.ecsact.*
+
+# test tmp dirs
+/test/build_recipe/tmp/

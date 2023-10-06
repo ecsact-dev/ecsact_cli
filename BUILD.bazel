@@ -1,52 +1,28 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 load("@rules_ecsact//ecsact:toolchain.bzl", "ecsact_toolchain")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
-load("//bazel/tools:cc_stamp_header.bzl", "cc_stamp_header")
-load("//bazel:copts.bzl", "copts")
 
-package(default_visibility = ["//visibility:public"])
+package(default_visibility = ["//:__subpackages__"])
 
 bool_flag(name = "use_sdk_version", build_setting_default = False)
 config_setting(name = "use_sdk_version_enabled", flag_values = {":use_sdk_version": "true"})
 config_setting(name = "use_sdk_version_disabled", flag_values = {":use_sdk_version": "false"})
 
-cc_stamp_header(
-    name = "bazel_stamp_header",
-    out = "bazel_stamp_header.hh",
-)
-
-cc_binary(
-    name = "ecsact",
-    srcs = [
-        "ecsact_cli.cc",
-        "bazel_stamp_header.hh",
-    ],
-    defines = select({
-        ":use_sdk_version_enabled": ["ECSACT_CLI_USE_SDK_VERSION"],
-        ":use_sdk_version_disabled": [],
-    }),
-    copts = copts,
-    stamp = 1,
-    deps = [
-        # "//commands:benchmark",
-        "//commands:codegen",
-        "//commands:command",
-        "//commands:config",
-    ],
-)
-
 alias(
     name = "ecsact_cli",
-    actual = ":ecsact",
+    visibility = ["//visibility:public"],
+    actual = "//ecsact/cli:ecsact",
 )
 
 ecsact_toolchain(
     name = "ecsact_toolchain",
-    target_tool = ":ecsact",
+    visibility = ["//visibility:public"],
+    target_tool = ":ecsact_cli",
 )
 
 toolchain(
     name = "toolchain",
+    visibility = ["//visibility:public"],
     toolchain = ":ecsact_toolchain",
     toolchain_type = "@rules_ecsact//ecsact:toolchain_type",
 )

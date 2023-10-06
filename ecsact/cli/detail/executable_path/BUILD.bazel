@@ -1,6 +1,8 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
 load("//bazel:copts.bzl", "copts")
 
+package(default_visibility = ["//:__subpackages__"])
+
 cc_library(
     name = "executable_path",
     srcs = select({
@@ -13,5 +15,4 @@ cc_library(
         "@platforms//os:windows": ["-DEFAULTLIB:Kernel32"],
         "//conditions:default": [],
     }),
-    visibility = ["//visibility:public"],
 )

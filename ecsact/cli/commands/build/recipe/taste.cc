@@ -3,9 +3,12 @@
 #include <format>
 #include <algorithm>
 #include <memory>
+#include <filesystem>
 #include <boost/dll.hpp>
 #include <boost/dll/library_info.hpp>
 #include "ecsact/cli/report.hh"
+
+namespace fs = std::filesystem;
 
 static auto maybe_library_info( //
 	std::filesystem::path library_path
@@ -35,17 +38,6 @@ auto ecsact::cli::taste_recipe( //
 			"Unable to load library info for {}",
 			output_path.string()
 		);
-		return 1;
-	}
-
-	auto runtime_lib = boost::dll::shared_library{
-		output_path.string(),
-		boost::dll::load_mode::default_mode,
-		ec,
-	};
-
-	if(ec) {
-		ecsact::cli::report_error("Unable to load runtime: {}", ec.message());
 		return 1;
 	}
 
@@ -100,10 +92,32 @@ auto ecsact::cli::taste_recipe( //
 			}
 		}
 
-		runtime_lib.unload();
 		return 1;
 	}
 
-	runtime_lib.unload();
+	if(!fs::exists(output_path)) {
+		ecsact::cli::report_error(
+			"Output path {} does not exist",
+			output_path.string()
+		);
+		return 1;
+	}
+
+	auto runtime_lib = boost::dll::shared_library{
+		output_path.string(),
+		boost::dll::load_mode::default_mode,
+		ec,
+	};
+
+	if(ec) {
+		ecsact::cli::report_warning(
+			"Unable to load {}: {}",
+			output_path.string(),
+			ec.message()
+		);
+	} else {
+		runtime_lib.unload();
+	}
+
 	return 0;
 }

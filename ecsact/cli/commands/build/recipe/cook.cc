@@ -112,6 +112,11 @@ auto clang_gcc_compile(compile_options options) -> int {
 	compile_proc_args.push_back("-fPIC");
 #endif
 	compile_proc_args.push_back("-std=c++20");
+	compile_proc_args.push_back("-stdlib=libc++");
+
+	for(auto inc_dir : options.compiler.std_inc_paths) {
+		compile_proc_args.push_back(std::format("-isystem {}", inc_dir.string()));
+	}
 
 	compile_proc_args.push_back("-isystem");
 	compile_proc_args.push_back(
@@ -119,12 +124,6 @@ auto clang_gcc_compile(compile_options options) -> int {
 	);
 	compile_proc_args.push_back("-isystem"); // TODO(zaucy): why two of these?
 
-	// TODO(zaucy): Maybe need these
-	compile_proc_args.push_back("-DECSACT_CORE_API_EXPORT");
-	compile_proc_args.push_back("-DECSACT_DYNAMIC_API_EXPORT");
-	compile_proc_args.push_back("-DECSACT_STATIC_API_EXPORT");
-	compile_proc_args.push_back("-DECSACT_SERIALIZE_API_EXPORT");
-	compile_proc_args.push_back("-DECSACT_SERIALIZE_API_EXPORT");
 #ifdef _WIN32
 	compile_proc_args.push_back("-D_CRT_SECURE_NO_WARNINGS");
 #endif
@@ -132,6 +131,11 @@ auto clang_gcc_compile(compile_options options) -> int {
 	compile_proc_args.push_back("-fvisibility-inlines-hidden");
 	compile_proc_args.push_back("-ffunction-sections");
 	compile_proc_args.push_back("-fdata-sections");
+
+	compile_proc_args.push_back("-DECSACT_CORE_API_EXPORT");
+	compile_proc_args.push_back("-DECSACT_DYNAMIC_API_EXPORT");
+	compile_proc_args.push_back("-DECSACT_STATIC_API_EXPORT");
+	compile_proc_args.push_back("-DECSACT_SERIALIZE_API_EXPORT");
 
 	compile_proc_args.push_back("-O3");
 
@@ -192,8 +196,15 @@ auto clang_gcc_compile(compile_options options) -> int {
 	link_proc_args.push_back("-Wl,--gc-sections");
 	link_proc_args.push_back("-Wl,--exclude-libs,ALL");
 #endif
+
+	if(options.compiler.compiler_type == ecsact::cli::cc_compiler_type::clang) {
+		link_proc_args.push_back("-fuse-ld=lld");
+	}
+
 	link_proc_args.push_back("-o");
-	link_proc_args.push_back(options.output_path.generic_string());
+	link_proc_args.push_back(
+		fs::relative(options.output_path, options.work_dir).string()
+	);
 
 	for(auto p : fs::recursive_directory_iterator(options.work_dir)) {
 		if(!p.is_regular_file()) {
@@ -201,7 +212,9 @@ auto clang_gcc_compile(compile_options options) -> int {
 		}
 
 		if(p.path().extension() == ".o") {
-			link_proc_args.push_back(p.path().string());
+			link_proc_args.push_back( //
+				fs::relative(p.path(), options.work_dir).string()
+			);
 		}
 	}
 

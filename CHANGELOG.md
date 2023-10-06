@@ -2,6 +2,16 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.2.2 - 2023-10-06
+#### Features
+- build subcommand (#13) - (7ec3f04) - Ezekiel Warren
+#### Miscellaneous Chores
+- **(deps)** update com_grail_bazel_toolchain digest to 42fa12b (#44) - (fe508e9) - renovate[bot]
+- **(deps)** update com_grail_bazel_toolchain digest to a76d197 (#43) - (88c77b7) - renovate[bot]
+- **(deps)** update com_grail_bazel_toolchain digest to 91abcad (#42) - (b7c78aa) - renovate[bot]
+
+- - -
+
 ## 0.2.1 - 2023-09-21
 #### Features
 - make --version flag optional build (#39) - (3a99019) - Ezekiel Warren

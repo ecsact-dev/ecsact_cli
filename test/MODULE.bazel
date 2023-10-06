@@ -14,12 +14,16 @@ local_path_override(
     module_name = "ecsact_cli",
     path = "..",
 )
-
-git_override(
+local_path_override(
     module_name = "rules_ecsact",
-    commit = "270352213ac6af83db99edaeb8d6b3a7c63f83c1",
-    remote = "https://github.com/ecsact-dev/rules_ecsact",
+    path = "../../rules_ecsact",
 )
+
+# git_override(
+#     module_name = "rules_ecsact",
+#     commit = "7bc03fce6f1eadb77caad2b04ac5d4125d9156e5",
+#     remote = "https://github.com/ecsact-dev/rules_ecsact",
+# )
 
 git_override(
     module_name = "yaml-cpp",

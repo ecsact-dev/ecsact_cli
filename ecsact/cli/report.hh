@@ -6,8 +6,15 @@
 
 namespace ecsact::cli {
 
+enum class report_filter {
+	none, /// show all report logs
+	error_only, // only show error reports
+	errors_and_warnings, // only errors and warnings
+};
+
 auto report(const message_variant_t& message) -> void;
 auto set_report_handler(std::function<void(const message_variant_t&)>) -> void;
+auto set_report_filter(report_filter) -> void;
 
 template<typename... Args>
 auto report_error(std::format_string<Args...> fmt, Args&&... args) -> void {

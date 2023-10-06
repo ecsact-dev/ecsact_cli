@@ -28,7 +28,7 @@ constexpr auto USAGE = R"docopt(Ecsact Build Command
 
 Usage:
   ecsact build (-h | --help)
-  ecsact build <files>... --recipe=<name> --output=<path> [--format=<type>] [--temp_dir=<path>] [--compiler_config=<path>]
+  ecsact build <files>... --recipe=<name> --output=<path> [--format=<type>] [--temp_dir=<path>] [--compiler_config=<path>] [--report_filter=<filter>]
 
 Options:
   <files>                   Ecsact files used to build Ecsact Runtime
@@ -37,6 +37,7 @@ Options:
   --temp_dir=<path>         Optional temporary directoy to use instead of generated one
 	--compiler_config=<path>  Optionally specify the compiler by name or path
   -f --format=<type>        The format used to report progress of the build [default: text]
+	--report_filter=<filter>  Filtering out report logs [default: none]
 )docopt";
 
 // TODO(zaucy): Add this documentation to docopt (msvc regex fails)
@@ -60,6 +61,19 @@ auto ecsact::cli::detail::build_command( //
 		set_report_handler({});
 	} else {
 		std::cerr << "Invalid --format value: " << format << "\n";
+		std::cout << USAGE;
+		return 1;
+	}
+
+	auto report_filter = args["--report_filter"].asString();
+	if(report_filter == "none") {
+		set_report_filter(report_filter::none);
+	} else if(report_filter == "error_only") {
+		set_report_filter(report_filter::error_only);
+	} else if(report_filter == "errors_and_warnings") {
+		set_report_filter(report_filter::errors_and_warnings);
+	} else {
+		std::cerr << "Invalid --report_filter value: " << report_filter << "\n";
 		std::cout << USAGE;
 		return 1;
 	}

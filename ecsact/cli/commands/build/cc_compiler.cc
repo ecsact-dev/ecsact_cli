@@ -7,6 +7,7 @@
 #include "nlohmann/json.hpp"
 #include "magic_enum.hpp"
 #include "ecsact/cli/commands/build/cc_compiler.hh"
+#include "ecsact/cli/commands/build/cc_compiler_util.hh"
 #include "ecsact/cli/report.hh"
 
 using ecsact::cli::subcommand_end_message;
@@ -28,7 +29,6 @@ static auto cc_from_string( //
 	}
 
 	auto compiler_type = ecsact::cli::get_compiler_type_by_path(compiler_path);
-	auto compiler_version = std::string{};
 
 	if(!is_gcc_clang_like(compiler_type) && compiler_type != ecsact::cli::cc_compiler_type::clang_cl) {
 		ecsact::cli::report_info("Compiler path: {}", compiler_path.string());
@@ -39,15 +39,7 @@ static auto cc_from_string( //
 		return {};
 	}
 
-	auto version_stdout = bp::ipstream{};
-	auto version_child_proc = bp::child{
-		bp::exe(compiler_path),
-		bp::args("--version"),
-		bp::std_out > version_stdout,
-	};
-
-	std::getline(version_stdout, compiler_version);
-	version_child_proc.wait();
+	auto compiler_version = ecsact::cli::compiler_version_string(compiler_path);
 
 	if(compiler_version.empty()) {
 		ecsact::cli::report_warning(

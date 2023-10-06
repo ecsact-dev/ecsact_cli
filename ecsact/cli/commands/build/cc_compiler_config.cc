@@ -3,6 +3,7 @@
 #include <fstream>
 #include <filesystem>
 #include "ecsact/cli/report.hh"
+#include "ecsact/cli/commands/build/cc_compiler_util.hh"
 
 namespace fs = std::filesystem;
 
@@ -135,6 +136,21 @@ static auto validate_compiler_config_json( //
 		return {};
 	} else {
 		compiler.compiler_path = *v;
+
+		if(compiler.compiler_path.empty()) {
+			ecsact::cli::report_error(
+				"Configured compiler_path is empty. Must be a path to your compiler"
+			);
+			return {};
+		}
+
+		if(!fs::exists(compiler.compiler_path)) {
+			ecsact::cli::report_error(
+				"Configured compiler_path {} does not exist",
+				compiler.compiler_path.string()
+			);
+			return {};
+		}
 	}
 
 	if(auto v = json_get_opt<std::string>(j, "compiler_type"); !v) {
@@ -203,5 +219,27 @@ auto ecsact::cli::load_compiler_config( //
 	auto compiler_config = nlohmann::json{};
 	config_stream >> compiler_config;
 
-	return validate_compiler_config_json(compiler_config);
+	auto compiler = validate_compiler_config_json(compiler_config);
+
+	if(!compiler) {
+		return {};
+	}
+
+	// @HACK: sometimes the compiler type can be derived from the version flag
+	if(compiler->compiler_type == cc_compiler_type::unknown) {
+		auto version_string =
+			ecsact::cli::compiler_version_string(compiler->compiler_path);
+
+		if(version_string.find("clang") != std::string::npos) {
+			compiler->compiler_type = cc_compiler_type::clang;
+		} else if(version_string.find("gcc") != std::string::npos) {
+			compiler->compiler_type = cc_compiler_type::gcc;
+		}
+
+		if(compiler->compiler_version.empty()) {
+			compiler->compiler_version = version_string;
+		}
+	}
+
+	return compiler;
 }

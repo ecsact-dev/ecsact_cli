@@ -100,6 +100,11 @@ struct compile_options {
 auto clang_gcc_compile(compile_options options) -> int {
 	const fs::path clang = options.compiler.compiler_path;
 
+	if(clang.empty() || !fs::exists(clang)) {
+		ecsact::cli::report_error("Cannot find compiler {}", clang.string());
+		return 1;
+	}
+
 	auto compile_proc_args = std::vector<std::string>{};
 
 	compile_proc_args.push_back("-c");
@@ -143,7 +148,7 @@ auto clang_gcc_compile(compile_options options) -> int {
 	auto compile_proc_stdout = bp::ipstream{};
 	auto compile_proc_stderr = bp::ipstream{};
 	auto compile_proc = bp::child{
-		bp::exe(clang.string()),
+		bp::exe(fs::absolute(clang).string()),
 		bp::start_dir(options.work_dir.string()),
 		bp::args(compile_proc_args),
 		bp::std_out > compile_proc_stdout,
@@ -205,7 +210,7 @@ auto clang_gcc_compile(compile_options options) -> int {
 	auto link_proc_stdout = bp::ipstream{};
 	auto link_proc_stderr = bp::ipstream{};
 	auto link_proc = bp::child{
-		bp::exe(clang.string()),
+		bp::exe(fs::absolute(clang).string()),
 		bp::start_dir(options.work_dir.string()),
 		bp::args(link_proc_args),
 		bp::std_out > link_proc_stdout,

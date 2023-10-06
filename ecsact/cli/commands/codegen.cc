@@ -39,18 +39,6 @@ Options:
 		files are written next to source files.
 )";
 
-static fs::path get_default_plugins_dir() {
-	using executable_path::executable_path;
-
-	return fs::weakly_canonical(
-		executable_path().parent_path() / ".." / "share" / "ecsact" / "plugins"
-	);
-}
-
-static auto platform_plugin_extension() {
-	return boost::dll::shared_library::suffix().string();
-}
-
 static void stdout_write_fn(const char* str, int32_t str_len) {
 	std::cout << std::string_view(str, str_len);
 }

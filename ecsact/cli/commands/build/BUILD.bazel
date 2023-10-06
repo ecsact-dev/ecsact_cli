@@ -20,6 +20,7 @@ cc_library(
     hdrs = ["cc_compiler.hh"],
     deps = [
         ":cc_compiler_config",
+        ":cc_compiler_util",
         "//ecsact/cli:report",
         "@magic_enum",
         "@nlohmann_json//:json",
@@ -33,7 +34,18 @@ cc_library(
     srcs = ["cc_compiler_config.cc"],
     hdrs = ["cc_compiler_config.hh"],
     deps = [
+        ":cc_compiler_util",
         "//ecsact/cli:report",
         "@nlohmann_json//:json",
+    ],
+)
+
+cc_library(
+    name = "cc_compiler_util",
+    copts = copts,
+    srcs = ["cc_compiler_util.cc"],
+    hdrs = ["cc_compiler_util.hh"],
+    deps = [
+        "@boost.process",
     ],
 )

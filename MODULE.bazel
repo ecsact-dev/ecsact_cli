@@ -19,6 +19,8 @@ bazel_dep(name = "docopt.cpp", version = "0.6.2")
 bazel_dep(name = "rules_ecsact", version = "0.4.5")
 bazel_dep(name = "boost.process", version = "1.83.0.bzl.2")
 bazel_dep(name = "yaml-cpp")
+bazel_dep(name = "boost.algorithm", version = "1.83.0.bzl.1")
+
 git_override(
     module_name = "yaml-cpp",
     commit = "37f1b8b8c9e5172ff3a79a3d5fdbb87f2994842b",

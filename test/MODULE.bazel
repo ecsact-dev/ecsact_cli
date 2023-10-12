@@ -15,6 +15,11 @@ local_path_override(
     path = "..",
 )
 
+local_path_override(
+    module_name = "rules_ecsact",
+    path = "../../rules_ecsact",
+)
+
 git_override(
     module_name = "yaml-cpp",
     commit = "37f1b8b8c9e5172ff3a79a3d5fdbb87f2994842b",

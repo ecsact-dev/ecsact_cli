@@ -14,6 +14,9 @@ enum class build_recipe_parse_error {
 	missing_exports,
 	expected_map_top_level,
 	invalid_source,
+	unknown_import_method,
+	unknown_export_method,
+	conflicting_import_export_method_modules,
 };
 
 class build_recipe {

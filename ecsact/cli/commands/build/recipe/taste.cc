@@ -7,6 +7,7 @@
 #include <boost/dll.hpp>
 #include <boost/dll/library_info.hpp>
 #include "ecsact/cli/report.hh"
+#include "ecsact/runtime/dylib.h"
 
 namespace fs = std::filesystem;
 
@@ -46,8 +47,6 @@ auto ecsact::cli::taste_recipe( //
 
 	auto missing_export_symbols = std::vector<std::string>{};
 	missing_export_symbols.reserve(recipe_exports.size());
-	auto missing_import_symbols = std::vector<std::string>{};
-	missing_import_symbols.reserve(recipe_imports.size());
 
 	for(auto recipe_export : recipe_exports) {
 		auto has_export_symbol = false;
@@ -62,27 +61,11 @@ auto ecsact::cli::taste_recipe( //
 		}
 	}
 
-	for(auto recipe_import : recipe_imports) {
-		auto has_import_symbol = false;
-		for(auto symbol : runtime_lib_info->symbols()) {
-			if(recipe_import == symbol) {
-				has_import_symbol = true;
-			}
-		}
-
-		if(!has_import_symbol) {
-			missing_import_symbols.push_back(recipe_import);
-		}
-	}
-
 	for(auto export_symbol : missing_export_symbols) {
 		ecsact::cli::report_error("Missing export symbol '{}'", export_symbol);
 	}
-	for(auto import_symbol : missing_import_symbols) {
-		ecsact::cli::report_error("Missing import symbol '{}'", import_symbol);
-	}
 
-	if(!missing_export_symbols.empty() || !missing_import_symbols.empty()) {
+	if(!missing_export_symbols.empty()) {
 		auto found_symbols = runtime_lib_info->symbols();
 		if(found_symbols.empty()) {
 			ecsact::cli::report_warning("No symbols found");
@@ -109,13 +92,62 @@ auto ecsact::cli::taste_recipe( //
 		ec,
 	};
 
+	auto has_dylib_set_fn_symbol = false;
+	auto has_dylib_has_fn_symbol = false;
+
+	if(!recipe_imports.empty()) {
+		for(auto symbol : runtime_lib_info->symbols()) {
+			if(symbol == "ecsact_dylib_has_fn") {
+				has_dylib_has_fn_symbol = true;
+			} else if(symbol == "ecsact_dylib_set_fn_addr") {
+				has_dylib_set_fn_symbol = true;
+			}
+		}
+
+		if(!has_dylib_set_fn_symbol) {
+			ecsact::cli::report_error(
+				"Build recipes with imports must export 'ecsact_dylib_set_fn_addr' "
+				"(internal error)"
+			);
+			return 1;
+		}
+	}
+
 	if(ec) {
-		ecsact::cli::report_warning(
-			"Unable to load {}: {}",
-			output_path.string(),
-			ec.message()
-		);
+		if(recipe_imports.empty()) {
+			ecsact::cli::report_warning(
+				"Unable to load {}: {}",
+				output_path.string(),
+				ec.message()
+			);
+		} else {
+			ecsact::cli::report_error(
+				"Unable to load {}: {}",
+				output_path.string(),
+				ec.message()
+			);
+			ecsact::cli::report_error(
+				"Cannot verify recipe imports if runtime does not load"
+			);
+			return 1;
+		}
 	} else {
+		if(has_dylib_has_fn_symbol) {
+			decltype(&ecsact_dylib_has_fn) dylib_has_fn = nullptr;
+			dylib_has_fn =
+				runtime_lib.get<decltype(ecsact_dylib_has_fn)>("ecsact_dylib_has_fn");
+
+			for(auto imp : recipe_imports) {
+				if(!dylib_has_fn(imp.c_str())) {
+					ecsact::cli::report_error(
+						"ecsact_dylib_has_fn(\"{0}\") returned false",
+						imp
+					);
+					return 1;
+				}
+			}
+		}
+
 		runtime_lib.unload();
 	}
 

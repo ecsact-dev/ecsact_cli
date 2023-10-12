@@ -33,3 +33,14 @@ cc_library(
         "//ecsact/cli:report_message",
     ],
 )
+
+cc_library(
+    name = "proc_exec",
+    copts = copts,
+    hdrs = ["proc_exec.hh"],
+    srcs = ["proc_exec.cc"],
+    deps = [
+        "//ecsact/cli:report",
+        "@boost.process",
+    ],
+)

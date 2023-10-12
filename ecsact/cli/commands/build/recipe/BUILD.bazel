@@ -11,6 +11,7 @@ cc_library(
     deps = [
         "//ecsact/cli:report",
         "//ecsact/cli/commands/build:build_recipe",
+        "@ecsact_runtime//:dylib",
         "@boost.dll",
     ],
 )
@@ -29,8 +30,10 @@ cc_library(
         "//ecsact/cli/detail:argv0",
         "//ecsact/cli/commands/build:build_recipe",
         "//ecsact/cli/commands/build:cc_compiler_config",
+        "//ecsact/cli/commands/build:cc_defines_gen",
+        "//ecsact/cli/commands/build:get_modules",
         "//ecsact/cli/commands/codegen:codegen",
-        "@boost.process",
+        "//ecsact/cli/detail:proc_exec",
     ] + select({
         "//:use_sdk_version_enabled": [],
         "//:use_sdk_version_disabled": [

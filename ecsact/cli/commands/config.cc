@@ -6,7 +6,7 @@
 #include <string>
 #include "docopt.h"
 #include "nlohmann/json.hpp"
-#include "ecsact/cli/detail/executable_path/executable_path.hh"
+#include "ecsact/cli/detail/argv0.hh"
 
 namespace fs = std::filesystem;
 
@@ -46,19 +46,9 @@ constexpr auto CANNOT_FIND_PLUGIN_DIR = R"(
 
 int ecsact::cli::detail::config_command(int argc, char* argv[]) {
 	using namespace std::string_literals;
-	using executable_path::executable_path;
 
 	auto args = docopt::docopt(USAGE, {argv + 1, argv + argc});
-	auto exec_path = executable_path();
-	if(exec_path.empty()) {
-		exec_path = fs::path{argv[0]};
-		std::error_code ec;
-		exec_path = fs::canonical(exec_path, ec);
-		if(ec) {
-			exec_path = fs::weakly_canonical(fs::path{argv[0]});
-		}
-	}
-
+	auto exec_path = canon_argv0(argv[0]);
 	auto install_prefix = exec_path.parent_path().parent_path();
 	auto plugin_dir = install_prefix / "share" / "ecsact" / "plugins";
 	auto output = "{}"_json;

@@ -7,6 +7,7 @@
 #include "ecsact/cli/commands/build/cc_compiler_config.hh"
 #include "ecsact/cli/commands/codegen/codegen.hh"
 #include "ecsact/cli/report.hh"
+#include "ecsact/cli/detail/argv0.hh"
 #ifndef ECSACT_CLI_USE_SDK_VERSION
 #	include "tools/cpp/runfiles/runfiles.h"
 #endif
@@ -91,7 +92,7 @@ struct compile_options {
 	fs::path work_dir;
 
 	ecsact::cli::cc_compiler compiler;
-	fs::path                 inc_dir;
+	std::vector<fs::path>    inc_dirs;
 	std::vector<std::string> system_libs;
 	std::vector<fs::path>    srcs;
 	fs::path                 output_path;
@@ -118,10 +119,13 @@ auto clang_gcc_compile(compile_options options) -> int {
 		compile_proc_args.push_back(std::format("-isystem {}", inc_dir.string()));
 	}
 
-	compile_proc_args.push_back("-isystem");
-	compile_proc_args.push_back(
-		fs::relative(options.inc_dir, options.work_dir).generic_string()
-	);
+	for(auto inc_dir : options.inc_dirs) {
+		compile_proc_args.push_back("-isystem");
+		compile_proc_args.push_back(
+			fs::relative(inc_dir, options.work_dir).generic_string()
+		);
+	}
+
 	compile_proc_args.push_back("-isystem"); // TODO(zaucy): why two of these?
 
 #ifdef _WIN32
@@ -306,7 +310,9 @@ auto cl_compile(compile_options options) -> int {
 		cl_args.push_back(std::format("/I{}", inc_dir.string()));
 	}
 
-	cl_args.push_back(std::format("/I{}", options.inc_dir.string()));
+	for(auto inc_dir : options.inc_dirs) {
+		cl_args.push_back(std::format("/I{}", inc_dir.string()));
+	}
 
 	for(auto sys_lib : options.system_libs) {
 		cl_args.push_back(std::format("/DEFAULTLIB:{}", sys_lib));
@@ -367,12 +373,12 @@ auto cl_compile(compile_options options) -> int {
 }
 
 auto ecsact::cli::cook_recipe( //
-	[[maybe_unused]] const char* argv0,
-	std::vector<fs::path>        files,
-	const ecsact::build_recipe&  recipe,
-	cc_compiler                  compiler,
-	fs::path                     work_dir,
-	fs::path                     output_path
+	const char*                 argv0,
+	std::vector<fs::path>       files,
+	const ecsact::build_recipe& recipe,
+	cc_compiler                 compiler,
+	fs::path                    work_dir,
+	fs::path                    output_path
 ) -> std::optional<std::filesystem::path> {
 	auto exit_code = int{};
 
@@ -410,6 +416,8 @@ auto ecsact::cli::cook_recipe( //
 
 	auto src_dir = work_dir / "src";
 	auto inc_dir = work_dir / "include";
+
+	auto inc_dirs = std::vector{inc_dir};
 
 	auto ec = std::error_code{};
 	fs::create_directories(inc_dir, ec);
@@ -485,6 +493,11 @@ auto ecsact::cli::cook_recipe( //
 			return {};
 		}
 	}
+#else
+	auto exec_path = ecsact::cli::detail::canon_argv0(argv0);
+	auto install_prefix = exec_path.parent_path().parent_path();
+
+	inc_dirs.push_back(install_prefix / "include");
 #endif
 
 	auto system_libs = std::vector<std::string>{};
@@ -496,7 +509,7 @@ auto ecsact::cli::cook_recipe( //
 		exit_code = cl_compile({
 			.work_dir = work_dir,
 			.compiler = compiler,
-			.inc_dir = inc_dir,
+			.inc_dirs = inc_dirs,
 			.system_libs = system_libs,
 			.srcs = source_files,
 			.output_path = output_path,
@@ -505,7 +518,7 @@ auto ecsact::cli::cook_recipe( //
 		exit_code = clang_gcc_compile({
 			.work_dir = work_dir,
 			.compiler = compiler,
-			.inc_dir = inc_dir,
+			.inc_dirs = inc_dirs,
 			.system_libs = system_libs,
 			.srcs = source_files,
 			.output_path = output_path,

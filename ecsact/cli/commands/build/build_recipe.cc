@@ -109,7 +109,9 @@ static auto parse_sources( //
 			} else if(path) {
 				auto src_path = fs::path{path.as<std::string>()};
 				auto outdir = std::optional<std::string>{};
-				auto relative_to_cwd = src["relative_to_cwd"].as<bool>();
+				auto relative_to_cwd = src["relative_to_cwd"] //
+					? src["relative_to_cwd"].as<bool>()
+					: false;
 				if(src["outdir"]) {
 					outdir = src["outdir"].as<std::string>();
 				}

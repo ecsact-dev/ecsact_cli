@@ -12,6 +12,7 @@
 #include "ecsact/interpret/eval.hh"
 #include "ecsact/runtime/meta.hh"
 #include "ecsact/cli/report.hh"
+#include "ecsact/cli/detail/argv0.hh"
 #include "ecsact/cli/detail/json_report.hh"
 #include "ecsact/cli/detail/text_report.hh"
 #include "ecsact/cli/commands/build/recipe/taste.hh"
@@ -52,6 +53,7 @@ auto ecsact::cli::detail::build_command( //
 ) -> int {
 	auto args = docopt::docopt(USAGE, {argv + 1, argv + argc});
 	auto format = args["--format"].asString();
+	auto exec_path = canon_argv0(argv[0]);
 
 	if(format == "text") {
 		set_report_handler(text_report{});

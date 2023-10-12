@@ -26,6 +26,7 @@ cc_library(
     }),
     deps = [
         "//ecsact/cli:report",
+        "//ecsact/cli/detail:argv0",
         "//ecsact/cli/commands/build:build_recipe",
         "//ecsact/cli/commands/build:cc_compiler_config",
         "//ecsact/cli/commands/codegen:codegen",

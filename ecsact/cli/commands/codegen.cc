@@ -15,7 +15,6 @@
 #include "ecsact/runtime/dylib.h"
 #include "ecsact/codegen/plugin.h"
 #include "ecsact/codegen/plugin_validate.hh"
-#include "ecsact/cli/detail/executable_path/executable_path.hh"
 #include "ecsact/cli/commands/codegen/codegen.hh"
 
 namespace fs = std::filesystem;

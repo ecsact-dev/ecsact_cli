@@ -4,6 +4,16 @@ load("//bazel:copts.bzl", "copts")
 package(default_visibility = ["//:__subpackages__"])
 
 cc_library(
+    name = "argv0",
+    srcs = ["argv0.cc"],
+    hdrs = ["argv0.hh"],
+    copts = copts,
+    deps = [
+        "//ecsact/cli/detail/executable_path",
+    ],
+)
+
+cc_library(
     name = "json_report",
     copts = copts,
     hdrs = ["json_report.hh"],

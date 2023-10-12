@@ -35,7 +35,6 @@ cc_library(
     copts = copts,
     deps = [
         ":command",
-        "//ecsact/cli/detail/executable_path",
         "//ecsact/cli/commands/codegen:codegen",
         "@magic_enum",
         "@docopt.cpp//:docopt",
@@ -55,7 +54,7 @@ cc_library(
     copts = copts,
     deps = [
         ":command",
-        "//ecsact/cli/detail/executable_path",
+        "//ecsact/cli/detail:argv0",
         "@docopt.cpp//:docopt",
         "@nlohmann_json//:json",
     ],
@@ -72,7 +71,6 @@ cc_library(
         "//ecsact/cli:report_message",
         "//ecsact/cli/detail:json_report",
         "//ecsact/cli/detail:text_report",
-        "//ecsact/cli/detail/executable_path",
         "//ecsact/cli/commands/build/recipe:taste",
         "//ecsact/cli/commands/build/recipe:cook",
         "//ecsact/cli/commands/build:cc_compiler",

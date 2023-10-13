@@ -135,11 +135,13 @@ static auto generate_dylib_imports( //
 
 	output << //
 		"extern \"C\" ECSACT_EXPORT(\"ecsact_dylib_set_fn_addr\") "
-		"auto ecsact_dylib_set_fn_addr(const char* fn_name, void(*fn_ptr)()) -> void {\n";
+		"auto ecsact_dylib_set_fn_addr(const char* fn_name, void(*fn_ptr)()) -> "
+		"void {\n";
 
 	for(std::string_view imp : imports) {
 		output << std::format(
-			"\tif(std::string{{\"{0}\"}} == fn_name) {{ {0} = reinterpret_cast<decltype({0})>(fn_ptr); return; }}\n",
+			"\tif(std::string{{\"{0}\"}} == fn_name) {{ {0} = "
+			"reinterpret_cast<decltype({0})>(fn_ptr); return; }}\n",
 			imp
 		);
 	}

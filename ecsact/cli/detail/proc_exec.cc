@@ -59,7 +59,7 @@ auto ecsact::cli::detail::spawn_and_report_output( //
 		.exit_code = proc_exit_code,
 	});
 
-	return proc_exit_code ;
+	return proc_exit_code;
 }
 
 auto ecsact::cli::detail::spawn_get_stdout( //

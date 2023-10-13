@@ -21,6 +21,9 @@ ecsact_build_recipe(
     exports = [
         "ecsact_execute_systems",
     ],
+    imports = [
+        "ecsact_system_execution_context_get",
+    ],
 )
 
 ecsact_binary(

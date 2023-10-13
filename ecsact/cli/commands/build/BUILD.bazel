@@ -49,3 +49,16 @@ cc_library(
         "@boost.process",
     ],
 )
+
+cc_library(
+    name = "cc_defines_gen",
+    hdrs = ["cc_defines_gen.hh"],
+    srcs = ["cc_defines_gen.cc"],
+    copts = copts,
+    deps = [
+        "@ecsact_runtime//:core",
+        "@ecsact_runtime//:dynamic",
+        "@ecsact_runtime//:meta",
+        "@ecsact_runtime//:serialize",
+    ],
+)

@@ -13,7 +13,7 @@ auto ecsact::cli::detail::get_ecsact_modules( //
 #define CHECK_MODULE(fn, mod)                     \
 	if(method == #fn) {                             \
 		result.module_methods[mod].emplace_back(#fn); \
-		continue;                                        \
+		continue;                                     \
 	}                                               \
 	static_assert(true, "")
 

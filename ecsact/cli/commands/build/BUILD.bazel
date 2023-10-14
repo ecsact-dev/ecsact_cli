@@ -9,6 +9,7 @@ cc_library(
     srcs = ["build_recipe.cc"],
     hdrs = ["build_recipe.hh"],
     deps = [
+        "//ecsact/cli/commands/build:get_modules",
         "@yaml-cpp",
     ],
 )
@@ -47,5 +48,29 @@ cc_library(
     hdrs = ["cc_compiler_util.hh"],
     deps = [
         "@boost.process",
+    ],
+)
+
+cc_library(
+    name = "cc_defines_gen",
+    hdrs = ["cc_defines_gen.hh"],
+    srcs = ["cc_defines_gen.cc"],
+    copts = copts,
+    deps = [
+        "@boost.algorithm",
+        ":get_modules",
+    ],
+)
+
+cc_library(
+    name = "get_modules",
+    hdrs = ["get_modules.hh"],
+    srcs = ["get_modules.cc"],
+    copts = copts,
+    deps = [
+        "@ecsact_runtime//:core",
+        "@ecsact_runtime//:dynamic",
+        "@ecsact_runtime//:meta",
+        "@ecsact_runtime//:serialize",
     ],
 )

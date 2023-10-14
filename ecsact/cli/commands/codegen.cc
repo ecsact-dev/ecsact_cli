@@ -107,7 +107,7 @@ int ecsact::cli::detail::codegen_command(int argc, char* argv[]) {
 				<< "'. Paths checked:\n";
 
 			for(auto& checked_path : checked_plugin_paths) {
-				std::cerr << " - " << fs::absolute(checked_path).string() << "\n";
+				std::cerr << " - " << fs::relative(checked_path).string() << "\n";
 			}
 		}
 	}

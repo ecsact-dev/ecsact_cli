@@ -79,7 +79,7 @@ auto ecsact::cli::resolve_plugin_path(
 		for(auto& checked_path : checked_plugin_paths) {
 			paths_checked_str += std::format( //
 				" - {}\n",
-				fs::absolute(checked_path).string()
+				fs::relative(checked_path).string()
 			);
 		}
 		ecsact::cli::report_error(

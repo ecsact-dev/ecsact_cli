@@ -3,9 +3,12 @@
 #include <filesystem>
 #include <format>
 #include <string_view>
-#include <boost/process.hpp>
+#include <fstream>
+#include "ecsact/cli/detail/proc_exec.hh"
 #include "ecsact/cli/commands/build/cc_compiler_config.hh"
+#include "ecsact/cli/commands/build/cc_defines_gen.hh"
 #include "ecsact/cli/commands/codegen/codegen.hh"
+#include "ecsact/cli/commands/build/get_modules.hh"
 #include "ecsact/cli/report.hh"
 #include "ecsact/cli/detail/argv0.hh"
 #ifndef ECSACT_CLI_USE_SDK_VERSION
@@ -13,12 +16,18 @@
 #endif
 
 namespace fs = std::filesystem;
-namespace bp = boost::process;
 
 using namespace std::string_view_literals;
 
-using ecsact::cli::subcommand_end_message;
-using ecsact::cli::subcommand_start_message;
+static auto as_vec(auto range) {
+	using element_type = std::remove_cvref_t<decltype(range[0])>;
+	auto result = std::vector<element_type>{};
+	for(auto el : range) {
+		result.emplace_back(el);
+	}
+
+	return result;
+}
 
 static auto handle_source( //
 	ecsact::build_recipe::source_fetch,
@@ -88,6 +97,58 @@ static auto handle_source( //
 	return 0;
 }
 
+static auto generate_dylib_imports( //
+	auto&&        imports,
+	std::ostream& output
+) -> void {
+	auto mods = ecsact::cli::detail::get_ecsact_modules(as_vec(imports));
+	output << "#include <string>\n";
+	output << "#include \"ecsact/runtime/common.h\"\n";
+	for(auto&& [module_name, _] : mods.module_methods) {
+		output << std::format("#include \"ecsact/runtime/{}.h\"\n", module_name);
+	}
+
+	output << "\n";
+
+	for(std::string_view imp : imports) {
+		output << std::format( //
+			"decltype({0})({0}) = nullptr;\n",
+			imp
+		);
+	}
+
+	output << "\n";
+
+	output << //
+		"extern \"C\" ECSACT_EXPORT(\"ecsact_dylib_has_fn\") "
+		"auto ecsact_dylib_has_fn(const char* fn_name) -> bool {\n";
+
+	for(std::string_view imp : imports) {
+		output << std::format(
+			"\tif(std::string{{\"{}\"}} == fn_name) return true;\n",
+			imp
+		);
+	}
+
+	output << "\treturn false;\n";
+	output << "}\n\n";
+
+	output << //
+		"extern \"C\" ECSACT_EXPORT(\"ecsact_dylib_set_fn_addr\") "
+		"auto ecsact_dylib_set_fn_addr(const char* fn_name, void(*fn_ptr)()) -> "
+		"void {\n";
+
+	for(std::string_view imp : imports) {
+		output << std::format(
+			"\tif(std::string{{\"{0}\"}} == fn_name) {{ {0} = "
+			"reinterpret_cast<decltype({0})>(fn_ptr); return; }}\n",
+			imp
+		);
+	}
+
+	output << "}\n\n";
+}
+
 struct compile_options {
 	fs::path work_dir;
 
@@ -96,6 +157,8 @@ struct compile_options {
 	std::vector<std::string> system_libs;
 	std::vector<fs::path>    srcs;
 	fs::path                 output_path;
+	std::vector<std::string> imports;
+	std::vector<std::string> exports;
 };
 
 auto clang_gcc_compile(compile_options options) -> int {
@@ -126,8 +189,6 @@ auto clang_gcc_compile(compile_options options) -> int {
 		);
 	}
 
-	compile_proc_args.push_back("-isystem"); // TODO(zaucy): why two of these?
-
 #ifdef _WIN32
 	compile_proc_args.push_back("-D_CRT_SECURE_NO_WARNINGS");
 #endif
@@ -136,10 +197,17 @@ auto clang_gcc_compile(compile_options options) -> int {
 	compile_proc_args.push_back("-ffunction-sections");
 	compile_proc_args.push_back("-fdata-sections");
 
-	compile_proc_args.push_back("-DECSACT_CORE_API_EXPORT");
-	compile_proc_args.push_back("-DECSACT_DYNAMIC_API_EXPORT");
-	compile_proc_args.push_back("-DECSACT_STATIC_API_EXPORT");
-	compile_proc_args.push_back("-DECSACT_SERIALIZE_API_EXPORT");
+	auto generated_defines =
+		ecsact::cli::cc_defines_gen(options.imports, options.exports);
+
+	if(generated_defines.empty()) {
+		ecsact::cli::report_error("no defines (internal error)");
+		return 1;
+	}
+
+	for(auto def : generated_defines) {
+		compile_proc_args.push_back(std::format("-D{}", def));
+	}
 
 	compile_proc_args.push_back("-O3");
 
@@ -151,38 +219,15 @@ auto clang_gcc_compile(compile_options options) -> int {
 		compile_proc_args.push_back(fs::relative(src, options.work_dir).string());
 	}
 
+	compile_proc_args.push_back("-static");
+
 	ecsact::cli::report_info("Compiling runtime...");
 
-	auto compile_proc_stdout = bp::ipstream{};
-	auto compile_proc_stderr = bp::ipstream{};
-	auto compile_proc = bp::child{
-		bp::exe(fs::absolute(clang).string()),
-		bp::start_dir(options.work_dir.string()),
-		bp::args(compile_proc_args),
-		bp::std_out > compile_proc_stdout,
-		bp::std_err > compile_proc_stderr,
-	};
-
-	auto compile_subcommand_id = static_cast<ecsact::cli::subcommand_id_t>( //
-		compile_proc.id()
+	auto compile_proc_exit_code = ecsact::cli::detail::spawn_and_report_output(
+		clang,
+		compile_proc_args,
+		options.work_dir
 	);
-
-	ecsact::cli::report(subcommand_start_message{
-		.id = compile_subcommand_id,
-		.executable = clang.string(),
-		.arguments = compile_proc_args,
-	});
-
-	ecsact::cli::report_stdout(compile_subcommand_id, compile_proc_stdout);
-	ecsact::cli::report_stderr(compile_subcommand_id, compile_proc_stderr);
-
-	compile_proc.wait();
-
-	auto compile_proc_exit_code = compile_proc.exit_code();
-
-	ecsact::cli::report(subcommand_end_message{
-		.id = compile_subcommand_id,
-	});
 
 	if(compile_proc_exit_code != 0) {
 		ecsact::cli::report_error(
@@ -222,39 +267,27 @@ auto clang_gcc_compile(compile_options options) -> int {
 		}
 	}
 
+	for(auto lib_dir : options.compiler.std_lib_paths) {
+		link_proc_args.push_back(std::format("-L{}", lib_dir.string()));
+	}
+
+	for(auto sys_lib : options.system_libs) {
+		link_proc_args.push_back(std::format("-l{}", sys_lib));
+	}
+
+	link_proc_args.push_back("-l:libc++.a");
+	link_proc_args.push_back("-l:libc++abi.a");
+	link_proc_args.push_back("-rtlib=compiler-rt");
+	link_proc_args.push_back("-lpthread");
+	link_proc_args.push_back("-ldl");
+
 	ecsact::cli::report_info("Linking runtime...");
 
-	auto link_proc_stdout = bp::ipstream{};
-	auto link_proc_stderr = bp::ipstream{};
-	auto link_proc = bp::child{
-		bp::exe(fs::absolute(clang).string()),
-		bp::start_dir(options.work_dir.string()),
-		bp::args(link_proc_args),
-		bp::std_out > link_proc_stdout,
-		bp::std_err > link_proc_stderr,
-	};
-
-	auto link_subcommand_id = static_cast<ecsact::cli::subcommand_id_t>( //
-		link_proc.id()
+	auto link_proc_exit_code = ecsact::cli::detail::spawn_and_report_output(
+		clang,
+		link_proc_args,
+		options.work_dir
 	);
-
-	ecsact::cli::report(subcommand_start_message{
-		.id = link_subcommand_id,
-		.executable = clang.string(),
-		.arguments = link_proc_args,
-	});
-
-	ecsact::cli::report_stdout(link_subcommand_id, link_proc_stdout);
-	ecsact::cli::report_stderr(link_subcommand_id, link_proc_stderr);
-
-	link_proc.wait();
-
-	auto link_proc_exit_code = link_proc.exit_code();
-
-	ecsact::cli::report(subcommand_end_message{
-		.id = link_subcommand_id,
-		.exit_code = link_proc_exit_code,
-	});
 
 	if(link_proc_exit_code != 0) {
 		ecsact::cli::report_error(
@@ -298,6 +331,18 @@ auto cl_compile(compile_options options) -> int {
 	cl_args.push_back("/GL");
 	cl_args.push_back("/MP");
 
+	auto generated_defines =
+		ecsact::cli::cc_defines_gen(options.imports, options.exports);
+
+	if(generated_defines.empty()) {
+		ecsact::cli::report_error("no defines (internal error)");
+		return 1;
+	}
+
+	for(auto def : generated_defines) {
+		cl_args.push_back(std::format("/D{}", def));
+	}
+
 	for(auto src : options.srcs) {
 		if(src.extension().string().starts_with(".h")) {
 			continue;
@@ -329,36 +374,10 @@ auto cl_compile(compile_options options) -> int {
 
 	cl_args.push_back(std::format("/OUT:{}", options.output_path.string()));
 
-	auto cl_proc_stdout = bp::ipstream{};
-	auto cl_proc_stderr = bp::ipstream{};
-	auto cl_proc = bp::child{
-		bp::exe(options.compiler.compiler_path.string()),
-		bp::args(cl_args),
-		bp::std_out > cl_proc_stdout,
-		bp::std_err > cl_proc_stderr,
-	};
-
-	auto compile_subcommand_id = static_cast<ecsact::cli::subcommand_id_t>( //
-		cl_proc.id()
+	auto compile_exit_code = ecsact::cli::detail::spawn_and_report_output(
+		options.compiler.compiler_path,
+		cl_args
 	);
-
-	ecsact::cli::report(subcommand_start_message{
-		.id = compile_subcommand_id,
-		.executable = options.compiler.compiler_path.string(),
-		.arguments = cl_args,
-	});
-
-	ecsact::cli::report_stdout(compile_subcommand_id, cl_proc_stdout);
-	ecsact::cli::report_stderr(compile_subcommand_id, cl_proc_stderr);
-
-	cl_proc.wait();
-
-	auto compile_exit_code = cl_proc.exit_code();
-
-	ecsact::cli::report(subcommand_end_message{
-		.id = compile_subcommand_id,
-		.exit_code = compile_exit_code,
-	});
 
 	if(compile_exit_code != 0) {
 		ecsact::cli::report_error(
@@ -500,28 +519,36 @@ auto ecsact::cli::cook_recipe( //
 	inc_dirs.push_back(install_prefix / "include");
 #endif
 
-	auto system_libs = std::vector<std::string>{};
-	for(auto sys_lib : recipe.system_libs()) {
-		system_libs.push_back(sys_lib);
+	auto dylib_src = src_dir / "ecsact-generated-dylib.cc";
+
+	{
+		auto dylib_src_stream = std::ofstream{dylib_src};
+		generate_dylib_imports(recipe.imports(), dylib_src_stream);
 	}
+
+	source_files.push_back(dylib_src);
 
 	if(is_cl_like(compiler.compiler_type)) {
 		exit_code = cl_compile({
 			.work_dir = work_dir,
 			.compiler = compiler,
 			.inc_dirs = inc_dirs,
-			.system_libs = system_libs,
+			.system_libs = as_vec(recipe.system_libs()),
 			.srcs = source_files,
 			.output_path = output_path,
+			.imports = as_vec(recipe.imports()),
+			.exports = as_vec(recipe.exports()),
 		});
 	} else {
 		exit_code = clang_gcc_compile({
 			.work_dir = work_dir,
 			.compiler = compiler,
 			.inc_dirs = inc_dirs,
-			.system_libs = system_libs,
+			.system_libs = as_vec(recipe.system_libs()),
 			.srcs = source_files,
 			.output_path = output_path,
+			.imports = as_vec(recipe.imports()),
+			.exports = as_vec(recipe.exports()),
 		});
 	}
 

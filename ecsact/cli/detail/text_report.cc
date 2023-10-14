@@ -16,14 +16,24 @@ using ecsact::cli::subcommand_stdout_message;
 using ecsact::cli::success_message;
 using ecsact::cli::warning_message;
 
-#define COLOR_RED "\e[0;31m"
-#define COLOR_GRN "\e[0;32m"
-#define COLOR_YEL "\e[0;33m"
-#define COLOR_BLU "\e[0;34m"
-#define COLOR_MAG "\e[0;35m"
-#define COLOR_CYN "\e[0;36m"
-
-#define COLOR_RESET "\e[0m"
+// TODO(zaucy): figure out colored output for windows
+#ifdef _WIN32
+#	define COLOR_RED ""
+#	define COLOR_GRN ""
+#	define COLOR_YEL ""
+#	define COLOR_BLU ""
+#	define COLOR_MAG ""
+#	define COLOR_CYN ""
+#	define COLOR_RESET ""
+#else
+#	define COLOR_RED "\e[0;31m"
+#	define COLOR_GRN "\e[0;32m"
+#	define COLOR_YEL "\e[0;33m"
+#	define COLOR_BLU "\e[0;34m"
+#	define COLOR_MAG "\e[0;35m"
+#	define COLOR_CYN "\e[0;36m"
+#	define COLOR_RESET "\e[0m"
+#endif
 
 namespace {
 auto print_text_report(const alert_message& msg) -> void {

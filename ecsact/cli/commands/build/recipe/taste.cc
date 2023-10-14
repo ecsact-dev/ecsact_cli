@@ -4,6 +4,7 @@
 #include <algorithm>
 #include <memory>
 #include <filesystem>
+#include <iostream>
 #include <boost/dll.hpp>
 #include <boost/dll/library_info.hpp>
 #include "ecsact/cli/report.hh"
@@ -26,20 +27,18 @@ static auto maybe_library_info( //
 	}
 }
 
-auto ecsact::cli::taste_recipe( //
-	const ecsact::build_recipe& recipe,
-	std::filesystem::path       output_path
-) -> int {
-	auto ec = std::error_code{};
-
-	auto runtime_lib_info = maybe_library_info(output_path.string());
+static auto check_library_info(
+	fs::path                    library_path,
+	const ecsact::build_recipe& recipe
+) -> bool {
+	auto runtime_lib_info = maybe_library_info(library_path);
 
 	if(!runtime_lib_info) {
 		ecsact::cli::report_error(
 			"Unable to load library info for {}",
-			output_path.string()
+			library_path.string()
 		);
-		return 1;
+		return false;
 	}
 
 	auto recipe_exports = recipe.exports();
@@ -75,8 +74,79 @@ auto ecsact::cli::taste_recipe( //
 			}
 		}
 
-		return 1;
+		return false;
 	}
+
+	auto has_dylib_set_fn_symbol = false;
+
+	if(!recipe_imports.empty()) {
+		for(auto symbol : runtime_lib_info->symbols()) {
+			if(symbol == "ecsact_dylib_set_fn_addr") {
+				has_dylib_set_fn_symbol = true;
+				break;
+			}
+		}
+
+		if(!has_dylib_set_fn_symbol) {
+			ecsact::cli::report_error(
+				"Build recipes with imports must export 'ecsact_dylib_set_fn_addr' "
+				"(internal error)"
+			);
+			return false;
+		}
+	}
+
+	return true;
+}
+
+static auto check_runtime_info(
+	fs::path                    library_path,
+	const ecsact::build_recipe& recipe
+) -> bool {
+	auto ec = std::error_code{};
+	auto runtime_lib = boost::dll::shared_library{
+		library_path.string(),
+		boost::dll::load_mode::default_mode,
+		ec,
+	};
+
+	if(ec) {
+		ecsact::cli::report_error(
+			"Unable to load {}: {}",
+			library_path.string(),
+			ec.message()
+		);
+		ecsact::cli::report_error(
+			"Cannot verify recipe imports if runtime does not load"
+		);
+		return false;
+	}
+
+	if(runtime_lib.has("ecsact_dylib_has_fn")) {
+		decltype(&ecsact_dylib_has_fn) dylib_has_fn = nullptr;
+		dylib_has_fn =
+			runtime_lib.get<decltype(ecsact_dylib_has_fn)>("ecsact_dylib_has_fn");
+
+		for(auto imp : recipe.imports()) {
+			if(!dylib_has_fn(imp.c_str())) {
+				ecsact::cli::report_error(
+					"ecsact_dylib_has_fn(\"{0}\") returned false",
+					imp
+				);
+				return false;
+			}
+		}
+	}
+
+	runtime_lib.unload();
+	return true;
+}
+
+auto ecsact::cli::taste_recipe( //
+	const ecsact::build_recipe& recipe,
+	std::filesystem::path       output_path
+) -> int {
+	auto ec = std::error_code{};
 
 	if(!fs::exists(output_path)) {
 		ecsact::cli::report_error(
@@ -86,69 +156,14 @@ auto ecsact::cli::taste_recipe( //
 		return 1;
 	}
 
-	auto runtime_lib = boost::dll::shared_library{
-		output_path.string(),
-		boost::dll::load_mode::default_mode,
-		ec,
-	};
-
-	auto has_dylib_set_fn_symbol = false;
-	auto has_dylib_has_fn_symbol = false;
-
-	if(!recipe_imports.empty()) {
-		for(auto symbol : runtime_lib_info->symbols()) {
-			if(symbol == "ecsact_dylib_has_fn") {
-				has_dylib_has_fn_symbol = true;
-			} else if(symbol == "ecsact_dylib_set_fn_addr") {
-				has_dylib_set_fn_symbol = true;
-			}
-		}
-
-		if(!has_dylib_set_fn_symbol) {
-			ecsact::cli::report_error(
-				"Build recipes with imports must export 'ecsact_dylib_set_fn_addr' "
-				"(internal error)"
-			);
-			return 1;
-		}
+	auto library_info = check_library_info(output_path, recipe);
+	if(!library_info) {
+		return 1;
 	}
 
-	if(ec) {
-		if(recipe_imports.empty()) {
-			ecsact::cli::report_warning(
-				"Unable to load {}: {}",
-				output_path.string(),
-				ec.message()
-			);
-		} else {
-			ecsact::cli::report_error(
-				"Unable to load {}: {}",
-				output_path.string(),
-				ec.message()
-			);
-			ecsact::cli::report_error(
-				"Cannot verify recipe imports if runtime does not load"
-			);
-			return 1;
-		}
-	} else {
-		if(has_dylib_has_fn_symbol) {
-			decltype(&ecsact_dylib_has_fn) dylib_has_fn = nullptr;
-			dylib_has_fn =
-				runtime_lib.get<decltype(ecsact_dylib_has_fn)>("ecsact_dylib_has_fn");
-
-			for(auto imp : recipe_imports) {
-				if(!dylib_has_fn(imp.c_str())) {
-					ecsact::cli::report_error(
-						"ecsact_dylib_has_fn(\"{0}\") returned false",
-						imp
-					);
-					return 1;
-				}
-			}
-		}
-
-		runtime_lib.unload();
+	auto runtime_info = check_runtime_info(output_path, recipe);
+	if(!runtime_info) {
+		return 1;
 	}
 
 	return 0;

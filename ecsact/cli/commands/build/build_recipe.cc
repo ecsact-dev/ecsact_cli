@@ -193,7 +193,7 @@ auto ecsact::build_recipe::from_yaml_file( //
 			return build_recipe_parse_error::unknown_import_method;
 		}
 
-		for(auto method : import_modules.unknown_module_methods) {
+		if(!export_modules.unknown_module_methods.empty()) {
 			return build_recipe_parse_error::unknown_export_method;
 		}
 

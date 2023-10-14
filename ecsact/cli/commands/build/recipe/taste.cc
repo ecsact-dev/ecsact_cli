@@ -5,6 +5,8 @@
 #include <memory>
 #include <filesystem>
 #include <iostream>
+#include <thread>
+#include <chrono>
 #include <boost/dll.hpp>
 #include <boost/dll/library_info.hpp>
 #include "ecsact/cli/report.hh"
@@ -112,9 +114,14 @@ static auto check_runtime_info(
 
 	if(ec) {
 		ecsact::cli::report_error(
+#ifdef _WIN32
 			"Unable to load {}: {}",
 			library_path.string(),
 			ec.message()
+#else
+			"{}",
+			dlerror()
+#endif
 		);
 		ecsact::cli::report_error(
 			"Cannot verify recipe imports if runtime does not load"

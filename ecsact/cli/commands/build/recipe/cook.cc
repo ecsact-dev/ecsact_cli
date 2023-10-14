@@ -189,8 +189,6 @@ auto clang_gcc_compile(compile_options options) -> int {
 		);
 	}
 
-	compile_proc_args.push_back("-isystem"); // TODO(zaucy): why two of these?
-
 #ifdef _WIN32
 	compile_proc_args.push_back("-D_CRT_SECURE_NO_WARNINGS");
 #endif
@@ -220,6 +218,8 @@ auto clang_gcc_compile(compile_options options) -> int {
 
 		compile_proc_args.push_back(fs::relative(src, options.work_dir).string());
 	}
+
+	compile_proc_args.push_back("-static");
 
 	ecsact::cli::report_info("Compiling runtime...");
 
@@ -266,6 +266,20 @@ auto clang_gcc_compile(compile_options options) -> int {
 			);
 		}
 	}
+
+	for(auto lib_dir : options.compiler.std_lib_paths) {
+		link_proc_args.push_back(std::format("-L{}", lib_dir.string()));
+	}
+
+	for(auto sys_lib : options.system_libs) {
+		link_proc_args.push_back(std::format("-l{}", sys_lib));
+	}
+
+	link_proc_args.push_back("-l:libc++.a");
+	link_proc_args.push_back("-l:libc++abi.a");
+	link_proc_args.push_back("-rtlib=compiler-rt");
+	link_proc_args.push_back("-lpthread");
+	link_proc_args.push_back("-ldl");
 
 	ecsact::cli::report_info("Linking runtime...");
 

@@ -20,9 +20,11 @@ ecsact_build_recipe(
     },
     exports = [
         "ecsact_execute_systems",
+        "ecsact_create_registry",
     ],
     imports = [
         "ecsact_system_execution_context_get",
+        "ecsact_system_execution_context_action",
     ],
 )
 

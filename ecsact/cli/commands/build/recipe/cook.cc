@@ -406,7 +406,7 @@ auto ecsact::cli::cook_recipe( //
 			std::visit([&](auto& src) { return handle_source(src, work_dir); }, src);
 
 		if(exit_code != 0) {
-			break;
+			return std::nullopt;
 		}
 	}
 

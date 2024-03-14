@@ -44,7 +44,7 @@ constexpr auto CANNOT_FIND_PLUGIN_DIR = R"(
 	https://github.com/ecsact-dev/ecsact_sdk/issues
 )";
 
-int ecsact::cli::detail::config_command(int argc, char* argv[]) {
+int ecsact::cli::detail::config_command(int argc, const char* argv[]) {
 	using namespace std::string_literals;
 
 	auto args = docopt::docopt(USAGE, {argv + 1, argv + argc});

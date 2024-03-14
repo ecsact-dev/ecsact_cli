@@ -48,7 +48,7 @@ static void file_write_fn(const char* str, int32_t str_len) {
 	file_write_stream << std::string_view(str, str_len);
 }
 
-int ecsact::cli::detail::codegen_command(int argc, char* argv[]) {
+int ecsact::cli::detail::codegen_command(int argc, const char* argv[]) {
 	using namespace std::string_literals;
 
 	auto                  args = docopt::docopt(USAGE, {argv + 1, argv + argc});

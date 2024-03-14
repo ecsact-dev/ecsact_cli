@@ -48,8 +48,8 @@ Options:
 //   text : Human readable text format
 
 auto ecsact::cli::detail::build_command( //
-	int   argc,
-	char* argv[]
+	int         argc,
+	const char* argv[]
 ) -> int {
 	auto args = docopt::docopt(USAGE, {argv + 1, argv + argc});
 	auto format = args["--format"].asString();

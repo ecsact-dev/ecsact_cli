@@ -1,6 +1,6 @@
 {
   "lockFileVersion": 6,
-  "moduleFileHash": "6e5bf5ebd2c9920717564e0a87ae400fce2dd999364a58c91db8827344d76994",
+  "moduleFileHash": "d37b3c71acecff3dfaa5cd9a2f1e20dffc418b5ea9c22538080d6529ed1e704b",
   "flags": {
     "cmdRegistries": [
       "https://raw.githubusercontent.com/ecsact-dev/bazel_registry/main",
@@ -16,7 +16,7 @@
   },
   "localOverrideHashes": {
     "bazel_tools": "1ae69322ac3823527337acf02016e8ee95813d8d356f47060255b8956fa642f0",
-    "ecsact_cli": "53a76cdb79bd175317f4bfb6f9cb480ff328f3dd30389e09dd35495ab08c0bc0"
+    "ecsact_cli": "496e695d075f5e57fe74e21d38acf071e68c5daa81478a91d376fef0b2e11793"
   },
   "moduleDepGraph": {
     "<root>": {
@@ -26,7 +26,6 @@
       "repoName": "ecsact_cli_test",
       "executionPlatformsToRegister": [],
       "toolchainsToRegister": [
-        "@ecsact_cli//:all",
         "@llvm_toolchain//:all"
       ],
       "extensionUsages": [
@@ -68,8 +67,10 @@
         "boost.dll": "boost.dll@1.83.0.bzl.2",
         "boost.process": "boost.process@1.83.0.bzl.2",
         "ecsact_runtime": "ecsact_runtime@0.5.1",
+        "ecsact_interpret": "ecsact_interpret@0.5.0",
         "toolchains_llvm": "toolchains_llvm@0.10.3",
         "hedron_compile_commands": "hedron_compile_commands@_",
+        "googletest": "googletest@1.14.0",
         "ecsact_cli": "ecsact_cli@_",
         "yaml-cpp": "yaml-cpp@_",
         "bazel_tools": "bazel_tools@_",
@@ -306,6 +307,37 @@
         }
       }
     },
+    "ecsact_interpret@0.5.0": {
+      "name": "ecsact_interpret",
+      "version": "0.5.0",
+      "key": "ecsact_interpret@0.5.0",
+      "repoName": "ecsact_interpret",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "rules_cc": "rules_cc@0.0.9",
+        "bazel_skylib": "bazel_skylib@1.4.2",
+        "magic_enum": "magic_enum@0.9.3",
+        "ecsact_runtime": "ecsact_runtime@0.5.1",
+        "ecsact_parse": "ecsact_parse@0.3.0",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://github.com/ecsact-dev/ecsact_interpret/releases/download/0.5.0/ecsact_interpret-0.5.0.tar.gz"
+          ],
+          "integrity": "sha256-EWeVy16rNkSbHThZIGe5PP3kwRFOlgnDLDL2gW+NKLQ=",
+          "strip_prefix": "",
+          "remote_patches": {},
+          "remote_patch_strip": 0
+        }
+      }
+    },
     "toolchains_llvm@0.10.3": {
       "name": "toolchains_llvm",
       "version": "0.10.3",
@@ -409,6 +441,37 @@
         "local_config_platform": "local_config_platform@_"
       }
     },
+    "googletest@1.14.0": {
+      "name": "googletest",
+      "version": "1.14.0",
+      "key": "googletest@1.14.0",
+      "repoName": "googletest",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "com_google_absl": "abseil-cpp@20230802.0",
+        "platforms": "platforms@0.0.7",
+        "rules_cc": "rules_cc@0.0.9",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz"
+          ],
+          "integrity": "sha256-itWYxzrXluDYKAsILOvYKmMNc+c808cAV5OKZQG7pdc=",
+          "strip_prefix": "googletest-1.14.0",
+          "remote_patches": {
+            "https://bcr.bazel.build/modules/googletest/1.14.0/patches/module_dot_bazel.patch": "sha256-CSomzvti38LCuURDG5EEoa3O1tQF3cKKt/mknnP1qcc="
+          },
+          "remote_patch_strip": 0
+        }
+      }
+    },
     "ecsact_cli@_": {
       "name": "ecsact_cli",
       "version": "0.2.3",
@@ -430,7 +493,6 @@
         "boost.dll": "boost.dll@1.83.0.bzl.2",
         "magic_enum": "magic_enum@0.9.3",
         "docopt.cpp": "docopt.cpp@0.6.2",
-        "rules_ecsact": "rules_ecsact@0.4.9",
         "boost.process": "boost.process@1.83.0.bzl.2",
         "boost.algorithm": "boost.algorithm@1.83.0.bzl.1",
         "toolchains_llvm": "toolchains_llvm@0.10.3",
@@ -1467,37 +1529,6 @@
         }
       }
     },
-    "googletest@1.14.0": {
-      "name": "googletest",
-      "version": "1.14.0",
-      "key": "googletest@1.14.0",
-      "repoName": "googletest",
-      "executionPlatformsToRegister": [],
-      "toolchainsToRegister": [],
-      "extensionUsages": [],
-      "deps": {
-        "com_google_absl": "abseil-cpp@20230802.0",
-        "platforms": "platforms@0.0.7",
-        "rules_cc": "rules_cc@0.0.9",
-        "bazel_tools": "bazel_tools@_",
-        "local_config_platform": "local_config_platform@_"
-      },
-      "repoSpec": {
-        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-        "ruleClassName": "http_archive",
-        "attributes": {
-          "urls": [
-            "https://github.com/google/googletest/archive/refs/tags/v1.14.0.tar.gz"
-          ],
-          "integrity": "sha256-itWYxzrXluDYKAsILOvYKmMNc+c808cAV5OKZQG7pdc=",
-          "strip_prefix": "googletest-1.14.0",
-          "remote_patches": {
-            "https://bcr.bazel.build/modules/googletest/1.14.0/patches/module_dot_bazel.patch": "sha256-CSomzvti38LCuURDG5EEoa3O1tQF3cKKt/mknnP1qcc="
-          },
-          "remote_patch_strip": 0
-        }
-      }
-    },
     "abseil-cpp@20230802.0": {
       "name": "abseil-cpp",
       "version": "20230802.0",
@@ -1527,6 +1558,65 @@
           "remote_patches": {
             "https://bcr.bazel.build/modules/abseil-cpp/20230802.0/patches/module_dot_bazel.patch": "sha256-tppa7eDWtr2QUqOhIzKmHL5DEqUqfMFQIH7tkhFDY8E="
           },
+          "remote_patch_strip": 0
+        }
+      }
+    },
+    "magic_enum@0.9.3": {
+      "name": "magic_enum",
+      "version": "0.9.3",
+      "key": "magic_enum@0.9.3",
+      "repoName": "magic_enum",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "rules_cc": "rules_cc@0.0.9",
+        "bazel_skylib": "bazel_skylib@1.4.2",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://github.com/Neargye/magic_enum/archive/d705e50884d9647ddff3fc1b08d96c9cd4ce530a.tar.gz"
+          ],
+          "integrity": "sha256-Gr63VODz0fDuhOW4suocH47Mgpc5MtKLbQA7dOEQ4PI=",
+          "strip_prefix": "magic_enum-d705e50884d9647ddff3fc1b08d96c9cd4ce530a",
+          "remote_patches": {},
+          "remote_patch_strip": 0
+        }
+      }
+    },
+    "ecsact_parse@0.3.0": {
+      "name": "ecsact_parse",
+      "version": "0.3.0",
+      "key": "ecsact_parse@0.3.0",
+      "repoName": "ecsact_parse",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "rules_cc": "rules_cc@0.0.9",
+        "bazel_skylib": "bazel_skylib@1.4.2",
+        "ecsact_runtime": "ecsact_runtime@0.5.1",
+        "lexy": "lexy@2022.05.1",
+        "magic_enum": "magic_enum@0.9.3",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://github.com/ecsact-dev/ecsact_parse/releases/download/0.3.0/ecsact_parse-0.3.0.tar.gz"
+          ],
+          "integrity": "sha256-pJ5Bus4vLHLECZTcmMChMnrbqFrHtv5mcylc3nvkaWs=",
+          "strip_prefix": "",
+          "remote_patches": {},
           "remote_patch_strip": 0
         }
       }
@@ -1584,96 +1674,6 @@
           ],
           "integrity": "sha256-j57i3BDBrlFO5ZmotC7Zn6Jit1cFj2WtPDhCif9wxLg=",
           "strip_prefix": "",
-          "remote_patches": {},
-          "remote_patch_strip": 0
-        }
-      }
-    },
-    "ecsact_parse@0.3.0": {
-      "name": "ecsact_parse",
-      "version": "0.3.0",
-      "key": "ecsact_parse@0.3.0",
-      "repoName": "ecsact_parse",
-      "executionPlatformsToRegister": [],
-      "toolchainsToRegister": [],
-      "extensionUsages": [],
-      "deps": {
-        "rules_cc": "rules_cc@0.0.9",
-        "bazel_skylib": "bazel_skylib@1.4.2",
-        "ecsact_runtime": "ecsact_runtime@0.5.1",
-        "lexy": "lexy@2022.05.1",
-        "magic_enum": "magic_enum@0.9.3",
-        "bazel_tools": "bazel_tools@_",
-        "local_config_platform": "local_config_platform@_"
-      },
-      "repoSpec": {
-        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-        "ruleClassName": "http_archive",
-        "attributes": {
-          "urls": [
-            "https://github.com/ecsact-dev/ecsact_parse/releases/download/0.3.0/ecsact_parse-0.3.0.tar.gz"
-          ],
-          "integrity": "sha256-pJ5Bus4vLHLECZTcmMChMnrbqFrHtv5mcylc3nvkaWs=",
-          "strip_prefix": "",
-          "remote_patches": {},
-          "remote_patch_strip": 0
-        }
-      }
-    },
-    "ecsact_interpret@0.5.0": {
-      "name": "ecsact_interpret",
-      "version": "0.5.0",
-      "key": "ecsact_interpret@0.5.0",
-      "repoName": "ecsact_interpret",
-      "executionPlatformsToRegister": [],
-      "toolchainsToRegister": [],
-      "extensionUsages": [],
-      "deps": {
-        "rules_cc": "rules_cc@0.0.9",
-        "bazel_skylib": "bazel_skylib@1.4.2",
-        "magic_enum": "magic_enum@0.9.3",
-        "ecsact_runtime": "ecsact_runtime@0.5.1",
-        "ecsact_parse": "ecsact_parse@0.3.0",
-        "bazel_tools": "bazel_tools@_",
-        "local_config_platform": "local_config_platform@_"
-      },
-      "repoSpec": {
-        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-        "ruleClassName": "http_archive",
-        "attributes": {
-          "urls": [
-            "https://github.com/ecsact-dev/ecsact_interpret/releases/download/0.5.0/ecsact_interpret-0.5.0.tar.gz"
-          ],
-          "integrity": "sha256-EWeVy16rNkSbHThZIGe5PP3kwRFOlgnDLDL2gW+NKLQ=",
-          "strip_prefix": "",
-          "remote_patches": {},
-          "remote_patch_strip": 0
-        }
-      }
-    },
-    "magic_enum@0.9.3": {
-      "name": "magic_enum",
-      "version": "0.9.3",
-      "key": "magic_enum@0.9.3",
-      "repoName": "magic_enum",
-      "executionPlatformsToRegister": [],
-      "toolchainsToRegister": [],
-      "extensionUsages": [],
-      "deps": {
-        "rules_cc": "rules_cc@0.0.9",
-        "bazel_skylib": "bazel_skylib@1.4.2",
-        "bazel_tools": "bazel_tools@_",
-        "local_config_platform": "local_config_platform@_"
-      },
-      "repoSpec": {
-        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-        "ruleClassName": "http_archive",
-        "attributes": {
-          "urls": [
-            "https://github.com/Neargye/magic_enum/archive/d705e50884d9647ddff3fc1b08d96c9cd4ce530a.tar.gz"
-          ],
-          "integrity": "sha256-Gr63VODz0fDuhOW4suocH47Mgpc5MtKLbQA7dOEQ4PI=",
-          "strip_prefix": "magic_enum-d705e50884d9647ddff3fc1b08d96c9cd4ce530a",
           "remote_patches": {},
           "remote_patch_strip": 0
         }

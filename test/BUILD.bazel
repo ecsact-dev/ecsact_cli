@@ -1,7 +1,7 @@
 load("@bazel_skylib//rules:build_test.bzl", "build_test")
+load("@ecsact_cli//bazel:copts.bzl", "copts")
 load("@rules_cc//cc:defs.bzl", "cc_binary")
 load("@rules_ecsact//ecsact:defs.bzl", "ecsact_codegen", "ecsact_codegen_plugin")
-load("@ecsact_cli//bazel:copts.bzl", "copts")
 
 package(default_visibility = ["//:__subpackages__"])
 
@@ -28,6 +28,7 @@ ecsact_codegen_plugin(
 
 ecsact_codegen(
     name = "codegen_test",
+    output_directory = "_codegen_test",
     srcs = ["test.ecsact"],
     plugins = [":test_codegen_plugin"],
 )

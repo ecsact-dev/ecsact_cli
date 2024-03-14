@@ -1,5 +1,5 @@
-load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@bazel_skylib//rules:native_binary.bzl", "native_test")
+load("@rules_cc//cc:defs.bzl", "cc_library")
 load("@rules_ecsact//ecsact:defs.bzl", "ecsact_binary", "ecsact_build_recipe")
 
 cc_library(
@@ -10,6 +10,7 @@ cc_library(
 
 ecsact_build_recipe(
     name = "ecsact_build_test_recipe",
+    tags = ["manual"],
     srcs = [
         "ecsact_build_test.cc",
         "local_dep.cc",
@@ -30,6 +31,7 @@ ecsact_build_recipe(
 
 ecsact_binary(
     name = "test",
+    tags = ["manual"],
     srcs = [
         "test.ecsact",
     ],

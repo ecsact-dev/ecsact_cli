@@ -16,7 +16,7 @@
   },
   "localOverrideHashes": {
     "bazel_tools": "1ae69322ac3823527337acf02016e8ee95813d8d356f47060255b8956fa642f0",
-    "ecsact_cli": "496e695d075f5e57fe74e21d38acf071e68c5daa81478a91d376fef0b2e11793"
+    "ecsact_cli": "083badf6a4a16a5440bd8549c9b4623bf7fd59c1f5bb5b4295ea96df09fd4216"
   },
   "moduleDepGraph": {
     "<root>": {
@@ -495,7 +495,6 @@
         "docopt.cpp": "docopt.cpp@0.6.2",
         "boost.process": "boost.process@1.83.0.bzl.2",
         "boost.algorithm": "boost.algorithm@1.83.0.bzl.1",
-        "toolchains_llvm": "toolchains_llvm@1.0.0",
         "yaml-cpp": "yaml-cpp@_",
         "bazel_tools": "bazel_tools@_",
         "local_config_platform": "local_config_platform@_"

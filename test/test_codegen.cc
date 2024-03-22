@@ -16,6 +16,11 @@ namespace fs = std::filesystem;
 TEST(Codegen, Success) {
 	auto runfiles_err = std::string{};
 	auto runfiles = Runfiles::CreateForTest(&runfiles_err);
+	auto test_codegen_plugin_path = std::getenv("TEST_CODEGEN_PLUGIN_PATH");
+	auto test_ecsact_file_path = std::getenv("TEST_ECSACT_FILE_PATH");
+
+	ASSERT_NE(test_codegen_plugin_path, nullptr);
+	ASSERT_NE(test_ecsact_file_path, nullptr);
 	ASSERT_NE(runfiles, nullptr) << runfiles_err;
 
 	auto generated_file_path = fs::path{"_test_codegen_outdir/test.ecsact.txt"};
@@ -24,14 +29,14 @@ TEST(Codegen, Success) {
 		fs::remove(generated_file_path);
 	}
 
+	ASSERT_TRUE(fs::exists(test_codegen_plugin_path));
+	ASSERT_TRUE(fs::exists(test_ecsact_file_path));
+
 	auto exit_code = codegen_command(std::vector{
 		"ecsact"s,
 		"codegen"s,
-		runfiles->Rlocation("ecsact_cli_test/test.ecsact"),
-		std::format(
-			"--plugin={}",
-			runfiles->Rlocation("ecsact_cli_test/test_codegen_plugin")
-		),
+		std::string{test_ecsact_file_path},
+		std::format("--plugin={}", test_codegen_plugin_path),
 		"--outdir=_test_codegen_outdir"s,
 	});
 

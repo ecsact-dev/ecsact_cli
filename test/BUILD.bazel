@@ -28,6 +28,10 @@ cc_test(
         "test.ecsact",
         ":test_codegen_plugin",
     ],
+    env = {
+        "TEST_ECSACT_FILE_PATH": "$(rootpath test.ecsact)",
+        "TEST_CODEGEN_PLUGIN_PATH": "$(rootpath :test_codegen_plugin)",
+    },
     deps = [
         "@ecsact_interpret",
         "@bazel_tools//tools/cpp/runfiles",

@@ -1,4 +1,3 @@
-load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@ecsact_cli//bazel:copts.bzl", "copts")
 load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_test")
 
@@ -39,12 +38,5 @@ cc_test(
         "@ecsact_cli//ecsact/cli/commands:codegen",
         "@googletest//:gtest",
         "@googletest//:gtest_main",
-    ],
-)
-
-build_test(
-    name = "build",
-    targets = [
-        "@ecsact_cli",
     ],
 )

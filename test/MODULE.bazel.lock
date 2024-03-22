@@ -1,6 +1,6 @@
 {
   "lockFileVersion": 6,
-  "moduleFileHash": "9ce5dcf27833050a0ba86050cb83761498598903c7e21eb1df7b7ced8524049b",
+  "moduleFileHash": "787f7cdce97c2d40fb191d745d3893a012a343d6acfbf98ab808bb488d321692",
   "flags": {
     "cmdRegistries": [
       "https://raw.githubusercontent.com/ecsact-dev/bazel_registry/main",
@@ -16,7 +16,7 @@
   },
   "localOverrideHashes": {
     "bazel_tools": "1ae69322ac3823527337acf02016e8ee95813d8d356f47060255b8956fa642f0",
-    "ecsact_cli": "083badf6a4a16a5440bd8549c9b4623bf7fd59c1f5bb5b4295ea96df09fd4216"
+    "ecsact_cli": "42797216c3dadfc1a86db03ce7ad2a5baee317f7c3e7e0757014ad40bbdf3f39"
   },
   "moduleDepGraph": {
     "<root>": {
@@ -41,14 +41,16 @@
           "imports": {
             "llvm_toolchain": "llvm_toolchain"
           },
-          "devImports": [],
+          "devImports": [
+            "llvm_toolchain"
+          ],
           "tags": [
             {
               "tagName": "toolchain",
               "attributeValues": {
                 "llvm_version": "17.0.6"
               },
-              "devDependency": false,
+              "devDependency": true,
               "location": {
                 "file": "@@//:MODULE.bazel",
                 "line": 32,
@@ -56,8 +58,8 @@
               }
             }
           ],
-          "hasDevUseExtension": false,
-          "hasNonDevUseExtension": true
+          "hasDevUseExtension": true,
+          "hasNonDevUseExtension": false
         }
       ],
       "deps": {

@@ -16,9 +16,11 @@ namespace fs = std::filesystem;
 TEST(Codegen, Success) {
 	auto runfiles_err = std::string{};
 	auto runfiles = Runfiles::CreateForTest(&runfiles_err);
+	auto test_ecsact_cli = std::getenv("TEST_ECSACT_CLI");
 	auto test_codegen_plugin_path = std::getenv("TEST_CODEGEN_PLUGIN_PATH");
 	auto test_ecsact_file_path = std::getenv("TEST_ECSACT_FILE_PATH");
 
+	ASSERT_NE(test_ecsact_cli, nullptr);
 	ASSERT_NE(test_codegen_plugin_path, nullptr);
 	ASSERT_NE(test_ecsact_file_path, nullptr);
 	ASSERT_NE(runfiles, nullptr) << runfiles_err;
@@ -32,13 +34,23 @@ TEST(Codegen, Success) {
 	ASSERT_TRUE(fs::exists(test_codegen_plugin_path));
 	ASSERT_TRUE(fs::exists(test_ecsact_file_path));
 
-	auto exit_code = codegen_command(std::vector{
-		"ecsact"s,
-		"codegen"s,
+	auto cmd = std::format(
+		"{} codegen {} --plugin={} --outdir=_test_codegen_outdir",
+		test_ecsact_cli,
 		std::string{test_ecsact_file_path},
-		std::format("--plugin={}", test_codegen_plugin_path),
-		"--outdir=_test_codegen_outdir"s,
-	});
+		test_codegen_plugin_path,
+		"_test_codegen_outdir"
+	);
+	auto exit_code = std::system(cmd.c_str());
+
+	// TODO: this doesn't work on linux
+	// auto exit_code = codegen_command(std::vector{
+	// 	"ecsact"s,
+	// 	"codegen"s,
+	// 	std::string{test_ecsact_file_path},
+	// 	std::format("--plugin={}", test_codegen_plugin_path),
+	// 	"--outdir=_test_codegen_outdir"s,
+	// });
 
 	ASSERT_EQ(exit_code, 0);
 

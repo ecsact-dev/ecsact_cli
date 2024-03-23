@@ -25,10 +25,12 @@ cc_test(
     copts = copts,
     srcs = ["test_codegen.cc"],
     data = [
+        "@ecsact_cli",
         "test.ecsact",
         ":test_codegen_plugin",
     ],
     env = {
+        "TEST_ECSACT_CLI": "$(rootpath @ecsact_cli)",
         "TEST_ECSACT_FILE_PATH": "$(rootpath test.ecsact)",
         "TEST_CODEGEN_PLUGIN_PATH": "$(rootpath :test_codegen_plugin)",
     },

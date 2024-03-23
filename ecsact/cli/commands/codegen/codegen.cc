@@ -134,6 +134,11 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 	auto has_plugin_error = false;
 
 	for(auto& plugin : plugins) {
+		// precondition: these methods should've been checked in validation
+		assert(plugin.has("ecsact_codegen_plugin"));
+		assert(plugin.has("ecsact_codegen_plugin_name"));
+		assert(plugin.has("ecsact_dylib_set_fn_addr"));
+
 		auto plugin_fn =
 			plugin.get<decltype(ecsact_codegen_plugin)>("ecsact_codegen_plugin");
 		auto plugin_name_fn = plugin.get<decltype(ecsact_codegen_plugin_name)>(
@@ -162,6 +167,7 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 #define CALL_SET_META_FN_PTR(fn_name, unused) \
 	set_meta_fn_ptr(#fn_name, &::fn_name)
 		FOR_EACH_ECSACT_META_API_FN(CALL_SET_META_FN_PTR);
+#undef CALL_SET_META_FN_PTR
 
 		if(!fs::exists(options.outdir)) {
 			auto ec = std::error_code{};

@@ -1,12 +1,10 @@
-load("@bazel_skylib//rules:build_test.bzl", "build_test")
 load("@ecsact_cli//bazel:copts.bzl", "copts")
-load("@rules_cc//cc:defs.bzl", "cc_binary")
-load("@rules_ecsact//ecsact:defs.bzl", "ecsact_codegen", "ecsact_codegen_plugin")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_test")
 
 package(default_visibility = ["//:__subpackages__"])
 
 cc_binary(
-    name = "test_codegen_plugin_bin",
+    name = "test_codegen_plugin",
     linkshared = True,
     copts = copts,
     srcs = [
@@ -15,27 +13,32 @@ cc_binary(
     ],
     deps = [
         "@ecsact_codegen//:plugin",
+        "@ecsact_runtime//:dylib",
         "@ecsact_runtime//dylib:meta",
         "@ecsact_runtime//dylib:util",
     ],
+    defines = ["ECSACT_META_API_LOAD_AT_RUNTIME"],
 )
 
-ecsact_codegen_plugin(
-    name = "test_codegen_plugin",
-    plugin = ":test_codegen_plugin_bin",
-    output_extension = "txt",
-)
-
-ecsact_codegen(
-    name = "codegen_test",
-    output_directory = "_codegen_test",
-    srcs = ["test.ecsact"],
-    plugins = [":test_codegen_plugin"],
-)
-
-build_test(
-    name = "build_test",
-    targets = [
-        ":codegen_test",
+cc_test(
+    name = "test_codegen",
+    copts = copts,
+    srcs = ["test_codegen.cc"],
+    data = [
+        "@ecsact_cli",
+        "test.ecsact",
+        ":test_codegen_plugin",
+    ],
+    env = {
+        "TEST_ECSACT_CLI": "$(rootpath @ecsact_cli)",
+        "TEST_ECSACT_FILE_PATH": "$(rootpath test.ecsact)",
+        "TEST_CODEGEN_PLUGIN_PATH": "$(rootpath :test_codegen_plugin)",
+    },
+    deps = [
+        "@ecsact_interpret",
+        "@bazel_tools//tools/cpp/runfiles",
+        "@ecsact_cli//ecsact/cli/commands:codegen",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
     ],
 )

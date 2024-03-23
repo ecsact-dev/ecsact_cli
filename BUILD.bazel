@@ -1,6 +1,5 @@
-load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
-load("@rules_ecsact//ecsact:toolchain.bzl", "ecsact_toolchain")
 load("@bazel_skylib//rules:common_settings.bzl", "bool_flag")
+load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_library")
 
 package(default_visibility = ["//:__subpackages__"])
 
@@ -12,17 +11,4 @@ alias(
     name = "ecsact_cli",
     visibility = ["//visibility:public"],
     actual = "//ecsact/cli:ecsact",
-)
-
-ecsact_toolchain(
-    name = "ecsact_toolchain",
-    visibility = ["//visibility:public"],
-    target_tool = ":ecsact_cli",
-)
-
-toolchain(
-    name = "toolchain",
-    visibility = ["//visibility:public"],
-    toolchain = ":ecsact_toolchain",
-    toolchain_type = "@rules_ecsact//ecsact:toolchain_type",
 )

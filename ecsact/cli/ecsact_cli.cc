@@ -69,7 +69,7 @@ void print_usage() {
 	std::cerr << colorize_logo() << "\n" << USAGE;
 }
 
-int main(int argc, char* argv[]) {
+int main(int argc, const char* argv[]) {
 	using ecsact::cli::detail::command_fn_t;
 
 	const std::unordered_map<std::string, command_fn_t> commands{

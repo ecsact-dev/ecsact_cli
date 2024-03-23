@@ -2,6 +2,6 @@
 
 namespace ecsact::cli::detail {
 
-using command_fn_t = int (*)(int argc, char* argv[]);
+using command_fn_t = int (*)(int argc, const char* argv[]);
 
 }

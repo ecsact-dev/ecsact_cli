@@ -34,6 +34,16 @@ TEST(Codegen, Success) {
 	ASSERT_TRUE(fs::exists(test_codegen_plugin_path));
 	ASSERT_TRUE(fs::exists(test_ecsact_file_path));
 
+#if _WIN32
+	// TODO: this doesn't work on linux
+	auto exit_code = codegen_command(std::vector{
+		"ecsact"s,
+		"codegen"s,
+		std::string{test_ecsact_file_path},
+		std::format("--plugin={}", test_codegen_plugin_path),
+		"--outdir=_test_codegen_outdir"s,
+	});
+#else
 	auto cmd = std::format(
 		"{} codegen {} --plugin={} --outdir=_test_codegen_outdir",
 		test_ecsact_cli,
@@ -42,15 +52,7 @@ TEST(Codegen, Success) {
 		"_test_codegen_outdir"
 	);
 	auto exit_code = std::system(cmd.c_str());
-
-	// TODO: this doesn't work on linux
-	// auto exit_code = codegen_command(std::vector{
-	// 	"ecsact"s,
-	// 	"codegen"s,
-	// 	std::string{test_ecsact_file_path},
-	// 	std::format("--plugin={}", test_codegen_plugin_path),
-	// 	"--outdir=_test_codegen_outdir"s,
-	// });
+#endif
 
 	ASSERT_EQ(exit_code, 0);
 

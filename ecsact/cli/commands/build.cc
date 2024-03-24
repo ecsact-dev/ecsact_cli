@@ -35,7 +35,7 @@ Options:
   <files>                   Ecsact files used to build Ecsact Runtime
   -r --recipe=<name>        Name or path to recipe
   -o --output=<path>        Runtime output path
-  --temp_dir=<path>         Optional temporary directoy to use instead of generated one
+  --temp_dir=<path>         Optional temporary directory to use instead of generated one
 	--compiler_config=<path>  Optionally specify the compiler by name or path
   -f --format=<type>        The format used to report progress of the build [default: text]
 	--report_filter=<filter>  Filtering out report logs [default: none]

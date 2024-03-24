@@ -43,7 +43,7 @@ Options:
 		Path to Ecsact system implementation binaries. If the meta module is not
 		available on your runtime binary you must specify the system export name
 		and system ID in this format: `path;export-name,id`. Multiple exports
-		may be added in semi-colon (;) deliminated list.
+		may be added in semi-colon (;) delimited list.
 		NOTE: Only WebAssembly is allowed at this time.
 	--runtime=<path>
 		Path to built Ecsact Runtime typically one from ecsact_rtb.
@@ -54,7 +54,7 @@ Options:
 	--async=<connect_string>
 		Connect to an async runtime via <connect_string> instead of executing.
 	--events=summary
-		End of benchmark will give a report of how many of each event occured
+		End of benchmark will give a report of how many of each event occurred
 		during the benchmark.
 	--iterations=<count>  [default: 10000]
 		Number of times ecsact_execute_systems is called or in the case of async

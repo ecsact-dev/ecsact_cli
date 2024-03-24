@@ -21,7 +21,7 @@ enum class cc_compiler_type : std::uint32_t {
 	// Specific compilers
 
   msvc_cl =         0b0000'0001'0000'0010, /// Microsoft cl.exe compiler
-  clang_cl =        0b0000'0010'0000'0010, /// Clangs msvc compatiblity compiler
+  clang_cl =        0b0000'0010'0000'0010, /// Clangs msvc compatibility compiler
   clang =           0b0000'0011'0000'0001, /// Clang compiler
   gcc =             0b0000'0101'0000'0001, /// GNU compiler
 	emcc =            0b0000'0111'0000'0001, /// Emscripten compiler

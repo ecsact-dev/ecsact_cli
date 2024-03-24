@@ -97,14 +97,22 @@ static auto parse_sources( //
 			auto fetch = src["fetch"];
 			auto path = src["path"];
 
-			if((codegen && fetch) || (codegen && path) || (fetch && path) || (!codegen && !fetch && !path)) {
+			if((codegen && fetch) || (codegen && path) || (fetch && path) ||
+				 (!codegen && !fetch && !path)) {
 				return ecsact::build_recipe_parse_error::invalid_source;
 			}
 
 			if(codegen) {
-				result.emplace_back(source_codegen{
-					.plugins = codegen.as<std::vector<std::string>>(),
-				});
+				auto entry = source_codegen{};
+				if(src["outdir"]) {
+					entry.outdir = src["outdir"].as<std::string>();
+				}
+				if(codegen.IsSequence()) {
+					entry.plugins = codegen.as<std::vector<std::string>>();
+				} else {
+					entry.plugins.push_back(codegen.as<std::string>());
+				}
+				result.emplace_back(entry);
 			} else if(fetch) {
 				result.emplace_back(source_fetch{
 					.url = fetch.as<std::string>(),

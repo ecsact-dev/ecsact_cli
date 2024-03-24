@@ -25,6 +25,7 @@ cc_library(
         "//:use_sdk_version_enabled": ["ECSACT_CLI_USE_SDK_VERSION"],
         "//:use_sdk_version_disabled": [],
     }),
+    linkopts = ["/DEFAULTLIB:Wldap32.lib"],
     deps = [
         "//ecsact/cli:report",
         "//ecsact/cli/detail:argv0",
@@ -34,6 +35,8 @@ cc_library(
         "//ecsact/cli/commands/build:get_modules",
         "//ecsact/cli/commands/codegen:codegen",
         "//ecsact/cli/detail:proc_exec",
+        "@curl",
+        "@boost.url",
     ] + select({
         "//:use_sdk_version_enabled": [],
         "//:use_sdk_version_disabled": [

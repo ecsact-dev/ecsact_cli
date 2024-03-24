@@ -1,5 +1,5 @@
 load("@bazel_skylib//rules:native_binary.bzl", "native_test")
-load("@rules_cc//cc:defs.bzl", "cc_library")
+load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("@rules_ecsact//ecsact:defs.bzl", "ecsact_binary", "ecsact_build_recipe")
 
 cc_library(

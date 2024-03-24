@@ -4,6 +4,10 @@
 #include <format>
 #include <string_view>
 #include <fstream>
+#include <cstdio>
+#include <curl/curl.h>
+#undef fopen
+#include <boost/url.hpp>
 #include "ecsact/cli/detail/proc_exec.hh"
 #include "ecsact/cli/commands/build/cc_compiler_config.hh"
 #include "ecsact/cli/commands/build/cc_defines_gen.hh"
@@ -30,11 +34,51 @@ static auto as_vec(auto range) {
 }
 
 static auto handle_source( //
-	ecsact::build_recipe::source_fetch,
-	fs::path work_dir
+	ecsact::build_recipe::source_fetch src,
+	fs::path                           work_dir
 ) -> int {
-	ecsact::cli::report_error("Fetching source not yet supported\n");
-	return 1;
+	auto outdir = fs::path{src.outdir.value_or(work_dir.string())};
+	auto url = boost::url{src.url};
+
+	curl_global_init(CURL_GLOBAL_ALL);
+	auto curl = curl_easy_init();
+
+	curl_easy_setopt(curl, CURLOPT_URL, src.url.c_str());
+
+	auto out_file_path = outdir / fs::path{url.path().c_str()}.filename();
+	auto out_file = fopen(out_file_path.filename().string().c_str(), "wb");
+
+	if(!out_file) {
+		ecsact::cli::report_error("failed to open {}", out_file_path.string());
+		return 1;
+	}
+
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, out_file);
+	curl_easy_setopt(
+		curl,
+		CURLOPT_WRITEFUNCTION,
+		[](void* data, size_t size, size_t nmemb, void* out_file) -> size_t {
+			return ::fwrite(data, size, nmemb, static_cast<FILE*>(out_file));
+		}
+	);
+
+	ecsact::cli::report_info("downloading {} ...", std::string{url.c_str()});
+	auto res = curl_easy_perform(curl);
+
+	fclose(out_file);
+
+	curl_easy_cleanup(curl);
+	curl_global_cleanup();
+
+	if(res != CURLE_OK) {
+		ecsact::cli::report_error(
+			"failed to download {}",
+			std::string{url.c_str()}
+		);
+		return 1;
+	}
+
+	return 0;
 }
 
 static auto handle_source( //

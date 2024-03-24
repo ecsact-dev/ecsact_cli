@@ -16,7 +16,7 @@
   },
   "localOverrideHashes": {
     "bazel_tools": "1ae69322ac3823527337acf02016e8ee95813d8d356f47060255b8956fa642f0",
-    "ecsact_cli": "b8e1fdfbcd80e68428ae3954fb79ab9d1676f68f0a1d5fb63c67b1775fbc0636"
+    "ecsact_cli": "04f4087a530e0e700c3b263d9467e591f42228e245d206170ca7ab98e947ced3"
   },
   "moduleDepGraph": {
     "<root>": {
@@ -494,6 +494,7 @@
         "ecsact_codegen": "ecsact_codegen@0.1.3",
         "boost.dll": "boost.dll@1.83.0.bzl.2",
         "magic_enum": "magic_enum@0.9.3",
+        "curl": "curl@8.4.0",
         "docopt.cpp": "docopt.cpp@0.6.2",
         "boost.process": "boost.process@1.83.0.bzl.2",
         "boost.algorithm": "boost.algorithm@1.83.0.bzl.1",
@@ -1676,6 +1677,36 @@
           "integrity": "sha256-j57i3BDBrlFO5ZmotC7Zn6Jit1cFj2WtPDhCif9wxLg=",
           "strip_prefix": "",
           "remote_patches": {},
+          "remote_patch_strip": 0
+        }
+      }
+    },
+    "curl@8.4.0": {
+      "name": "curl",
+      "version": "8.4.0",
+      "key": "curl@8.4.0",
+      "repoName": "curl",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "platforms": "platforms@0.0.8",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://github.com/curl/curl/releases/download/curl-8_4_0/curl-8.4.0.tar.gz"
+          ],
+          "integrity": "sha256-gW5BgJwEP/KF6MDwanWh+iUCEbv7LcCgN+7vOfGp5Cc=",
+          "strip_prefix": "curl-8.4.0",
+          "remote_patches": {
+            "https://bcr.bazel.build/modules/curl/8.4.0/patches/add_build_file.patch": "sha256-Vcb973u9Diuzp+nG0XzkID+LvaTdbJ6M6tZxH1Vtyo0=",
+            "https://bcr.bazel.build/modules/curl/8.4.0/patches/module_dot_bazel.patch": "sha256-EEYIkUUDdDiyntAtQHOhsgwqJgs/EvZP6pjuxPUeWIo="
+          },
           "remote_patch_strip": 0
         }
       }

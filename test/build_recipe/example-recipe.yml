@@ -4,6 +4,8 @@ sources:
   - ecsact_build_test.cc
   - local_dep.cc
   - local_dep.hh
+  - codegen: test_codegen
+    outdir: _test_outdir
 
 exports:
   - ecsact_execute_systems

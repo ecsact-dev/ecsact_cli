@@ -25,7 +25,12 @@ cc_library(
         "//:use_sdk_version_enabled": ["ECSACT_CLI_USE_SDK_VERSION"],
         "//:use_sdk_version_disabled": [],
     }),
-    linkopts = ["/DEFAULTLIB:Wldap32.lib"],
+    linkopts = select({
+        "@rules_cc//cc/compiler:msvc-cl": [
+            "/DEFAULTLIB:Wldap32.lib",
+        ],
+        "//conditions:default": [],
+    }),
     deps = [
         "//ecsact/cli:report",
         "//ecsact/cli/detail:argv0",

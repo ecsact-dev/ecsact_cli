@@ -14,3 +14,4 @@ common:ci --announce_rc
 common:ci --verbose_failures
 common:ci --keep_going
 common:ci --disk_cache=~/.cache/bazel-disk-cache
+test:ci --test_output=errors

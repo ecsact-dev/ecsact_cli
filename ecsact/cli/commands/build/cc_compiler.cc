@@ -30,7 +30,8 @@ static auto cc_from_string( //
 
 	auto compiler_type = ecsact::cli::get_compiler_type_by_path(compiler_path);
 
-	if(!is_gcc_clang_like(compiler_type) && compiler_type != ecsact::cli::cc_compiler_type::clang_cl) {
+	if(!is_gcc_clang_like(compiler_type) &&
+		 compiler_type != ecsact::cli::cc_compiler_type::clang_cl) {
 		ecsact::cli::report_info("Compiler path: {}", compiler_path.string());
 		ecsact::cli::report_warning(
 			"Getting compiler info from path for {} is not supported",

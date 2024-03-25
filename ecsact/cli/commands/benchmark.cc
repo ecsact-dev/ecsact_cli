@@ -521,8 +521,8 @@ auto start_async_benchmark(
 	return result_message;
 }
 
-auto start_core_benchmark(const common_benchmark_options& options)
-	-> std::optional<benchmark_result_message> {
+auto start_core_benchmark(const common_benchmark_options& options
+) -> std::optional<benchmark_result_message> {
 	auto result_message = benchmark_result_message{};
 
 	const auto create_reg_fn = get_or_exit<decltype(ecsact_create_registry)>(

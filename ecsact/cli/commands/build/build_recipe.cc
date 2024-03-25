@@ -121,7 +121,7 @@ static auto parse_sources( //
 				}
 				result.emplace_back(source_fetch{
 					.url = fetch.as<std::string>(),
-   					.outdir = outdir,
+					.outdir = outdir,
 				});
 			} else if(path) {
 				auto src_path = fs::path{path.as<std::string>()};

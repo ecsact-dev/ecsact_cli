@@ -3,7 +3,13 @@
 #include <filesystem>
 #include <format>
 #include <string_view>
+#include <string>
 #include <fstream>
+#include <cstdio>
+#include <curl/curl.h>
+#undef fopen
+#include <boost/url.hpp>
+#include "magic_enum.hpp"
 #include "ecsact/cli/detail/proc_exec.hh"
 #include "ecsact/cli/commands/build/cc_compiler_config.hh"
 #include "ecsact/cli/commands/build/cc_defines_gen.hh"
@@ -18,6 +24,7 @@
 namespace fs = std::filesystem;
 
 using namespace std::string_view_literals;
+using namespace std::string_literals;
 
 static auto as_vec(auto range) {
 	using element_type = std::remove_cvref_t<decltype(range[0])>;
@@ -29,12 +36,115 @@ static auto as_vec(auto range) {
 	return result;
 }
 
-static auto handle_source( //
-	ecsact::build_recipe::source_fetch,
-	fs::path work_dir
+static auto fetch_write_file_fn(
+	void*  data,
+	size_t size,
+	size_t nmemb,
+	void*  out_file
+) -> size_t {
+	return fwrite(data, size, nmemb, static_cast<FILE*>(out_file));
+}
+
+[[maybe_unused]]
+static auto download_file_with_curl_cli( //
+	boost::url url,
+	fs::path   out_file_path
 ) -> int {
-	ecsact::cli::report_error("Fetching source not yet supported\n");
-	return 1;
+	auto curl = ecsact::cli::detail::which("curl");
+
+	if(!curl) {
+		ecsact::cli::report_error("Cannot find 'curl' in your PATH");
+		return 1;
+	}
+
+	return ecsact::cli::detail::spawn_and_report_output(
+		*curl,
+		std::vector{
+			std::string{url.c_str()},
+			"--silent"s,
+			"--output"s,
+			out_file_path.string(),
+		}
+	);
+}
+
+[[maybe_unused]]
+static auto download_file_with_libcurl( //
+	boost::url url,
+	fs::path   out_file_path
+) -> int {
+	curl_global_init(CURL_GLOBAL_ALL);
+	auto curl = curl_easy_init();
+
+	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+	auto out_file = fopen(out_file_path.string().c_str(), "wb");
+
+	if(!out_file) {
+		ecsact::cli::report_error("failed to open {}", out_file_path.string());
+		return 1;
+	}
+
+	curl_easy_setopt(curl, CURLOPT_WRITEDATA, out_file);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fetch_write_file_fn);
+
+	ecsact::cli::report_info(
+		"downloading {} -> {}",
+		std::string{url.c_str()},
+		out_file_path.string()
+	);
+	auto res = curl_easy_perform(curl);
+
+	fclose(out_file);
+
+	curl_easy_cleanup(curl);
+	curl_global_cleanup();
+
+	if(res != CURLE_OK) {
+		ecsact::cli::report_error(
+			"failed to download {} ({})",
+			std::string{url.c_str()},
+			magic_enum::enum_name(res)
+		);
+		return 1;
+	}
+
+	return 0;
+}
+
+static auto download_file(boost::url url, fs::path out_file_path) -> int {
+// NOTE: temporary until curl in the BCR supports SSL
+// SEE: https://github.com/bazelbuild/bazel-central-registry/pull/1666
+#if defined(_WIN32) && !defined(ECSACT_CLI_USE_CURL_CLI)
+	return download_file_with_libcurl(url, out_file_path);
+#else
+	return download_file_with_curl_cli(url, out_file_path);
+#endif
+}
+
+static auto handle_source( //
+	ecsact::build_recipe::source_fetch src,
+	fs::path                           work_dir
+) -> int {
+	auto outdir = src.outdir //
+		? work_dir / *src.outdir
+		: work_dir;
+	auto url = boost::url{src.url};
+	auto out_file_path = outdir / fs::path{url.path().c_str()}.filename();
+
+	if(!fs::exists(out_file_path.parent_path())) {
+		auto ec = std::error_code{};
+		fs::create_directories(out_file_path.parent_path(), ec);
+		if(ec) {
+			ecsact::cli::report_error(
+				"failed to create dir {}: {}",
+				out_file_path.parent_path().string(),
+				ec.message()
+			);
+			return 1;
+		}
+	}
+
+	return download_file(url, out_file_path);
 }
 
 static auto handle_source( //
@@ -231,7 +341,7 @@ auto clang_gcc_compile(compile_options options) -> int {
 
 	if(compile_proc_exit_code != 0) {
 		ecsact::cli::report_error(
-			"Runtime compoile failed. Exited with code {}",
+			"Runtime compile failed. Exited with code {}",
 			compile_proc_exit_code
 		);
 		return 1;
@@ -406,7 +516,7 @@ auto ecsact::cli::cook_recipe( //
 			std::visit([&](auto& src) { return handle_source(src, work_dir); }, src);
 
 		if(exit_code != 0) {
-			break;
+			return {};
 		}
 	}
 

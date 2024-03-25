@@ -9,24 +9,23 @@
 namespace ecsact::cli {
 // clang-format off
 enum class cc_compiler_type : std::uint32_t {
-  unknown =         0b0000'0000'0000'0000,
+    unknown =         0b0000'0000'0000'0000,
 
 	////////////////////
 	// Common flags
 
-  gcc_clang_like =  0b0000'0000'0000'0001, /// Has clang/gcc compiler flags
-  cl_like =         0b0000'0000'0000'0010, /// Has msvc cl compiler flags
+	gcc_clang_like =  0b0000'0000'0000'0001, /// Has clang/gcc compiler flags
+	cl_like =         0b0000'0000'0000'0010, /// Has msvc cl compiler flags
 
 	////////////////////////
 	// Specific compilers
 
-  msvc_cl =         0b0000'0001'0000'0010, /// Microsoft cl.exe compiler
-  clang_cl =        0b0000'0010'0000'0010, /// Clangs msvc compatibility compiler
-  clang =           0b0000'0011'0000'0001, /// Clang compiler
-  gcc =             0b0000'0101'0000'0001, /// GNU compiler
+	msvc_cl =         0b0000'0001'0000'0010, /// Microsoft cl.exe compiler
+	clang_cl =        0b0000'0010'0000'0010, /// Clangs msvc compatibility compiler
+	clang =           0b0000'0011'0000'0001, /// Clang compiler
+	gcc =             0b0000'0101'0000'0001, /// GNU compiler
 	emcc =            0b0000'0111'0000'0001, /// Emscripten compiler
 };
-
 // clang-format on
 
 auto to_string(cc_compiler_type type) -> std::string_view;

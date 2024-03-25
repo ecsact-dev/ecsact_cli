@@ -1,6 +1,6 @@
 {
   "lockFileVersion": 6,
-  "moduleFileHash": "940fc5eaea09cfbc6be2ced2709536bf74efb716c8f00c89918284d0b798510e",
+  "moduleFileHash": "e1478cff2c441c79867ad979b753974e8f9ddec7d92d6bb20c9f22ba172777b8",
   "flags": {
     "cmdRegistries": [
       "https://raw.githubusercontent.com/ecsact-dev/bazel_registry/main",
@@ -16,7 +16,7 @@
   },
   "localOverrideHashes": {
     "bazel_tools": "1ae69322ac3823527337acf02016e8ee95813d8d356f47060255b8956fa642f0",
-    "ecsact_cli": "b8e1fdfbcd80e68428ae3954fb79ab9d1676f68f0a1d5fb63c67b1775fbc0636"
+    "ecsact_cli": "f8854018b2de24ca8b0e7f97314ff9f9d8a815af18110eedbb519664808ceb22"
   },
   "moduleDepGraph": {
     "<root>": {
@@ -39,10 +39,12 @@
             "column": 21
           },
           "imports": {
-            "llvm_toolchain": "llvm_toolchain"
+            "llvm_toolchain": "llvm_toolchain",
+            "llvm_toolchain_llvm": "llvm_toolchain_llvm"
           },
           "devImports": [
-            "llvm_toolchain"
+            "llvm_toolchain",
+            "llvm_toolchain_llvm"
           ],
           "tags": [
             {
@@ -494,9 +496,11 @@
         "ecsact_codegen": "ecsact_codegen@0.1.3",
         "boost.dll": "boost.dll@1.83.0.bzl.2",
         "magic_enum": "magic_enum@0.9.3",
+        "curl": "curl@8.4.0",
         "docopt.cpp": "docopt.cpp@0.6.2",
         "boost.process": "boost.process@1.83.0.bzl.2",
         "boost.algorithm": "boost.algorithm@1.83.0.bzl.1",
+        "boost.url": "boost.url@1.83.0.bzl.2",
         "yaml-cpp": "yaml-cpp@_",
         "bazel_tools": "bazel_tools@_",
         "local_config_platform": "local_config_platform@_"
@@ -1680,6 +1684,36 @@
         }
       }
     },
+    "curl@8.4.0": {
+      "name": "curl",
+      "version": "8.4.0",
+      "key": "curl@8.4.0",
+      "repoName": "curl",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "platforms": "platforms@0.0.8",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://github.com/curl/curl/releases/download/curl-8_4_0/curl-8.4.0.tar.gz"
+          ],
+          "integrity": "sha256-gW5BgJwEP/KF6MDwanWh+iUCEbv7LcCgN+7vOfGp5Cc=",
+          "strip_prefix": "curl-8.4.0",
+          "remote_patches": {
+            "https://bcr.bazel.build/modules/curl/8.4.0/patches/add_build_file.patch": "sha256-Vcb973u9Diuzp+nG0XzkID+LvaTdbJ6M6tZxH1Vtyo0=",
+            "https://bcr.bazel.build/modules/curl/8.4.0/patches/module_dot_bazel.patch": "sha256-EEYIkUUDdDiyntAtQHOhsgwqJgs/EvZP6pjuxPUeWIo="
+          },
+          "remote_patch_strip": 0
+        }
+      }
+    },
     "docopt.cpp@0.6.2": {
       "name": "docopt.cpp",
       "version": "0.6.2",
@@ -1703,6 +1737,44 @@
             "https://github.com/ecsact-dev/docopt.cpp/releases/download/ecsact-bzlmod-0.6.2/docopt.cpp-ecsact-bzlmod-0.6.2.tar.gz"
           ],
           "integrity": "sha256-sgqnvXFJ5ZLYIdXBRsGWUvUeMLnVi5+2ytlzc/PoUOY=",
+          "strip_prefix": "",
+          "remote_patches": {},
+          "remote_patch_strip": 0
+        }
+      }
+    },
+    "boost.url@1.83.0.bzl.2": {
+      "name": "boost.url",
+      "version": "1.83.0.bzl.2",
+      "key": "boost.url@1.83.0.bzl.2",
+      "repoName": "boost.url",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "rules_cc": "rules_cc@0.0.9",
+        "boost.align": "boost.align@1.83.0.bzl.1",
+        "boost.assert": "boost.assert@1.83.0.bzl.1",
+        "boost.config": "boost.config@1.83.0.bzl.6",
+        "boost.core": "boost.core@1.83.0.bzl.1",
+        "boost.mp11": "boost.mp11@1.83.0.bzl.1",
+        "boost.optional": "boost.optional@1.83.0.bzl.1",
+        "boost.static_assert": "boost.static_assert@1.83.0.bzl.1",
+        "boost.system": "boost.system@1.83.0.bzl.1",
+        "boost.throw_exception": "boost.throw_exception@1.83.0.bzl.1",
+        "boost.type_traits": "boost.type_traits@1.83.0.bzl.1",
+        "boost.variant2": "boost.variant2@1.83.0.bzl.1",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://github.com/bazelboost/url/releases/download/bazelboost-1.83.0.bzl.2/url-bazelboost-1.83.0.bzl.2.tar.gz"
+          ],
+          "integrity": "sha256-9tPmgTwtAGdpExT7pozxkmanaBVv55s104dTGQ6/l3w=",
           "strip_prefix": "",
           "remote_patches": {},
           "remote_patch_strip": 0
@@ -3353,6 +3425,33 @@
         }
       }
     },
+    "boost.mp11@1.83.0.bzl.1": {
+      "name": "boost.mp11",
+      "version": "1.83.0.bzl.1",
+      "key": "boost.mp11@1.83.0.bzl.1",
+      "repoName": "boost.mp11",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "rules_cc": "rules_cc@0.0.9",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://github.com/bazelboost/mp11/releases/download/bazelboost-1.83.0.bzl.1/mp11-bazelboost-1.83.0.bzl.1.tar.gz"
+          ],
+          "integrity": "sha256-3i9cAvhEmsBFAM2cTQPi2btGvg6bSLaXzq7KImGLG0g=",
+          "strip_prefix": "",
+          "remote_patches": {},
+          "remote_patch_strip": 0
+        }
+      }
+    },
     "upb@0.0.0-20220923-a547704": {
       "name": "upb",
       "version": "0.0.0-20220923-a547704",
@@ -3492,33 +3591,6 @@
             "https://github.com/bazelboost/describe/releases/download/bazelboost-1.83.0.bzl.1/describe-bazelboost-1.83.0.bzl.1.tar.gz"
           ],
           "integrity": "sha256-U2Si+/D9OTWppsufVg3h8MNFWdzExVt0V8P8J0RouHw=",
-          "strip_prefix": "",
-          "remote_patches": {},
-          "remote_patch_strip": 0
-        }
-      }
-    },
-    "boost.mp11@1.83.0.bzl.1": {
-      "name": "boost.mp11",
-      "version": "1.83.0.bzl.1",
-      "key": "boost.mp11@1.83.0.bzl.1",
-      "repoName": "boost.mp11",
-      "executionPlatformsToRegister": [],
-      "toolchainsToRegister": [],
-      "extensionUsages": [],
-      "deps": {
-        "rules_cc": "rules_cc@0.0.9",
-        "bazel_tools": "bazel_tools@_",
-        "local_config_platform": "local_config_platform@_"
-      },
-      "repoSpec": {
-        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-        "ruleClassName": "http_archive",
-        "attributes": {
-          "urls": [
-            "https://github.com/bazelboost/mp11/releases/download/bazelboost-1.83.0.bzl.1/mp11-bazelboost-1.83.0.bzl.1.tar.gz"
-          ],
-          "integrity": "sha256-3i9cAvhEmsBFAM2cTQPi2btGvg6bSLaXzq7KImGLG0g=",
           "strip_prefix": "",
           "remote_patches": {},
           "remote_patch_strip": 0

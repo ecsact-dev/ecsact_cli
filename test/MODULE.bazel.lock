@@ -1,6 +1,6 @@
 {
   "lockFileVersion": 6,
-  "moduleFileHash": "940fc5eaea09cfbc6be2ced2709536bf74efb716c8f00c89918284d0b798510e",
+  "moduleFileHash": "e1478cff2c441c79867ad979b753974e8f9ddec7d92d6bb20c9f22ba172777b8",
   "flags": {
     "cmdRegistries": [
       "https://raw.githubusercontent.com/ecsact-dev/bazel_registry/main",
@@ -39,10 +39,12 @@
             "column": 21
           },
           "imports": {
-            "llvm_toolchain": "llvm_toolchain"
+            "llvm_toolchain": "llvm_toolchain",
+            "llvm_toolchain_llvm": "llvm_toolchain_llvm"
           },
           "devImports": [
-            "llvm_toolchain"
+            "llvm_toolchain",
+            "llvm_toolchain_llvm"
           ],
           "tags": [
             {

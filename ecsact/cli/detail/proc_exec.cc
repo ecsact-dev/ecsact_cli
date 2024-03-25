@@ -8,10 +8,11 @@ namespace bp = boost::process;
 namespace fs = std::filesystem;
 
 using ecsact::cli::subcommand_end_message;
+using ecsact::cli::subcommand_id_t;
 using ecsact::cli::subcommand_start_message;
 
-auto ecsact::cli::detail::which(std::string_view prog)
-	-> std::optional<fs::path> {
+auto ecsact::cli::detail::which(std::string_view prog
+) -> std::optional<fs::path> {
 	auto result = bp::search_path(prog);
 
 	if(result.empty()) {
@@ -37,9 +38,7 @@ auto ecsact::cli::detail::spawn_and_report_output( //
 		bp::std_err > proc_stderr,
 	};
 
-	auto subcommand_id = static_cast<ecsact::cli::subcommand_id_t>( //
-		proc.id()
-	);
+	auto subcommand_id = static_cast<subcommand_id_t>(proc.id());
 
 	ecsact::cli::report(subcommand_start_message{
 		.id = subcommand_id,

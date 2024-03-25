@@ -8,6 +8,7 @@
 #include <curl/curl.h>
 #undef fopen
 #include <boost/url.hpp>
+#include "magic_enum.hpp"
 #include "ecsact/cli/detail/proc_exec.hh"
 #include "ecsact/cli/commands/build/cc_compiler_config.hh"
 #include "ecsact/cli/commands/build/cc_defines_gen.hh"
@@ -95,8 +96,9 @@ static auto handle_source( //
 
 	if(res != CURLE_OK) {
 		ecsact::cli::report_error(
-			"failed to download {}",
-			std::string{url.c_str()}
+			"failed to download {} ({})",
+			std::string{url.c_str()},
+			magic_enum::enum_name(res)
 		);
 		return 1;
 	}
@@ -298,7 +300,7 @@ auto clang_gcc_compile(compile_options options) -> int {
 
 	if(compile_proc_exit_code != 0) {
 		ecsact::cli::report_error(
-			"Runtime compoile failed. Exited with code {}",
+			"Runtime compile failed. Exited with code {}",
 			compile_proc_exit_code
 		);
 		return 1;

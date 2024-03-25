@@ -1,41 +1,43 @@
 load("@bazel_skylib//rules:native_binary.bzl", "native_test")
+load("@ecsact_cli//bazel:copts.bzl", "copts")
 load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
 load("@rules_ecsact//ecsact:defs.bzl", "ecsact_binary", "ecsact_build_recipe")
 
-cc_library(
-    name = "local_dep",
-    srcs = ["local_dep.cc"],
-    hdrs = ["local_dep.hh"],
-)
-
-ecsact_build_recipe(
-    name = "ecsact_build_test_recipe",
-    tags = ["manual"],
-    srcs = [
+cc_test(
+    name = "test_build_recipe",
+    srcs = ["test_build_recipe.cc"],
+    copts = copts,
+    data = [
         "ecsact_build_test.cc",
-        "local_dep.cc",
-        "local_dep.hh",
+        "test-recipe.yml",
+        "//:test.ecsact",
+        "//:test_codegen_plugin",
+        "@ecsact_cli",
     ],
-    codegen_plugins = {
-        "//:test_codegen_plugin": "src",
+    tags = ["no-sandbox"],
+    env = {
+        "TEST_ECSACT_CLI": "$(rootpath @ecsact_cli)",
+        "TEST_ECSACT_BUILD_RECIPE_PATH": "$(rootpath test-recipe.yml)",
+        "TEST_ECSACT_FILE_PATH": "$(rootpath //:test.ecsact)",
+        "TEST_CODEGEN_PLUGIN_PATH": "$(rootpath //:test_codegen_plugin)",
     },
-    exports = [
-        "ecsact_execute_systems",
-        "ecsact_create_registry",
+    env_inherit = [
+        "PATH",
+        "PATHEXT",
+        "PWD",
+        "APPDATA",
+        "ProgramData",
+        "ProgramFiles",
+        "ProgramFiles(x86)",
+        "CC",
+        "CXX",
+        "TEMP",
+        "OS",
+        "WINDIR",
     ],
-    imports = [
-        "ecsact_system_execution_context_get",
-        "ecsact_system_execution_context_action",
-    ],
-)
-
-ecsact_binary(
-    name = "test",
-    tags = ["manual"],
-    srcs = [
-        "test.ecsact",
-    ],
-    recipes = [
-        ":ecsact_build_test_recipe",
+    deps = [
+        "@ecsact_cli//ecsact/cli/commands:build",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
     ],
 )

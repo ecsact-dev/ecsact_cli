@@ -3,6 +3,10 @@ load("@rules_cc//cc:defs.bzl", "cc_binary", "cc_test")
 
 package(default_visibility = ["//:__subpackages__"])
 
+exports_files([
+    "test.ecsact",
+])
+
 cc_binary(
     name = "test_codegen_plugin",
     linkshared = True,

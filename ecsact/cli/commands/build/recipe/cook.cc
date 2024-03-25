@@ -33,11 +33,22 @@ static auto as_vec(auto range) {
 	return result;
 }
 
+static auto fetch_write_file_fn(
+	void*  data,
+	size_t size,
+	size_t nmemb,
+	void*  out_file
+) -> size_t {
+	return fwrite(data, size, nmemb, static_cast<FILE*>(out_file));
+}
+
 static auto handle_source( //
 	ecsact::build_recipe::source_fetch src,
 	fs::path                           work_dir
 ) -> int {
-	auto outdir = fs::path{src.outdir.value_or(work_dir.string())};
+	auto outdir = src.outdir //
+		? work_dir / *src.outdir
+		: work_dir;
 	auto url = boost::url{src.url};
 
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -46,7 +57,21 @@ static auto handle_source( //
 	curl_easy_setopt(curl, CURLOPT_URL, src.url.c_str());
 
 	auto out_file_path = outdir / fs::path{url.path().c_str()}.filename();
-	auto out_file = fopen(out_file_path.filename().string().c_str(), "wb");
+
+	if(!fs::exists(out_file_path.parent_path())) {
+		auto ec = std::error_code{};
+		fs::create_directories(out_file_path.parent_path(), ec);
+		if(ec) {
+			ecsact::cli::report_error(
+				"failed to create dir {}: {}",
+				out_file_path.parent_path().string(),
+				ec.message()
+			);
+			return 1;
+		}
+	}
+
+	auto out_file = fopen(out_file_path.string().c_str(), "wb");
 
 	if(!out_file) {
 		ecsact::cli::report_error("failed to open {}", out_file_path.string());
@@ -54,15 +79,13 @@ static auto handle_source( //
 	}
 
 	curl_easy_setopt(curl, CURLOPT_WRITEDATA, out_file);
-	curl_easy_setopt(
-		curl,
-		CURLOPT_WRITEFUNCTION,
-		[](void* data, size_t size, size_t nmemb, void* out_file) -> size_t {
-			return ::fwrite(data, size, nmemb, static_cast<FILE*>(out_file));
-		}
-	);
+	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fetch_write_file_fn);
 
-	ecsact::cli::report_info("downloading {} ...", std::string{url.c_str()});
+	ecsact::cli::report_info(
+		"downloading {} -> {}",
+		std::string{url.c_str()},
+		out_file_path.string()
+	);
 	auto res = curl_easy_perform(curl);
 
 	fclose(out_file);
@@ -450,7 +473,7 @@ auto ecsact::cli::cook_recipe( //
 			std::visit([&](auto& src) { return handle_source(src, work_dir); }, src);
 
 		if(exit_code != 0) {
-			break;
+			return {};
 		}
 	}
 

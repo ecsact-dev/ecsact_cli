@@ -3,6 +3,7 @@
 #include <fstream>
 #include <filesystem>
 #include <cassert>
+#include <iostream>
 #include <algorithm>
 #include <ranges>
 #include "yaml-cpp/yaml.h"
@@ -114,8 +115,13 @@ static auto parse_sources( //
 				}
 				result.emplace_back(entry);
 			} else if(fetch) {
+				auto outdir = std::optional<std::string>{};
+				if(src["outdir"]) {
+					outdir = src["outdir"].as<std::string>();
+				}
 				result.emplace_back(source_fetch{
 					.url = fetch.as<std::string>(),
+   					.outdir = outdir,
 				});
 			} else if(path) {
 				auto src_path = fs::path{path.as<std::string>()};

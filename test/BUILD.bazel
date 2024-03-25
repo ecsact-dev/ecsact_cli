@@ -8,9 +8,10 @@ exports_files([
 ])
 
 cc_binary(
-    name = "test_codegen_plugin",
+    name = "test_codegen_plugin.so",
     linkshared = True,
     copts = copts,
+    tags = ["manual"],
     srcs = [
         "test_codegen_plugin.cc",
         "@ecsact_runtime//dylib:dylib.cc",
@@ -22,6 +23,32 @@ cc_binary(
         "@ecsact_runtime//dylib:util",
     ],
     defines = ["ECSACT_META_API_LOAD_AT_RUNTIME"],
+)
+
+cc_binary(
+    name = "test_codegen_plugin.dll",
+    linkshared = True,
+    copts = copts,
+    tags = ["manual"],
+    srcs = [
+        "test_codegen_plugin.cc",
+        "@ecsact_runtime//dylib:dylib.cc",
+    ],
+    deps = [
+        "@ecsact_codegen//:plugin",
+        "@ecsact_runtime//:dylib",
+        "@ecsact_runtime//dylib:meta",
+        "@ecsact_runtime//dylib:util",
+    ],
+    defines = ["ECSACT_META_API_LOAD_AT_RUNTIME"],
+)
+
+alias(
+    name = "test_codegen_plugin",
+    actual = select({
+        "@platforms//os:windows": "test_codegen_plugin.dll",
+        "@platforms//os:linux": "test_codegen_plugin.so",
+    }),
 )
 
 cc_test(

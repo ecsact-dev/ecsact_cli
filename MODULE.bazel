@@ -1,7 +1,7 @@
 module(
     name = "ecsact_cli",
-    version = "0.2.3",
-    compatibility_level = 2,
+    version = "0.3.0",
+    compatibility_level = 3,
 )
 
 bazel_dep(name = "rules_cc", version = "0.0.9")
@@ -20,10 +20,11 @@ bazel_dep(name = "docopt.cpp", version = "0.6.2")
 bazel_dep(name = "boost.process", version = "1.83.0.bzl.2")
 bazel_dep(name = "boost.algorithm", version = "1.83.0.bzl.1")
 bazel_dep(name = "boost.url", version = "1.83.0.bzl.2")
+
 bazel_dep(name = "toolchains_llvm", version = "1.0.0", dev_dependency = True)
 bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
-bazel_dep(name = "yaml-cpp")
 
+bazel_dep(name = "yaml-cpp")
 git_override(
     module_name = "yaml-cpp",
     commit = "37f1b8b8c9e5172ff3a79a3d5fdbb87f2994842b",
@@ -32,12 +33,15 @@ git_override(
 
 git_override(
     module_name = "hedron_compile_commands",
-    remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
     commit = "204aa593e002cbd177d30f11f54cff3559110bb9",
+    remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
 )
 
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm", dev_dependency = True)
 llvm.toolchain(llvm_version = "17.0.6")
-
 use_repo(llvm, "llvm_toolchain")
-register_toolchains("@llvm_toolchain//:all", dev_dependency = True)
+
+register_toolchains(
+    "@llvm_toolchain//:all",
+    dev_dependency = True,
+)

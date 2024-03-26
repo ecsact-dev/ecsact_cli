@@ -2,6 +2,38 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.0 - 2024-03-26
+#### Bug Fixes
+- multiple methods in recipe being detected (#52) - (82f908a) - Ezekiel Warren
+- disable color text output on windows (#53) - (dd37ac4) - Ezekiel Warren
+- add missing SDK includes (#49) - (ef84dac) - Ezekiel Warren
+#### Features
+- build receipe can now fetch sources (#71) - (d6d2b18) - Ezekiel Warren
+- export dylib (#50) - (9aa13ab) - Ezekiel Warren
+- coloured text output (#51) - (65523b8) - Ezekiel Warren
+#### Miscellaneous Chores
+- **(deps)** update jidicula/clang-format-action action to v4.11.0 (#5) - (ac6e02d) - renovate[bot]
+- **(deps)** update escact repositories (#40) - (91ce484) - renovate[bot]
+- **(deps)** update dependency platforms to v0.0.9 (#59) - (02b3a8a) - renovate[bot]
+- **(deps)** update dependency bazel_skylib to v1.5.0 (#60) - (de35022) - renovate[bot]
+- **(deps)** update actions/cache action to v4 (#67) - (590b4f5) - renovate[bot]
+- **(deps)** update dependency nlohmann_json to v3.11.3 (#63) - (3fce1be) - renovate[bot]
+- **(deps)** update dependency rules_pkg to v0.10.1 (#66) - (a6a6d25) - renovate[bot]
+- **(deps)** update hedron_compile_commands digest to eca42c6 (#62) - (1567b15) - renovate[bot]
+- **(deps)** update com_grail_bazel_toolchain digest to ade23e0 (#61) - (c2258f4) - renovate[bot]
+- **(deps)** update com_grail_bazel_toolchain digest to 7500623 (#58) - (c25491f) - renovate[bot]
+- **(deps)** update com_grail_bazel_toolchain digest to 1e5f3c6 (#48) - (5f0f7d2) - renovate[bot]
+- **(deps)** update hedron_compile_commands digest to ac6411f (#47) - (66c43a4) - renovate[bot]
+- **(deps)** update com_grail_bazel_toolchain digest to 0a9feb7 (#46) - (61f8c34) - renovate[bot]
+- enable merge queue - (832cbd5) - Ezekiel Warren
+- fix typos - (2cf8f73) - Ezekiel Warren
+- remove rules_ecsact dependency (#68) - (7239e29) - Ezekiel Warren
+- remove unneeded linux bzl flag - (4c3d26b) - Ezekiel Warren
+- bzlmod updates - (8e52fe0) - Ezekiel Warren
+- more methods in build recipe test (#54) - (51eb74a) - Ezekiel Warren
+
+- - -
+
 ## 0.2.3 - 2023-10-06
 #### Bug Fixes
 - release was using wrong target/path - (8196a98) - Ezekiel Warren

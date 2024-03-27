@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.1 - 2024-03-27
+#### Miscellaneous Chores
+- update deps - (da9af3d) - Ezekiel Warren
+
+- - -
+
 ## 0.3.0 - 2024-03-26
 #### Bug Fixes
 - multiple methods in recipe being detected (#52) - (82f908a) - Ezekiel Warren

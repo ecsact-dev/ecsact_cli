@@ -1,6 +1,6 @@
 module(
     name = "ecsact_cli",
-    version = "0.3.0",
+    version = "0.3.1",
     compatibility_level = 3,
 )
 
@@ -24,7 +24,6 @@ bazel_dep(name = "yaml-cpp", version = "0.8.0")
 
 bazel_dep(name = "toolchains_llvm", version = "1.0.0", dev_dependency = True)
 bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
-
 git_override(
     module_name = "hedron_compile_commands",
     commit = "204aa593e002cbd177d30f11f54cff3559110bb9",

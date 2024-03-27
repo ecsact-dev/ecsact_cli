@@ -20,16 +20,10 @@ bazel_dep(name = "docopt.cpp", version = "0.6.2")
 bazel_dep(name = "boost.process", version = "1.83.0.bzl.2")
 bazel_dep(name = "boost.algorithm", version = "1.83.0.bzl.1")
 bazel_dep(name = "boost.url", version = "1.83.0.bzl.2")
+bazel_dep(name = "yaml-cpp", version = "0.8.0")
 
 bazel_dep(name = "toolchains_llvm", version = "1.0.0", dev_dependency = True)
 bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
-
-bazel_dep(name = "yaml-cpp")
-git_override(
-    module_name = "yaml-cpp",
-    commit = "37f1b8b8c9e5172ff3a79a3d5fdbb87f2994842b",
-    remote = "https://github.com/jbeder/yaml-cpp",
-)
 
 git_override(
     module_name = "hedron_compile_commands",

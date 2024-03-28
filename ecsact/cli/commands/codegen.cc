@@ -78,8 +78,11 @@ int ecsact::cli::detail::codegen_command(int argc, const char* argv[]) {
 	for(auto plugin_arg : args.at("--plugin").asStringList()) {
 		auto checked_plugin_paths = std::vector<fs::path>{};
 		auto plugin_path = resolve_plugin_path(
-			plugin_arg,
-			default_plugins_dir,
+			{
+				.plugin_arg = plugin_arg,
+				.default_plugins_dir = default_plugins_dir,
+				.additional_plugin_dirs = {},
+			},
 			checked_plugin_paths
 		);
 

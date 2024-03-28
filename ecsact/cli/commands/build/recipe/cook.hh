@@ -7,16 +7,23 @@
 
 namespace ecsact::cli {
 
+struct cook_recipe_options {
+	std::vector<std::filesystem::path> files;
+	std::filesystem::path              work_dir;
+	std::filesystem::path              output_path;
+
+	/** Other directories to check for codegen plugins */
+	std::vector<std::filesystem::path> additional_plugin_dirs;
+};
+
 /**
  * @returns the cooked runtime path
  */
 auto cook_recipe(
-	const char*                        argv0,
-	std::vector<std::filesystem::path> files,
-	const ecsact::build_recipe&        recipe,
-	cc_compiler                        compiler,
-	std::filesystem::path              work_dir,
-	std::filesystem::path              output_path
+	const char*                 argv0,
+	const ecsact::build_recipe& recipe,
+	cc_compiler                 compiler,
+	const cook_recipe_options&  recipe_options
 ) -> std::optional<std::filesystem::path>;
 
 } // namespace ecsact::cli

@@ -87,7 +87,7 @@ auto ecsact::cli::detail::build_command( //
 	auto output_path = fs::path{args.at("--output").asString()};
 
 	auto recipe_path = fs::path{args.at("--recipe").asString()};
-	auto recipe = build_recipe::from_yaml_file(output_path);
+	auto recipe = build_recipe::from_yaml_file(recipe_path);
 
 	auto temp_dir = args["--temp_dir"].isString() //
 		? fs::path{args["--temp_dir"].asString()}

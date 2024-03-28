@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.2 - 2024-03-28
+#### Features
+- **(build)** allow plugins relative to recipe file (#72) - (04ae855) - Austin Kelway
+
+- - -
+
 ## 0.3.1 - 2024-03-27
 #### Miscellaneous Chores
 - update deps - (da9af3d) - Ezekiel Warren

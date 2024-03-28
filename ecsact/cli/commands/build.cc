@@ -86,7 +86,8 @@ auto ecsact::cli::detail::build_command( //
 
 	auto output_path = fs::path{args.at("--output").asString()};
 
-	auto recipe = build_recipe::from_yaml_file(args.at("--recipe").asString());
+	auto recipe_path = fs::path{args.at("--recipe").asString()};
+	auto recipe = build_recipe::from_yaml_file(output_path);
 
 	auto temp_dir = args["--temp_dir"].isString() //
 		? fs::path{args["--temp_dir"].asString()}
@@ -171,13 +172,17 @@ auto ecsact::cli::detail::build_command( //
 		compiler->compiler_version
 	);
 
+	auto cook_options = cook_recipe_options{
+		.files = file_paths,
+		.work_dir = work_dir,
+		.output_path = output_path,
+		.additional_plugin_dirs = {recipe_path.parent_path()},
+	};
 	auto runtime_output_path = cook_recipe(
 		argv[0],
-		file_paths,
 		std::get<build_recipe>(recipe),
 		*compiler,
-		work_dir,
-		output_path
+		cook_options
 	);
 
 	if(!runtime_output_path) {

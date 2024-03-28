@@ -122,12 +122,12 @@ static auto download_file(boost::url url, fs::path out_file_path) -> int {
 }
 
 static auto handle_source( //
-	ecsact::build_recipe::source_fetch src,
-	fs::path                           work_dir
+	ecsact::build_recipe::source_fetch      src,
+	const ecsact::cli::cook_recipe_options& options
 ) -> int {
 	auto outdir = src.outdir //
-		? work_dir / *src.outdir
-		: work_dir;
+		? options.work_dir / *src.outdir
+		: options.work_dir;
 	auto url = boost::url{src.url};
 	auto out_file_path = outdir / fs::path{url.path().c_str()}.filename();
 
@@ -148,17 +148,18 @@ static auto handle_source( //
 }
 
 static auto handle_source( //
-	ecsact::build_recipe::source_codegen src,
-	fs::path                             work_dir
+	ecsact::build_recipe::source_codegen    src,
+	const ecsact::cli::cook_recipe_options& options
 ) -> int {
 	auto default_plugins_dir = ecsact::cli::get_default_plugins_dir();
 	auto plugin_paths = std::vector<fs::path>{};
 
 	for(auto plugin : src.plugins) {
-		auto plugin_path = ecsact::cli::resolve_plugin_path( //
-			plugin,
-			default_plugins_dir
-		);
+		auto plugin_path = ecsact::cli::resolve_plugin_path({
+			.plugin_arg = plugin,
+			.default_plugins_dir = default_plugins_dir,
+			.additional_plugin_dirs = options.additional_plugin_dirs,
+		});
 
 		if(!plugin_path) {
 			return 1;
@@ -174,12 +175,12 @@ static auto handle_source( //
 }
 
 static auto handle_source( //
-	ecsact::build_recipe::source_path src,
-	fs::path                          work_dir
+	ecsact::build_recipe::source_path       src,
+	const ecsact::cli::cook_recipe_options& options
 ) -> int {
 	auto outdir = src.outdir //
-		? work_dir / *src.outdir
-		: work_dir;
+		? options.work_dir / *src.outdir
+		: options.work_dir;
 
 	auto ec = std::error_code{};
 	fs::create_directories(outdir, ec);
@@ -503,27 +504,29 @@ auto cl_compile(compile_options options) -> int {
 
 auto ecsact::cli::cook_recipe( //
 	const char*                 argv0,
-	std::vector<fs::path>       files,
 	const ecsact::build_recipe& recipe,
 	cc_compiler                 compiler,
-	fs::path                    work_dir,
-	fs::path                    output_path
+	const cook_recipe_options&  recipe_options
 ) -> std::optional<std::filesystem::path> {
 	auto exit_code = int{};
 
 	for(auto& src : recipe.sources()) {
-		exit_code =
-			std::visit([&](auto& src) { return handle_source(src, work_dir); }, src);
+		exit_code = std::visit(
+			[&](auto& src) { return handle_source(src, recipe_options); },
+			src
+		);
 
 		if(exit_code != 0) {
 			return {};
 		}
 	}
 
+	auto output_path = recipe_options.output_path;
+
 	if(output_path.has_extension()) {
 		auto has_allowed_output_extension = false;
 		for(auto allowed_ext : compiler.allowed_output_extensions) {
-			if(allowed_ext == output_path.extension().string()) {
+			if(allowed_ext == recipe_options.output_path.extension().string()) {
 				has_allowed_output_extension = true;
 			}
 		}
@@ -531,7 +534,7 @@ auto ecsact::cli::cook_recipe( //
 		if(!has_allowed_output_extension) {
 			ecsact::cli::report_error(
 				"Invalid output extension {}",
-				output_path.extension().string()
+				recipe_options.output_path.extension().string()
 			);
 
 			return {};
@@ -543,8 +546,8 @@ auto ecsact::cli::cook_recipe( //
 
 	ecsact::cli::report_info("Compiling {}", output_path.string());
 
-	auto src_dir = work_dir / "src";
-	auto inc_dir = work_dir / "include";
+	auto src_dir = recipe_options.work_dir / "src";
+	auto inc_dir = recipe_options.work_dir / "include";
 
 	auto inc_dirs = std::vector{inc_dir};
 
@@ -640,7 +643,7 @@ auto ecsact::cli::cook_recipe( //
 
 	if(is_cl_like(compiler.compiler_type)) {
 		exit_code = cl_compile({
-			.work_dir = work_dir,
+			.work_dir = recipe_options.work_dir,
 			.compiler = compiler,
 			.inc_dirs = inc_dirs,
 			.system_libs = as_vec(recipe.system_libs()),
@@ -651,7 +654,7 @@ auto ecsact::cli::cook_recipe( //
 		});
 	} else {
 		exit_code = clang_gcc_compile({
-			.work_dir = work_dir,
+			.work_dir = recipe_options.work_dir,
 			.compiler = compiler,
 			.inc_dirs = inc_dirs,
 			.system_libs = as_vec(recipe.system_libs()),

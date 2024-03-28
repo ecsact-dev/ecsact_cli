@@ -17,15 +17,19 @@ struct codegen_options {
 
 auto codegen(codegen_options options) -> int;
 
-auto resolve_plugin_path(
-	const std::string&                  plugin_arg,
-	const std::filesystem::path&        default_plugins_dir,
+struct resolve_plugin_path_options {
+	const std::string&                        plugin_arg;
+	const std::filesystem::path&              default_plugins_dir;
+	const std::vector<std::filesystem::path>& additional_plugin_dirs;
+};
+
+auto resolve_plugin_path( //
+	const resolve_plugin_path_options&  options,
 	std::vector<std::filesystem::path>& checked_plugin_paths
 ) -> std::optional<std::filesystem::path>;
 
-auto resolve_plugin_path(
-	const std::string&           plugin_arg,
-	const std::filesystem::path& default_plugins_dir
+auto resolve_plugin_path( //
+	const resolve_plugin_path_options& options
 ) -> std::optional<std::filesystem::path>;
 
 auto current_platform_codegen_plugin_extension() -> std::string;

@@ -5,10 +5,11 @@ package(default_visibility = ["//:__subpackages__"])
 
 cc_library(
     name = "build_recipe",
-    copts = copts,
     srcs = ["build_recipe.cc"],
     hdrs = ["build_recipe.hh"],
+    copts = copts,
     deps = [
+        "//ecsact/cli:report",
         "//ecsact/cli/commands/build:get_modules",
         "@yaml-cpp",
     ],
@@ -16,24 +17,24 @@ cc_library(
 
 cc_library(
     name = "cc_compiler",
-    copts = copts,
     srcs = ["cc_compiler.cc"],
     hdrs = ["cc_compiler.hh"],
+    copts = copts,
     deps = [
         ":cc_compiler_config",
         ":cc_compiler_util",
         "//ecsact/cli:report",
+        "@boost.process",
         "@magic_enum",
         "@nlohmann_json//:json",
-        "@boost.process",
     ],
 )
 
 cc_library(
     name = "cc_compiler_config",
-    copts = copts,
     srcs = ["cc_compiler_config.cc"],
     hdrs = ["cc_compiler_config.hh"],
+    copts = copts,
     deps = [
         ":cc_compiler_util",
         "//ecsact/cli:report",
@@ -43,9 +44,9 @@ cc_library(
 
 cc_library(
     name = "cc_compiler_util",
-    copts = copts,
     srcs = ["cc_compiler_util.cc"],
     hdrs = ["cc_compiler_util.hh"],
+    copts = copts,
     deps = [
         "@boost.process",
     ],
@@ -53,19 +54,19 @@ cc_library(
 
 cc_library(
     name = "cc_defines_gen",
-    hdrs = ["cc_defines_gen.hh"],
     srcs = ["cc_defines_gen.cc"],
+    hdrs = ["cc_defines_gen.hh"],
     copts = copts,
     deps = [
-        "@boost.algorithm",
         ":get_modules",
+        "@boost.algorithm",
     ],
 )
 
 cc_library(
     name = "get_modules",
-    hdrs = ["get_modules.hh"],
     srcs = ["get_modules.cc"],
+    hdrs = ["get_modules.hh"],
     copts = copts,
     deps = [
         "@ecsact_runtime//:core",

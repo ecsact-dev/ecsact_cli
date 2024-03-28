@@ -8,6 +8,7 @@
 #include <ranges>
 #include "yaml-cpp/yaml.h"
 #include "ecsact/cli/commands/build/get_modules.hh"
+#include "ecsact/cli/report.hh"
 
 namespace fs = std::filesystem;
 
@@ -221,7 +222,8 @@ auto ecsact::build_recipe::from_yaml_file( //
 		}
 
 		return recipe;
-	} catch(const YAML::BadFile&) {
+	} catch(const YAML::BadFile& err) {
+		ecsact::cli::report_error("YAML PARSE: {}", err.what());
 		return build_recipe_parse_error::bad_file;
 	}
 }

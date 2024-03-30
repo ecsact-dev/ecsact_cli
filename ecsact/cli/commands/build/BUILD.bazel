@@ -69,6 +69,7 @@ cc_library(
     hdrs = ["get_modules.hh"],
     copts = copts,
     deps = [
+        "@ecsact_runtime//:async",
         "@ecsact_runtime//:core",
         "@ecsact_runtime//:dynamic",
         "@ecsact_runtime//:meta",

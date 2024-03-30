@@ -1,5 +1,6 @@
 #include "ecsact/cli/commands/build/get_modules.hh"
 
+#include "ecsact/runtime/async.h"
 #include "ecsact/runtime/core.h"
 #include "ecsact/runtime/dynamic.h"
 #include "ecsact/runtime/meta.h"
@@ -18,6 +19,7 @@ auto ecsact::cli::detail::get_ecsact_modules( //
 	static_assert(true, "")
 
 	for(auto method : methods) {
+		FOR_EACH_ECSACT_ASYNC_API_FN(CHECK_MODULE, "async");
 		FOR_EACH_ECSACT_CORE_API_FN(CHECK_MODULE, "core");
 		FOR_EACH_ECSACT_DYNAMIC_API_FN(CHECK_MODULE, "dynamic");
 		FOR_EACH_ECSACT_META_API_FN(CHECK_MODULE, "meta");

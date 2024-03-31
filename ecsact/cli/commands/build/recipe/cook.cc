@@ -21,6 +21,8 @@
 #	include "tools/cpp/runfiles/runfiles.h"
 #endif
 
+using ecsact::cli::message_variant_t;
+
 namespace fs = std::filesystem;
 
 using namespace std::string_view_literals;
@@ -426,6 +428,7 @@ auto cl_compile(compile_options options) -> int {
 
 	cl_args.push_back("/nologo");
 	cl_args.push_back("/std:c++20");
+	cl_args.push_back("/diagnostics:column");
 
 	// TODO(zaucy): Add debug mode
 	// if(options.debug) {
@@ -485,9 +488,37 @@ auto cl_compile(compile_options options) -> int {
 
 	cl_args.push_back(std::format("/OUT:{}", options.output_path.string()));
 
-	auto compile_exit_code = ecsact::cli::detail::spawn_and_report_output(
+	struct : ecsact::cli::detail::spawn_reporter {
+		auto on_std_out(std::string_view line) -> std::optional<message_variant_t> {
+			auto index = line.find("): ");
+			if(index == std::string::npos) {
+				return {};
+			}
+
+			auto msg_content = line.substr(index + 3);
+
+			if(msg_content.starts_with("warning")) {
+				return ecsact::cli::warning_message{
+					.content = std::string{line},
+				};
+			} else if(msg_content.starts_with("error")) {
+				return ecsact::cli::error_message{
+					.content = std::string{line},
+				};
+			}
+
+			return {};
+		}
+
+		auto on_std_err(std::string_view line) -> std::optional<message_variant_t> {
+			return {};
+		}
+	} reporter;
+
+	auto compile_exit_code = ecsact::cli::detail::spawn_and_report(
 		options.compiler.compiler_path,
-		cl_args
+		cl_args,
+		reporter
 	);
 
 	if(compile_exit_code != 0) {
@@ -546,7 +577,7 @@ auto ecsact::cli::cook_recipe( //
 
 	ecsact::cli::report_info("Compiling {}", output_path.string());
 
-	auto src_dir = recipe_options.work_dir / "src";
+	auto src_dir = recipe_options.work_dir;
 	auto inc_dir = recipe_options.work_dir / "include";
 
 	auto inc_dirs = std::vector{inc_dir};

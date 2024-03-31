@@ -5,6 +5,7 @@
 #include <string_view>
 #include <string>
 #include <optional>
+#include "ecsact/cli/report_message.hh"
 
 namespace ecsact::cli::detail {
 
@@ -14,6 +15,27 @@ namespace ecsact::cli::detail {
 auto which( //
 	std::string_view prog
 ) -> std::optional<std::filesystem::path>;
+
+struct spawn_reporter {
+	virtual auto on_std_out( //
+		std::string_view line
+	) -> std::optional<ecsact::cli::message_variant_t> {
+		return {};
+	}
+
+	virtual auto on_std_err( //
+		std::string_view line
+	) -> std::optional<ecsact::cli::message_variant_t> {
+		return {};
+	}
+};
+
+auto spawn_and_report(
+	std::filesystem::path    exe,
+	std::vector<std::string> args,
+	spawn_reporter&          reporter,
+	std::filesystem::path    start_dir = std::filesystem::current_path()
+) -> int;
 
 /**
  * Spawn a process and report the stdout/stderr

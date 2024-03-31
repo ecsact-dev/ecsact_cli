@@ -22,6 +22,61 @@ auto ecsact::cli::detail::which(std::string_view prog
 	}
 }
 
+auto ecsact::cli::detail::spawn_and_report( //
+	std::filesystem::path    exe,
+	std::vector<std::string> args,
+	spawn_reporter&          reporter,
+	std::filesystem::path    start_dir
+) -> int {
+	auto proc_stdout = bp::ipstream{};
+	auto proc_stderr = bp::ipstream{};
+
+	auto proc = bp::child{
+		bp::exe(fs::absolute(exe).string()),
+		bp::start_dir(start_dir.string()),
+		bp::args(args),
+		bp::std_out > proc_stdout,
+		bp::std_err > proc_stderr,
+	};
+
+	auto subcommand_id = static_cast<subcommand_id_t>(proc.id());
+
+	ecsact::cli::report(subcommand_start_message{
+		.id = subcommand_id,
+		.executable = exe.string(),
+		.arguments = args,
+	});
+
+	auto line = std::string{};
+
+	while(proc_stdout && std::getline(proc_stdout, line)) {
+		auto msg = reporter.on_std_out(line).value_or(subcommand_stdout_message{
+			.id = subcommand_id,
+			.line = line,
+		});
+		ecsact::cli::report(msg);
+	}
+
+	while(proc_stderr && std::getline(proc_stderr, line)) {
+		auto msg = reporter.on_std_err(line).value_or(subcommand_stderr_message{
+			.id = subcommand_id,
+			.line = line,
+		});
+		ecsact::cli::report(msg);
+	}
+
+	proc.wait();
+
+	auto proc_exit_code = proc.exit_code();
+
+	ecsact::cli::report(subcommand_end_message{
+		.id = subcommand_id,
+		.exit_code = proc_exit_code,
+	});
+
+	return proc_exit_code;
+}
+
 auto ecsact::cli::detail::spawn_and_report_output( //
 	std::filesystem::path    exe,
 	std::vector<std::string> args,

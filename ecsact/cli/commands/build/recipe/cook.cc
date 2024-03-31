@@ -577,7 +577,7 @@ auto ecsact::cli::cook_recipe( //
 
 	ecsact::cli::report_info("Compiling {}", output_path.string());
 
-	auto src_dir = recipe_options.work_dir;
+	auto src_dir = recipe_options.work_dir / "src";
 	auto inc_dir = recipe_options.work_dir / "include";
 
 	auto inc_dirs = std::vector{inc_dir};

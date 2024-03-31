@@ -150,7 +150,7 @@ static auto parse_sources( //
 			}
 			result.emplace_back(source_path{
 				.path = path,
-				.outdir = ".",
+				.outdir = "src",
 			});
 		}
 	}

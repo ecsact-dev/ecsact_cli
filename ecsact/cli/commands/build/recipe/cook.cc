@@ -123,6 +123,37 @@ static auto download_file(boost::url url, fs::path out_file_path) -> int {
 #endif
 }
 
+static auto is_cpp_file(fs::path p) -> bool {
+	if(!p.has_extension()) {
+		return false;
+	}
+
+	constexpr auto valid_extensions = std::array{
+		".c",
+		".cc",
+		".cpp",
+		".cxx",
+		".c++",
+		".C",
+		".h",
+		".hh",
+		".hpp",
+		".hxx",
+		".ipp",
+		".inc",
+		".inl",
+		".H",
+	};
+
+	for(auto extension : valid_extensions) {
+		if(p.extension() == extension) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 static auto handle_source( //
 	ecsact::build_recipe::source_fetch      src,
 	const ecsact::cli::cook_recipe_options& options
@@ -577,7 +608,7 @@ auto ecsact::cli::cook_recipe( //
 
 	ecsact::cli::report_info("Compiling {}", output_path.string());
 
-	auto src_dir = recipe_options.work_dir / "src";
+	auto src_dir = recipe_options.work_dir;
 	auto inc_dir = recipe_options.work_dir / "include";
 
 	auto inc_dirs = std::vector{inc_dir};
@@ -592,7 +623,10 @@ auto ecsact::cli::cook_recipe( //
 		if(!entry.is_regular_file()) {
 			continue;
 		}
-		source_files.emplace_back(entry.path());
+
+		if(is_cpp_file(entry)) {
+			source_files.emplace_back(entry.path());
+		}
 	}
 
 	if(source_files.empty()) {

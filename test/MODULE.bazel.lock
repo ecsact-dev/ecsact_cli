@@ -1,6 +1,6 @@
 {
   "lockFileVersion": 6,
-  "moduleFileHash": "598680bf48f1d534e16536ff4adc5a873838277a9021a45c20b86042363238f5",
+  "moduleFileHash": "c8ff9bc8e36a95000a285a3a1c4fb03dae12b6b244e47fbc2216b63e6851fb05",
   "flags": {
     "cmdRegistries": [
       "https://raw.githubusercontent.com/ecsact-dev/bazel_registry/main",
@@ -16,7 +16,7 @@
   },
   "localOverrideHashes": {
     "bazel_tools": "1ae69322ac3823527337acf02016e8ee95813d8d356f47060255b8956fa642f0",
-    "ecsact_cli": "b0b4b98743e6afc01942f6506afba763eccba6370bd3434e92f6ad6d82fab0c1"
+    "ecsact_cli": "be9f5cb825a50734db87378685f16147422e05496a26c3432eed270b6a24f7d6"
   },
   "moduleDepGraph": {
     "<root>": {
@@ -35,7 +35,7 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
-            "line": 24,
+            "line": 25,
             "column": 21
           },
           "imports": {
@@ -55,7 +55,7 @@
               "devDependency": true,
               "location": {
                 "file": "@@//:MODULE.bazel",
-                "line": 25,
+                "line": 26,
                 "column": 15
               }
             }
@@ -66,12 +66,12 @@
       ],
       "deps": {
         "rules_cc": "rules_cc@0.0.9",
-        "rules_ecsact": "rules_ecsact@0.4.9",
-        "ecsact_codegen": "ecsact_codegen@0.1.3",
+        "rules_ecsact": "rules_ecsact@0.5.0",
+        "ecsact_codegen": "ecsact_codegen@0.2.0",
         "boost.dll": "boost.dll@1.83.0.bzl.2",
         "boost.process": "boost.process@1.83.0.bzl.2",
-        "ecsact_runtime": "ecsact_runtime@0.5.4",
-        "ecsact_interpret": "ecsact_interpret@0.5.3",
+        "ecsact_runtime": "ecsact_runtime@0.6.1",
+        "ecsact_interpret": "ecsact_interpret@0.6.0",
         "toolchains_llvm": "toolchains_llvm@1.0.0",
         "hedron_compile_commands": "hedron_compile_commands@_",
         "googletest": "googletest@1.14.0",
@@ -129,10 +129,10 @@
         }
       }
     },
-    "rules_ecsact@0.4.9": {
+    "rules_ecsact@0.5.0": {
       "name": "rules_ecsact",
-      "version": "0.4.9",
-      "key": "rules_ecsact@0.4.9",
+      "version": "0.5.0",
+      "key": "rules_ecsact@0.5.0",
       "repoName": "rules_ecsact",
       "executionPlatformsToRegister": [],
       "toolchainsToRegister": [],
@@ -141,6 +141,7 @@
         "rules_cc": "rules_cc@0.0.9",
         "bazel_skylib": "bazel_skylib@1.5.0",
         "platforms": "platforms@0.0.9",
+        "ecsact_cli": "ecsact_cli@_",
         "bazel_tools": "bazel_tools@_",
         "local_config_platform": "local_config_platform@_"
       },
@@ -149,19 +150,19 @@
         "ruleClassName": "http_archive",
         "attributes": {
           "urls": [
-            "https://github.com/ecsact-dev/rules_ecsact/releases/download/0.4.9/rules_ecsact-0.4.9.tar.gz"
+            "https://github.com/ecsact-dev/rules_ecsact/releases/download/0.5.0/rules_ecsact-0.5.0.tar.gz"
           ],
-          "integrity": "sha256-o7Q4T9JMPy93vmP3g3rehIo+0TzaxbgsgS1PT52yNzE=",
+          "integrity": "sha256-Y2Vm3Rq4sD6INP0L+uh5e7XtoUpNKLobPqI6rsjWjSM=",
           "strip_prefix": "",
           "remote_patches": {},
           "remote_patch_strip": 0
         }
       }
     },
-    "ecsact_codegen@0.1.3": {
+    "ecsact_codegen@0.2.0": {
       "name": "ecsact_codegen",
-      "version": "0.1.3",
-      "key": "ecsact_codegen@0.1.3",
+      "version": "0.2.0",
+      "key": "ecsact_codegen@0.2.0",
       "repoName": "ecsact_codegen",
       "executionPlatformsToRegister": [],
       "toolchainsToRegister": [],
@@ -170,7 +171,7 @@
         "rules_cc": "rules_cc@0.0.9",
         "bazel_skylib": "bazel_skylib@1.5.0",
         "boost.dll": "boost.dll@1.83.0.bzl.2",
-        "ecsact_runtime": "ecsact_runtime@0.5.4",
+        "ecsact_runtime": "ecsact_runtime@0.6.1",
         "bazel_tools": "bazel_tools@_",
         "local_config_platform": "local_config_platform@_"
       },
@@ -179,9 +180,9 @@
         "ruleClassName": "http_archive",
         "attributes": {
           "urls": [
-            "https://github.com/ecsact-dev/ecsact_codegen/releases/download/0.1.3/ecsact_codegen-0.1.3.tar.gz"
+            "https://github.com/ecsact-dev/ecsact_codegen/releases/download/0.2.0/ecsact_codegen-0.2.0.tar.gz"
           ],
-          "integrity": "sha256-TvzdtIS1RdZtc6SVkp4m15zUjy6dWrvkdjnZLiBI9gs=",
+          "integrity": "sha256-Z1uNm6pVqJGwXQQ9YwD82rDyfJamngsGyqImkKZE/c4=",
           "strip_prefix": "",
           "remote_patches": {},
           "remote_patch_strip": 0
@@ -277,10 +278,10 @@
         }
       }
     },
-    "ecsact_runtime@0.5.4": {
+    "ecsact_runtime@0.6.1": {
       "name": "ecsact_runtime",
-      "version": "0.5.4",
-      "key": "ecsact_runtime@0.5.4",
+      "version": "0.6.1",
+      "key": "ecsact_runtime@0.6.1",
       "repoName": "ecsact_runtime",
       "executionPlatformsToRegister": [],
       "toolchainsToRegister": [],
@@ -301,19 +302,19 @@
         "ruleClassName": "http_archive",
         "attributes": {
           "urls": [
-            "https://github.com/ecsact-dev/ecsact_runtime/releases/download/0.5.4/ecsact_runtime-0.5.4.tar.gz"
+            "https://github.com/ecsact-dev/ecsact_runtime/releases/download/0.6.1/ecsact_runtime-0.6.1.tar.gz"
           ],
-          "integrity": "sha256-EaWwFxIIoI10+H8WDe7XwJ3M29jaxDwqLN9HK+hccys=",
+          "integrity": "sha256-BhaaAYDm6w9LvqOJjYruvWivfR1mvHVoaxSGpc2H9zQ=",
           "strip_prefix": "",
           "remote_patches": {},
           "remote_patch_strip": 0
         }
       }
     },
-    "ecsact_interpret@0.5.3": {
+    "ecsact_interpret@0.6.0": {
       "name": "ecsact_interpret",
-      "version": "0.5.3",
-      "key": "ecsact_interpret@0.5.3",
+      "version": "0.6.0",
+      "key": "ecsact_interpret@0.6.0",
       "repoName": "ecsact_interpret",
       "executionPlatformsToRegister": [],
       "toolchainsToRegister": [],
@@ -322,8 +323,8 @@
         "rules_cc": "rules_cc@0.0.9",
         "bazel_skylib": "bazel_skylib@1.5.0",
         "magic_enum": "magic_enum@0.9.3",
-        "ecsact_runtime": "ecsact_runtime@0.5.4",
-        "ecsact_parse": "ecsact_parse@0.3.3",
+        "ecsact_runtime": "ecsact_runtime@0.6.1",
+        "ecsact_parse": "ecsact_parse@0.4.0",
         "bazel_tools": "bazel_tools@_",
         "local_config_platform": "local_config_platform@_"
       },
@@ -332,9 +333,9 @@
         "ruleClassName": "http_archive",
         "attributes": {
           "urls": [
-            "https://github.com/ecsact-dev/ecsact_interpret/releases/download/0.5.3/ecsact_interpret-0.5.3.tar.gz"
+            "https://github.com/ecsact-dev/ecsact_interpret/releases/download/0.6.0/ecsact_interpret-0.6.0.tar.gz"
           ],
-          "integrity": "sha256-A7VwvcO+ggYGfjU6DR1Kq9aHMdCJIsPEbxA/rew4c1M=",
+          "integrity": "sha256-YDtn32eLL0JDIGBSelHroEiIBaS2tBjnXsVyn3Cuf18=",
           "strip_prefix": "",
           "remote_patches": {},
           "remote_patch_strip": 0
@@ -489,10 +490,10 @@
         "platforms": "platforms@0.0.9",
         "rules_pkg": "rules_pkg@0.10.1",
         "bazel_skylib": "bazel_skylib@1.5.0",
-        "ecsact_parse": "ecsact_parse@0.3.3",
-        "ecsact_runtime": "ecsact_runtime@0.5.4",
-        "ecsact_interpret": "ecsact_interpret@0.5.3",
-        "ecsact_codegen": "ecsact_codegen@0.1.3",
+        "ecsact_parse": "ecsact_parse@0.4.0",
+        "ecsact_runtime": "ecsact_runtime@0.6.1",
+        "ecsact_interpret": "ecsact_interpret@0.6.0",
+        "ecsact_codegen": "ecsact_codegen@0.2.0",
         "boost.dll": "boost.dll@1.83.0.bzl.2",
         "magic_enum": "magic_enum@0.9.3",
         "curl": "curl@8.4.0",
@@ -1597,10 +1598,10 @@
         }
       }
     },
-    "ecsact_parse@0.3.3": {
+    "ecsact_parse@0.4.0": {
       "name": "ecsact_parse",
-      "version": "0.3.3",
-      "key": "ecsact_parse@0.3.3",
+      "version": "0.4.0",
+      "key": "ecsact_parse@0.4.0",
       "repoName": "ecsact_parse",
       "executionPlatformsToRegister": [],
       "toolchainsToRegister": [],
@@ -1608,7 +1609,7 @@
       "deps": {
         "rules_cc": "rules_cc@0.0.9",
         "bazel_skylib": "bazel_skylib@1.5.0",
-        "ecsact_runtime": "ecsact_runtime@0.5.4",
+        "ecsact_runtime": "ecsact_runtime@0.6.1",
         "lexy": "lexy@2022.05.1",
         "magic_enum": "magic_enum@0.9.3",
         "bazel_tools": "bazel_tools@_",
@@ -1619,9 +1620,9 @@
         "ruleClassName": "http_archive",
         "attributes": {
           "urls": [
-            "https://github.com/ecsact-dev/ecsact_parse/releases/download/0.3.3/ecsact_parse-0.3.3.tar.gz"
+            "https://github.com/ecsact-dev/ecsact_parse/releases/download/0.4.0/ecsact_parse-0.4.0.tar.gz"
           ],
-          "integrity": "sha256-bdwpSsqxxD9qsH9+q+tKOAVYNZvpI+MgJFkNJIBpHHk=",
+          "integrity": "sha256-GFydZ7s0mkjp5bgL5/GdYvc8hqHk1Eg6QDPk05c7Zys=",
           "strip_prefix": "",
           "remote_patches": {},
           "remote_patch_strip": 0

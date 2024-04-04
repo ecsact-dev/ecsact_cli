@@ -502,6 +502,7 @@ auto cl_compile(compile_options options) -> int {
 	cl_args.push_back("/O2");
 	cl_args.push_back("/GL");
 	cl_args.push_back("/MP");
+	cl_args.push_back(std::format("/Fo\"{}\\\"", options.work_dir.string()));
 
 	auto generated_defines =
 		ecsact::cli::cc_defines_gen(options.imports, options.exports);

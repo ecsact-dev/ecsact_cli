@@ -521,18 +521,19 @@ auto cl_compile(compile_options options) -> int {
 
 	struct : ecsact::cli::detail::spawn_reporter {
 		auto on_std_out(std::string_view line) -> std::optional<message_variant_t> {
-			auto index = line.find("): ");
-			if(index == std::string::npos) {
-				return {};
-			}
-
-			auto msg_content = line.substr(index + 3);
-
-			if(msg_content.starts_with("warning")) {
+			if(line.find(": warning") != std::string::npos) {
 				return ecsact::cli::warning_message{
 					.content = std::string{line},
 				};
-			} else if(msg_content.starts_with("error")) {
+			} else if(line.find(": error") != std::string::npos) {
+				return ecsact::cli::error_message{
+					.content = std::string{line},
+				};
+			} else if(line.find(": fatal error ") != std::string::npos) {
+				return ecsact::cli::error_message{
+					.content = std::string{line},
+				};
+			} else if(line.find(": Command line error ") != std::string::npos) {
 				return ecsact::cli::error_message{
 					.content = std::string{line},
 				};

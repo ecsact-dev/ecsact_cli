@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.4 - 2024-04-04
+#### Bug Fixes
+- intermediate-dir for msvc cl (#80) - (f6dae10) - Ezekiel Warren
+#### Miscellaneous Chores
+- **(deps)** update crate-ci/typos action to v1.20.4 (#79) - (3fdaed4) - renovate[bot]
+
+- - -
+
 ## 0.3.3 - 2024-04-04
 #### Bug Fixes
 - build recipe aware of async methods (#73) - (82aa0f1) - Ezekiel Warren

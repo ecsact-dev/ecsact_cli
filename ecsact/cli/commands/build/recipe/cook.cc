@@ -9,6 +9,7 @@
 #include <curl/curl.h>
 #undef fopen
 #include <boost/url.hpp>
+#include <boost/algorithm/string/case_conv.hpp>
 #include "magic_enum.hpp"
 #include "ecsact/cli/detail/proc_exec.hh"
 #include "ecsact/cli/commands/build/cc_compiler_config.hh"
@@ -241,15 +242,39 @@ static auto handle_source( //
 	return 0;
 }
 
+constexpr auto GENERATED_DYLIB_DISCLAIMER = R"(
+////////////////////////////////////////////////////////////////////////////////
+//                    THIS FILE IS GENERATED - DO NOT EDIT                    //
+////////////////////////////////////////////////////////////////////////////////
+)";
+
+constexpr auto LOAD_AT_RUNTIME_GUARD = R"(
+#ifndef ECSACT_{0}_API_LOAD_AT_RUNTIME
+#   error "Expected ECSACT_{0}_API_LOAD_AT_RUNTIME to be set"
+#endif // ECSACT_{0}_API_LOAD_AT_RUNTIME
+
+#ifdef ECSACT_{0}_API
+#   error "ECSACT_{0}_API may not be set while using generated dylib source"
+#endif // ECSACT_{0}_API
+)";
+
 static auto generate_dylib_imports( //
 	auto&&        imports,
 	std::ostream& output
 ) -> void {
 	auto mods = ecsact::cli::detail::get_ecsact_modules(as_vec(imports));
+	output << GENERATED_DYLIB_DISCLAIMER;
 	output << "#include <string>\n";
 	output << "#include \"ecsact/runtime/common.h\"\n";
 	for(auto&& [module_name, _] : mods.module_methods) {
 		output << std::format("#include \"ecsact/runtime/{}.h\"\n", module_name);
+	}
+
+	for(auto&& [module_name, _] : mods.module_methods) {
+		output << std::format( //
+			LOAD_AT_RUNTIME_GUARD,
+			boost::to_upper_copy(module_name)
+		);
 	}
 
 	output << "\n";
@@ -470,6 +495,8 @@ auto cl_compile(compile_options options) -> int {
 	// 	compile_proc_args.push_back("/bigobj");
 	// }
 
+	// cl_args.push_back("/we4530"); // treat exceptions as errors
+	cl_args.push_back("/wd4530"); // ignore use of exceptions warning
 	cl_args.push_back("/MD");
 	cl_args.push_back("/DNDEBUG");
 	cl_args.push_back("/O2");
@@ -620,6 +647,14 @@ auto ecsact::cli::cook_recipe( //
 
 	auto source_files = std::vector<fs::path>{};
 
+	{
+		// No need to add to source_files since it will be grabbed in the directory
+		// iterator
+		auto dylib_src = src_dir / "ecsact-generated-dylib.cc";
+		auto dylib_src_stream = std::ofstream{dylib_src};
+		generate_dylib_imports(recipe.imports(), dylib_src_stream);
+	}
+
 	for(auto entry : fs::recursive_directory_iterator(src_dir)) {
 		if(!entry.is_regular_file()) {
 			continue;
@@ -697,15 +732,6 @@ auto ecsact::cli::cook_recipe( //
 
 	inc_dirs.push_back(install_prefix / "include");
 #endif
-
-	auto dylib_src = src_dir / "ecsact-generated-dylib.cc";
-
-	{
-		auto dylib_src_stream = std::ofstream{dylib_src};
-		generate_dylib_imports(recipe.imports(), dylib_src_stream);
-	}
-
-	source_files.push_back(dylib_src);
 
 	if(is_cl_like(compiler.compiler_type)) {
 		exit_code = cl_compile({

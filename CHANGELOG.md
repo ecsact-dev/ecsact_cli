@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.3 - 2024-04-04
+#### Bug Fixes
+- build recipe aware of async methods (#73) - (82aa0f1) - Ezekiel Warren
+#### Features
+- generate dylib preprocessor guard (#77) - (5330e18) - Ezekiel Warren
+- report more msvc CL errors (#76) - (28d9027) - Ezekiel Warren
+- allow c++ sources outside src dir (#75) - (431c80b) - Ezekiel Warren
+- display C++ warnings/errors as messages (#74) - (9b8aed9) - Ezekiel Warren
+#### Miscellaneous Chores
+- sync with ecsact_common (#41) - (8ecf2f9) - seaubot
+- update deps (#78) - (c1bdb39) - Ezekiel Warren
+
+- - -
+
 ## 0.3.2 - 2024-03-28
 #### Features
 - **(build)** allow plugins relative to recipe file (#72) - (04ae855) - Austin Kelway

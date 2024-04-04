@@ -502,7 +502,7 @@ auto cl_compile(compile_options options) -> int {
 	cl_args.push_back("/O2");
 	cl_args.push_back("/GL");
 	cl_args.push_back("/MP");
-	cl_args.push_back("/Fo:");
+	cl_args.push_back("/Fo:"); // typos:disable-line
 	cl_args.push_back(
 		std::format("{}\\", fs::path{options.work_dir}.lexically_normal().string())
 	);

@@ -17,11 +17,14 @@ TEST(Build, Success) {
 	auto test_codegen_plugin_path = std::getenv("TEST_CODEGEN_PLUGIN_PATH");
 	auto test_ecsact_file_path = std::getenv("TEST_ECSACT_FILE_PATH");
 	auto test_build_recipe_path = std::getenv("TEST_ECSACT_BUILD_RECIPE_PATH");
+	auto test_build_merge_recipe_path =
+		std::getenv("TEST_ECSACT_BUILD_MERGE_RECIPE_PATH");
 
 	ASSERT_NE(test_ecsact_cli, nullptr);
 	ASSERT_NE(test_codegen_plugin_path, nullptr);
 	ASSERT_NE(test_ecsact_file_path, nullptr);
 	ASSERT_NE(test_build_recipe_path, nullptr);
+	ASSERT_NE(test_build_merge_recipe_path, nullptr);
 
 	ASSERT_TRUE(fs::exists(test_codegen_plugin_path));
 	ASSERT_TRUE(fs::exists(test_ecsact_file_path));
@@ -34,6 +37,17 @@ TEST(Build, Success) {
 		std::string{test_ecsact_file_path},
 		std::format("--recipe={}", test_build_recipe_path),
 		std::format("--output=test_ecsact_runtime"),
+	});
+
+	ASSERT_EQ(exit_code, 0);
+
+	exit_code = build_command(std::vector{
+		"ecsact"s,
+		"build"s,
+		std::string{test_ecsact_file_path},
+		std::format("--recipe={}", test_build_recipe_path),
+		std::format("--recipe={}", test_build_merge_recipe_path),
+		std::format("--output=test_ecsact_runtime_merged"),
 	});
 
 	ASSERT_EQ(exit_code, 0);

@@ -3,6 +3,7 @@
 #include <fstream>
 #include <filesystem>
 #include <cassert>
+#include <ranges>
 #include <iostream>
 #include <algorithm>
 #include <ranges>
@@ -11,6 +12,15 @@
 #include "ecsact/cli/report.hh"
 
 namespace fs = std::filesystem;
+
+static auto range_contains(auto& r, const auto& v) -> bool {
+	for(auto& rv : r) {
+		if(rv == v) {
+			return true;
+		}
+	}
+	return false;
+}
 
 ecsact::build_recipe::build_recipe() = default;
 ecsact::build_recipe::build_recipe(build_recipe&&) = default;
@@ -287,6 +297,15 @@ auto ecsact::build_recipe::merge( //
 		target._imports.begin(),
 		target._imports.end()
 	);
+
+	for(auto itr = merged_build_recipe._imports.begin();
+			itr != merged_build_recipe._imports.end();) {
+		if(range_contains(merged_build_recipe._exports, *itr)) {
+			itr = merged_build_recipe._imports.erase(itr);
+			continue;
+		}
+		++itr;
+	}
 
 	merged_build_recipe._sources.reserve(
 		merged_build_recipe._sources.size() + target._sources.size()

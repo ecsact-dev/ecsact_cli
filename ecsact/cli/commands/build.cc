@@ -132,7 +132,7 @@ auto ecsact::cli::detail::build_command( //
 				"Build recipes do not resolve all imports. Make sure all imported "
 				"functions in provided recipes are also exported by another recipe. If "
 				"you would like to allow unresolved imports you may provide the "
-				"--allow-unresolved-imports flag to supress this error."
+				"--allow-unresolved-imports flag to suppress this error."
 			);
 			return 1;
 		}

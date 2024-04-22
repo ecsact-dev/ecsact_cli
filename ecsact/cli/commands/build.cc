@@ -29,7 +29,7 @@ constexpr auto USAGE = R"docopt(Ecsact Build Command
 
 Usage:
   ecsact build (-h | --help)
-  ecsact build <files>... --recipe=<name> --output=<path> [--format=<type>] [--temp_dir=<path>] [--compiler_config=<path>] [--report_filter=<filter>]
+  ecsact build <files>... --recipe=<name>... --output=<path> [--allow-unresolved-imports] [--format=<type>] [--temp_dir=<path>] [--compiler_config=<path>] [--report_filter=<filter>]
 
 Options:
   <files>                   Ecsact files used to build Ecsact Runtime
@@ -86,8 +86,57 @@ auto ecsact::cli::detail::build_command( //
 
 	auto output_path = fs::path{args.at("--output").asString()};
 
-	auto recipe_path = fs::path{args.at("--recipe").asString()};
-	auto recipe = build_recipe::from_yaml_file(recipe_path);
+	auto recipe_composite = std::optional<build_recipe>{};
+	auto recipe_paths = args.at("--recipe").asStringList();
+	for(auto recipe_path : args.at("--recipe").asStringList()) {
+		auto recipe_result = build_recipe::from_yaml_file(recipe_path);
+
+		if(std::holds_alternative<build_recipe_parse_error>(recipe_result)) {
+			auto recipe_error = std::get<build_recipe_parse_error>(recipe_result);
+			ecsact::cli::report_error(
+				"Recipe Error {}",
+				magic_enum::enum_name(recipe_error)
+			);
+			return 1;
+		}
+
+		auto recipe = std::move(std::get<build_recipe>(recipe_result));
+		if(!recipe_composite) {
+			recipe_composite.emplace(std::move(recipe));
+		} else {
+			auto merge_result = build_recipe::merge(*recipe_composite, recipe);
+			if(std::holds_alternative<build_recipe_merge_error>(merge_result)) {
+				auto merge_error = std::get<build_recipe_merge_error>(merge_result);
+				ecsact::cli::report_error(
+					"Recipe Merge Error {}",
+					magic_enum::enum_name(merge_error)
+				);
+				return 1;
+			}
+
+			recipe_composite.emplace(std::get<build_recipe>(std::move(merge_result)));
+		}
+	}
+
+	if(!recipe_composite) {
+		ecsact::cli::report_error("No recipe");
+		return 1;
+	}
+
+	if(!args["--allow-unresolved-imports"].asBool()) {
+		if(!recipe_composite->imports().empty()) {
+			for(auto imp : recipe_composite->imports()) {
+				ecsact::cli::report_error("Unresolved import {}", imp);
+			}
+			ecsact::cli::report_error(
+				"Build recipes do not resolve all imports. Make sure all imported "
+				"functions in provided recipes are also exported by another recipe. If "
+				"you would like to allow unresolved imports you may provide the "
+				"--allow-unresolved-imports flag to supress this error."
+			);
+			return 1;
+		}
+	}
 
 	auto temp_dir = args["--temp_dir"].isString() //
 		? fs::path{args["--temp_dir"].asString()}
@@ -112,15 +161,6 @@ auto ecsact::cli::detail::build_command( //
 		}
 
 		file_paths.emplace_back(file);
-	}
-
-	if(std::holds_alternative<build_recipe_parse_error>(recipe)) {
-		auto recipe_error = std::get<build_recipe_parse_error>(recipe);
-		ecsact::cli::report_error(
-			"Recipe Error {}",
-			magic_enum::enum_name(recipe_error)
-		);
-		return 1;
 	}
 
 	auto eval_errors = ecsact::eval_files(file_paths);
@@ -172,18 +212,21 @@ auto ecsact::cli::detail::build_command( //
 		compiler->compiler_version
 	);
 
+	auto additional_plugin_dirs = std::vector<fs::path>{};
+	for(fs::path recipe_path : recipe_paths) {
+		if(recipe_path.has_parent_path()) {
+			additional_plugin_dirs.emplace_back(recipe_path.parent_path());
+		}
+	}
+
 	auto cook_options = cook_recipe_options{
 		.files = file_paths,
 		.work_dir = work_dir,
 		.output_path = output_path,
-		.additional_plugin_dirs = {recipe_path.parent_path()},
+		.additional_plugin_dirs = additional_plugin_dirs,
 	};
-	auto runtime_output_path = cook_recipe(
-		argv[0],
-		std::get<build_recipe>(recipe),
-		*compiler,
-		cook_options
-	);
+	auto runtime_output_path =
+		cook_recipe(argv[0], *recipe_composite, *compiler, cook_options);
 
 	if(!runtime_output_path) {
 		ecsact::cli::report_error("Failed to cook recipe");
@@ -191,7 +234,7 @@ auto ecsact::cli::detail::build_command( //
 	}
 
 	auto exit_code = ecsact::cli::taste_recipe( //
-		std::get<build_recipe>(recipe),
+		*recipe_composite,
 		*runtime_output_path
 	);
 

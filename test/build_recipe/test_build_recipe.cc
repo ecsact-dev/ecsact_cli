@@ -30,6 +30,7 @@ TEST(Build, Success) {
 	auto exit_code = build_command(std::vector{
 		"ecsact"s,
 		"build"s,
+		"--allow-unresolved-imports"s,
 		std::string{test_ecsact_file_path},
 		std::format("--recipe={}", test_build_recipe_path),
 		std::format("--output=test_ecsact_runtime"),

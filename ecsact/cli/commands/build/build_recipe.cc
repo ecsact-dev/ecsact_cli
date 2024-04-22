@@ -3,6 +3,7 @@
 #include <fstream>
 #include <filesystem>
 #include <cassert>
+#include <ranges>
 #include <iostream>
 #include <algorithm>
 #include <ranges>
@@ -11,6 +12,15 @@
 #include "ecsact/cli/report.hh"
 
 namespace fs = std::filesystem;
+
+static auto range_contains(auto& r, const auto& v) -> bool {
+	for(auto& rv : r) {
+		if(rv == v) {
+			return true;
+		}
+	}
+	return false;
+}
 
 ecsact::build_recipe::build_recipe() = default;
 ecsact::build_recipe::build_recipe(build_recipe&&) = default;
@@ -226,4 +236,90 @@ auto ecsact::build_recipe::from_yaml_file( //
 		ecsact::cli::report_error("YAML PARSE: {}", err.what());
 		return build_recipe_parse_error::bad_file;
 	}
+}
+
+auto ecsact::build_recipe::merge( //
+	const build_recipe& base,
+	const build_recipe& target
+) -> std::variant<build_recipe, build_recipe_merge_error> {
+	auto merged_build_recipe = build_recipe{};
+
+	for(auto base_export_name : base._exports) {
+		for(auto target_export_name : target._exports) {
+			if(target_export_name == base_export_name) {
+				ecsact::cli::report_error(
+					"Multiple recipes export {}",
+					target_export_name
+				);
+				return build_recipe_merge_error::conflicting_export;
+			}
+		}
+	}
+
+	merged_build_recipe._system_libs.reserve(
+		merged_build_recipe._system_libs.size() + target._system_libs.size()
+	);
+	merged_build_recipe._system_libs.insert(
+		merged_build_recipe._system_libs.end(),
+		base._system_libs.begin(),
+		base._system_libs.end()
+	);
+	merged_build_recipe._system_libs.insert(
+		merged_build_recipe._system_libs.end(),
+		target._system_libs.begin(),
+		target._system_libs.end()
+	);
+
+	merged_build_recipe._exports.reserve(
+		merged_build_recipe._exports.size() + target._exports.size()
+	);
+	merged_build_recipe._exports.insert(
+		merged_build_recipe._exports.end(),
+		base._exports.begin(),
+		base._exports.end()
+	);
+	merged_build_recipe._exports.insert(
+		merged_build_recipe._exports.end(),
+		target._exports.begin(),
+		target._exports.end()
+	);
+
+	merged_build_recipe._imports.reserve(
+		merged_build_recipe._imports.size() + target._imports.size()
+	);
+	merged_build_recipe._imports.insert(
+		merged_build_recipe._imports.end(),
+		base._imports.begin(),
+		base._imports.end()
+	);
+	merged_build_recipe._imports.insert(
+		merged_build_recipe._imports.end(),
+		target._imports.begin(),
+		target._imports.end()
+	);
+
+	for(auto itr = merged_build_recipe._imports.begin();
+			itr != merged_build_recipe._imports.end();) {
+		if(range_contains(merged_build_recipe._exports, *itr)) {
+			itr = merged_build_recipe._imports.erase(itr);
+			continue;
+		}
+		++itr;
+	}
+
+	merged_build_recipe._sources.reserve(
+		merged_build_recipe._sources.size() + target._sources.size()
+	);
+	merged_build_recipe._sources.insert(
+		merged_build_recipe._sources.end(),
+		base._sources.begin(),
+		base._sources.end()
+	);
+	merged_build_recipe._sources.insert(
+		merged_build_recipe._sources.end(),
+		target._sources.begin(),
+		target._sources.end()
+	);
+
+	return merged_build_recipe;
 }

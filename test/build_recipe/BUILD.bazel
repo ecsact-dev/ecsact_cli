@@ -9,7 +9,9 @@ cc_test(
     copts = copts,
     data = [
         "ecsact_build_test.cc",
+        "ecsact_build_test_merge.cc",
         "test-recipe.yml",
+        "test-merge-recipe.yml",
         "//:test.ecsact",
         "//:test_codegen_plugin",
         "@ecsact_cli",
@@ -24,12 +26,14 @@ cc_test(
         "@platforms//os:windows": {
             "TEST_ECSACT_CLI": "$(rootpath @ecsact_cli)",
             "TEST_ECSACT_BUILD_RECIPE_PATH": "$(rootpath test-recipe.yml)",
+            "TEST_ECSACT_BUILD_MERGE_RECIPE_PATH": "$(rootpath test-merge-recipe.yml)",
             "TEST_ECSACT_FILE_PATH": "$(rootpath //:test.ecsact)",
             "TEST_CODEGEN_PLUGIN_PATH": "$(rootpath //:test_codegen_plugin)",
         },
         "//conditions:default": {
             "TEST_ECSACT_CLI": "$(rootpath @ecsact_cli)",
             "TEST_ECSACT_BUILD_RECIPE_PATH": "$(rootpath test-recipe.yml)",
+            "TEST_ECSACT_BUILD_MERGE_RECIPE_PATH": "$(rootpath test-merge-recipe.yml)",
             "TEST_ECSACT_FILE_PATH": "$(rootpath //:test.ecsact)",
             "TEST_CODEGEN_PLUGIN_PATH": "$(rootpath //:test_codegen_plugin)",
             "CC": "$(rootpath @llvm_toolchain_llvm//:bin/clang)",

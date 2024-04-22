@@ -16,7 +16,7 @@
   },
   "localOverrideHashes": {
     "bazel_tools": "1ae69322ac3823527337acf02016e8ee95813d8d356f47060255b8956fa642f0",
-    "ecsact_cli": "be9f5cb825a50734db87378685f16147422e05496a26c3432eed270b6a24f7d6"
+    "ecsact_cli": "1b83c967999338e5b6926408db4d5c028abc28dcd38a507690b0323859c0d7ec"
   },
   "moduleDepGraph": {
     "<root>": {
@@ -478,7 +478,7 @@
     },
     "ecsact_cli@_": {
       "name": "ecsact_cli",
-      "version": "0.3.2",
+      "version": "0.3.4",
       "key": "ecsact_cli@_",
       "repoName": "ecsact_cli",
       "executionPlatformsToRegister": [],

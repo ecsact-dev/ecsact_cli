@@ -19,11 +19,20 @@ enum class build_recipe_parse_error {
 	conflicting_import_export_method_modules,
 };
 
+enum class build_recipe_merge_error {
+	conflicting_export,
+};
+
 class build_recipe {
 public:
 	static auto from_yaml_file( //
 		std::filesystem::path p
 	) -> std::variant<build_recipe, build_recipe_parse_error>;
+
+	static auto merge( //
+		const build_recipe& a,
+		const build_recipe& b
+	) -> std::variant<build_recipe, build_recipe_merge_error>;
 
 	struct source_path {
 		std::filesystem::path      path;

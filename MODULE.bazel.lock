@@ -1,10 +1,11 @@
 {
   "lockFileVersion": 6,
-  "moduleFileHash": "1b83c967999338e5b6926408db4d5c028abc28dcd38a507690b0323859c0d7ec",
+  "moduleFileHash": "a855c1188b1da5a386ba61040527141b61890255716bbc1d6435777f13eb799c",
   "flags": {
     "cmdRegistries": [
       "https://raw.githubusercontent.com/ecsact-dev/bazel_registry/main",
       "https://raw.githubusercontent.com/bazelboost/registry/main",
+      "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir",
       "https://bcr.bazel.build"
     ],
     "cmdModuleOverrides": {},
@@ -34,7 +35,7 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
-            "line": 33,
+            "line": 39,
             "column": 21
           },
           "imports": {
@@ -52,7 +53,7 @@
               "devDependency": true,
               "location": {
                 "file": "@@//:MODULE.bazel",
-                "line": 34,
+                "line": 40,
                 "column": 15
               }
             }
@@ -73,12 +74,13 @@
         "ecsact_codegen": "ecsact_codegen@0.2.0",
         "boost.dll": "boost.dll@1.83.0.bzl.2",
         "magic_enum": "magic_enum@0.9.3",
-        "curl": "curl@8.4.0",
+        "curl": "curl@8.4.0.bcr.1",
         "docopt.cpp": "docopt.cpp@0.6.2",
         "boost.process": "boost.process@1.83.0.bzl.2",
         "boost.algorithm": "boost.algorithm@1.83.0.bzl.1",
         "boost.url": "boost.url@1.83.0.bzl.2",
         "yaml-cpp": "yaml-cpp@0.8.0",
+        "libarchive": "libarchive@_",
         "toolchains_llvm": "toolchains_llvm@1.0.0",
         "hedron_compile_commands": "hedron_compile_commands@_",
         "bazel_tools": "bazel_tools@_",
@@ -100,7 +102,7 @@
           "extensionName": "cc_configure_extension",
           "usingModule": "rules_cc@0.0.9",
           "location": {
-            "file": "https://bcr.bazel.build/modules/rules_cc/0.0.9/MODULE.bazel",
+            "file": "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/rules_cc/0.0.9/MODULE.bazel",
             "line": 9,
             "column": 29
           },
@@ -128,7 +130,7 @@
           "integrity": "sha256-IDeHW5pEVtzkp50RKorohbvEqtlo5lh9ym5k86CQDN8=",
           "strip_prefix": "rules_cc-0.0.9",
           "remote_patches": {
-            "https://bcr.bazel.build/modules/rules_cc/0.0.9/patches/module_dot_bazel_version.patch": "sha256-mM+qzOI0SgAdaJBlWOSMwMPKpaA9b7R37Hj/tp5bb4g="
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/rules_cc/0.0.9/patches/module_dot_bazel_version.patch": "sha256-mM+qzOI0SgAdaJBlWOSMwMPKpaA9b7R37Hj/tp5bb4g="
           },
           "remote_patch_strip": 0
         }
@@ -156,7 +158,7 @@
           "integrity": "sha256-oiRh0TEZrFx48gXT3x2xNAPljOG7F5TtyTE2dzE/Sp0=",
           "strip_prefix": "",
           "remote_patches": {
-            "https://bcr.bazel.build/modules/nlohmann_json/3.11.3/patches/module_dot_bazel.patch": "sha256-OmeSCp1IqWbHGPJs0v5taUiPLEsI9KEJPLsnPpKB/B8="
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/nlohmann_json/3.11.3/patches/module_dot_bazel.patch": "sha256-OmeSCp1IqWbHGPJs0v5taUiPLEsI9KEJPLsnPpKB/B8="
           },
           "remote_patch_strip": 0
         }
@@ -175,7 +177,7 @@
           "extensionName": "host_platform",
           "usingModule": "platforms@0.0.9",
           "location": {
-            "file": "https://bcr.bazel.build/modules/platforms/0.0.9/MODULE.bazel",
+            "file": "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/platforms/0.0.9/MODULE.bazel",
             "line": 9,
             "column": 30
           },
@@ -462,15 +464,17 @@
         }
       }
     },
-    "curl@8.4.0": {
+    "curl@8.4.0.bcr.1": {
       "name": "curl",
-      "version": "8.4.0",
-      "key": "curl@8.4.0",
+      "version": "8.4.0.bcr.1",
+      "key": "curl@8.4.0.bcr.1",
       "repoName": "curl",
       "executionPlatformsToRegister": [],
       "toolchainsToRegister": [],
       "extensionUsages": [],
       "deps": {
+        "bazel_skylib": "bazel_skylib@1.5.0",
+        "mbedtls": "mbedtls@3.6.0",
         "platforms": "platforms@0.0.9",
         "bazel_tools": "bazel_tools@_",
         "local_config_platform": "local_config_platform@_"
@@ -485,10 +489,10 @@
           "integrity": "sha256-gW5BgJwEP/KF6MDwanWh+iUCEbv7LcCgN+7vOfGp5Cc=",
           "strip_prefix": "curl-8.4.0",
           "remote_patches": {
-            "https://bcr.bazel.build/modules/curl/8.4.0/patches/add_build_file.patch": "sha256-Vcb973u9Diuzp+nG0XzkID+LvaTdbJ6M6tZxH1Vtyo0=",
-            "https://bcr.bazel.build/modules/curl/8.4.0/patches/module_dot_bazel.patch": "sha256-EEYIkUUDdDiyntAtQHOhsgwqJgs/EvZP6pjuxPUeWIo="
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/curl/8.4.0.bcr.1/patches/add_build_file.patch": "sha256-Eqbknnda+T42hM6qKkOrLx75JYoL6xF5p0st+VOPxRw=",
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/curl/8.4.0.bcr.1/patches/module_dot_bazel.patch": "sha256-XECK+DvtF14j3g/pf3k8o5fNakHyxII/dMSu9susBLo="
           },
-          "remote_patch_strip": 0
+          "remote_patch_strip": 1
         }
       }
     },
@@ -673,10 +677,31 @@
           "integrity": "sha256-++dLvc7iHWVnFWiHBto8i+z9lG2SzURwXMYJi7I7OhY=",
           "strip_prefix": "yaml-cpp-0.8.0",
           "remote_patches": {
-            "https://bcr.bazel.build/modules/yaml-cpp/0.8.0/patches/module_dot_bazel.patch": "sha256-YM6xq0Mtu51Okntj5lRQ3V04DyZNm4hZdrSDMio1KeU="
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/yaml-cpp/0.8.0/patches/module_dot_bazel.patch": "sha256-YM6xq0Mtu51Okntj5lRQ3V04DyZNm4hZdrSDMio1KeU="
           },
           "remote_patch_strip": 1
         }
+      }
+    },
+    "libarchive@_": {
+      "name": "libarchive",
+      "version": "3.7.3.bcr.4",
+      "key": "libarchive@_",
+      "repoName": "libarchive",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "bzip2": "bzip2@1.0.8.bcr.1",
+        "lz4": "lz4@1.9.4",
+        "xz": "xz@5.4.5.bcr.1",
+        "zlib": "zlib@1.3.1.bcr.1",
+        "zstd": "zstd@1.5.6",
+        "platforms": "platforms@0.0.9",
+        "rules_cc": "rules_cc@0.0.9",
+        "bazel_skylib": "bazel_skylib@1.5.0",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
       }
     },
     "toolchains_llvm@1.0.0": {
@@ -929,7 +954,7 @@
         "buildozer": "buildozer@6.4.0.2",
         "platforms": "platforms@0.0.9",
         "com_google_protobuf": "protobuf@21.7",
-        "zlib": "zlib@1.3",
+        "zlib": "zlib@1.3.1.bcr.1",
         "build_bazel_apple_support": "apple_support@1.5.0",
         "local_config_platform": "local_config_platform@_"
       }
@@ -988,7 +1013,7 @@
           "extensionName": "internal_deps",
           "usingModule": "rules_python@0.24.0",
           "location": {
-            "file": "https://bcr.bazel.build/modules/rules_python/0.24.0/MODULE.bazel",
+            "file": "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/rules_python/0.24.0/MODULE.bazel",
             "line": 14,
             "column": 30
           },
@@ -1015,7 +1040,7 @@
               "attributeValues": {},
               "devDependency": false,
               "location": {
-                "file": "https://bcr.bazel.build/modules/rules_python/0.24.0/MODULE.bazel",
+                "file": "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/rules_python/0.24.0/MODULE.bazel",
                 "line": 15,
                 "column": 22
               }
@@ -1029,7 +1054,7 @@
           "extensionName": "python",
           "usingModule": "rules_python@0.24.0",
           "location": {
-            "file": "https://bcr.bazel.build/modules/rules_python/0.24.0/MODULE.bazel",
+            "file": "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/rules_python/0.24.0/MODULE.bazel",
             "line": 36,
             "column": 23
           },
@@ -1046,7 +1071,7 @@
               },
               "devDependency": false,
               "location": {
-                "file": "https://bcr.bazel.build/modules/rules_python/0.24.0/MODULE.bazel",
+                "file": "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/rules_python/0.24.0/MODULE.bazel",
                 "line": 42,
                 "column": 17
               }
@@ -1074,7 +1099,7 @@
           "integrity": "sha256-CoADsEQpTXhArH2dc+7wXWzraC11FngaTsYu6zRwJXg=",
           "strip_prefix": "rules_python-0.24.0",
           "remote_patches": {
-            "https://bcr.bazel.build/modules/rules_python/0.24.0/patches/module_dot_bazel_version.patch": "sha256-cz8Rx8aNLvYvSpiVWk8umcsBy6jAAC0YwU42zj1cNlU="
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/rules_python/0.24.0/patches/module_dot_bazel_version.patch": "sha256-cz8Rx8aNLvYvSpiVWk8umcsBy6jAAC0YwU42zj1cNlU="
           },
           "remote_patch_strip": 0
         }
@@ -1133,7 +1158,7 @@
           "integrity": "sha256-itWYxzrXluDYKAsILOvYKmMNc+c808cAV5OKZQG7pdc=",
           "strip_prefix": "googletest-1.14.0",
           "remote_patches": {
-            "https://bcr.bazel.build/modules/googletest/1.14.0/patches/module_dot_bazel.patch": "sha256-CSomzvti38LCuURDG5EEoa3O1tQF3cKKt/mknnP1qcc="
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/googletest/1.14.0/patches/module_dot_bazel.patch": "sha256-CSomzvti38LCuURDG5EEoa3O1tQF3cKKt/mknnP1qcc="
           },
           "remote_patch_strip": 0
         }
@@ -1166,7 +1191,7 @@
           "integrity": "sha256-WdKXavnW7PABqBo1dJpuVRozW5SdNJGM+t4Hc3udk8U=",
           "strip_prefix": "abseil-cpp-20230802.0",
           "remote_patches": {
-            "https://bcr.bazel.build/modules/abseil-cpp/20230802.0/patches/module_dot_bazel.patch": "sha256-tppa7eDWtr2QUqOhIzKmHL5DEqUqfMFQIH7tkhFDY8E="
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/abseil-cpp/20230802.0/patches/module_dot_bazel.patch": "sha256-tppa7eDWtr2QUqOhIzKmHL5DEqUqfMFQIH7tkhFDY8E="
           },
           "remote_patch_strip": 0
         }
@@ -1657,6 +1682,36 @@
           "strip_prefix": "",
           "remote_patches": {},
           "remote_patch_strip": 0
+        }
+      }
+    },
+    "mbedtls@3.6.0": {
+      "name": "mbedtls",
+      "version": "3.6.0",
+      "key": "mbedtls@3.6.0",
+      "repoName": "mbedtls",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "platforms": "platforms@0.0.9",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://github.com/Mbed-TLS/mbedtls/releases/download/v3.6.0/mbedtls-3.6.0.tar.bz2"
+          ],
+          "integrity": "sha256-Ps+U/P2qyvt1d4agG3U4phdQ69hcSwJPVv+LoUkPzTg=",
+          "strip_prefix": "mbedtls-3.6.0",
+          "remote_patches": {
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/mbedtls/3.6.0/patches/add_build.patch": "sha256-+eevKk6D53jwSk1vngf7au/XMw/T++lxiQ/hlYb0fUA=",
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/mbedtls/3.6.0/patches/module_dot_bazel.patch": "sha256-zau8FpFxNUirkyEVgW50LwrrsB2Dt0Kp25zu0p55t0U="
+          },
+          "remote_patch_strip": 1
         }
       }
     },
@@ -2320,6 +2375,157 @@
         }
       }
     },
+    "bzip2@1.0.8.bcr.1": {
+      "name": "bzip2",
+      "version": "1.0.8.bcr.1",
+      "key": "bzip2@1.0.8.bcr.1",
+      "repoName": "bzip2",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://sourceware.org/pub/bzip2/bzip2-1.0.8.tar.gz"
+          ],
+          "integrity": "sha256-q1oDF27hBtPw+pDjgdpHjdrkBZGBU8yiSOaCzQxKImk=",
+          "strip_prefix": "bzip2-1.0.8",
+          "remote_patches": {
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/bzip2/1.0.8.bcr.1/patches/add_build_file.patch": "sha256-QPcAoslzyuAkL4VQgb18uhZaUu8A30/LUrD8wHaKZHY=",
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/bzip2/1.0.8.bcr.1/patches/module_dot_bazel.patch": "sha256-lfm8AQkGepyTCT/UQrNpojSPcuu9TnCpPEWykSew7r8="
+          },
+          "remote_patch_strip": 0
+        }
+      }
+    },
+    "lz4@1.9.4": {
+      "name": "lz4",
+      "version": "1.9.4",
+      "key": "lz4@1.9.4",
+      "repoName": "lz4",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "rules_cc": "rules_cc@0.0.9",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://github.com/lz4/lz4/releases/download/v1.9.4/lz4-1.9.4.tar.gz"
+          ],
+          "integrity": "sha256-Cw46oHyMBj3fQLCCvffjehVivaQKD/UnKVfz6Yfg5Us=",
+          "strip_prefix": "lz4-1.9.4",
+          "remote_patches": {
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/lz4/1.9.4/patches/add_build_file.patch": "sha256-v1zbuA4Ya6cX2rDv54qh/8kwM7dimnWuyg40vCik4FM=",
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/lz4/1.9.4/patches/module_dot_bazel.patch": "sha256-V8GT+T9/zjsD3c67mJ4qVJoOkR4VZlXnpXl6b/FKI/Y="
+          },
+          "remote_patch_strip": 0
+        }
+      }
+    },
+    "xz@5.4.5.bcr.1": {
+      "name": "xz",
+      "version": "5.4.5.bcr.1",
+      "key": "xz@5.4.5.bcr.1",
+      "repoName": "xz",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "platforms": "platforms@0.0.9",
+        "bazel_skylib": "bazel_skylib@1.5.0",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://github.com/tukaani-project/xz/releases/download/v5.4.5/xz-5.4.5.tar.gz"
+          ],
+          "integrity": "sha256-E1yQuTSu6PvA1Gfeh6Bctw1ifaNqvlGMNXqHNwnlt9Y=",
+          "strip_prefix": "xz-5.4.5",
+          "remote_patches": {
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/xz/5.4.5.bcr.1/patches/patch.diff": "sha256-zGKSAcrpWoOuhXHxYY0G3ATy2pCp7+vkYKLbF4BEGfo="
+          },
+          "remote_patch_strip": 1
+        }
+      }
+    },
+    "zlib@1.3.1.bcr.1": {
+      "name": "zlib",
+      "version": "1.3.1.bcr.1",
+      "key": "zlib@1.3.1.bcr.1",
+      "repoName": "zlib",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "platforms": "platforms@0.0.9",
+        "rules_cc": "rules_cc@0.0.9",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://github.com/madler/zlib/releases/download/v1.3.1/zlib-1.3.1.tar.gz"
+          ],
+          "integrity": "sha256-mpOyt9/ax3zrpaVYpYDnRmfdb+3kWFuR7vtg8Dty3yM=",
+          "strip_prefix": "zlib-1.3.1",
+          "remote_patches": {
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/zlib/1.3.1.bcr.1/patches/add_build_file.patch": "sha256-0MCgNjvE1kGfdKTdDt4PEBHJMIwtDYHB7h69zhxDSNI=",
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/zlib/1.3.1.bcr.1/patches/add_module_file.patch": "sha256-euR5cSrSZnUKPOIJKRu3BY/Dphe1+ekPC6OWaAQfDjQ="
+          },
+          "remote_patch_strip": 1
+        }
+      }
+    },
+    "zstd@1.5.6": {
+      "name": "zstd",
+      "version": "1.5.6",
+      "key": "zstd@1.5.6",
+      "repoName": "zstd",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "rules_cc": "rules_cc@0.0.9",
+        "platforms": "platforms@0.0.9",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://github.com/facebook/zstd/releases/download/v1.5.6/zstd-1.5.6.tar.gz"
+          ],
+          "integrity": "sha256-jCngbPQqrMHq/EB3ri7Gxvy5amJhV+BZPV6Co0/UA8E=",
+          "strip_prefix": "zstd-1.5.6",
+          "remote_patches": {
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/zstd/1.5.6/patches/add_build_file.patch": "sha256-eWyxLXFI3vRjvK572z4lHJdoia96jUfQxzAP+hYY9ck=",
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/zstd/1.5.6/patches/module_dot_bazel.patch": "sha256-xNLcQox8GjyYhgThGYV16+CcXYkumiPAVXRZlWUqWJM="
+          },
+          "remote_patch_strip": 0
+        }
+      }
+    },
     "rules_java@7.4.0": {
       "name": "rules_java",
       "version": "7.4.0",
@@ -2358,7 +2564,7 @@
           "extensionName": "toolchains",
           "usingModule": "rules_java@7.4.0",
           "location": {
-            "file": "https://bcr.bazel.build/modules/rules_java/7.4.0/MODULE.bazel",
+            "file": "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/rules_java/7.4.0/MODULE.bazel",
             "line": 19,
             "column": 27
           },
@@ -2462,7 +2668,7 @@
           "extensionName": "buildozer_binary",
           "usingModule": "buildozer@6.4.0.2",
           "location": {
-            "file": "https://bcr.bazel.build/modules/buildozer/6.4.0.2/MODULE.bazel",
+            "file": "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/buildozer/6.4.0.2/MODULE.bazel",
             "line": 7,
             "column": 33
           },
@@ -2485,7 +2691,7 @@
               },
               "devDependency": false,
               "location": {
-                "file": "https://bcr.bazel.build/modules/buildozer/6.4.0.2/MODULE.bazel",
+                "file": "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/buildozer/6.4.0.2/MODULE.bazel",
                 "line": 8,
                 "column": 27
               }
@@ -2509,7 +2715,7 @@
           "integrity": "sha256-k7tFKQMR2AygxpmZfH0yEPnQmF3efFgD9rBPkj+Yz/8=",
           "strip_prefix": "buildozer-6.4.0.2",
           "remote_patches": {
-            "https://bcr.bazel.build/modules/buildozer/6.4.0.2/patches/module_dot_bazel_version.patch": "sha256-gKANF2HMilj7bWmuXs4lbBIAAansuWC4IhWGB/CerjU="
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/buildozer/6.4.0.2/patches/module_dot_bazel_version.patch": "sha256-gKANF2HMilj7bWmuXs4lbBIAAansuWC4IhWGB/CerjU="
           },
           "remote_patch_strip": 1
         }
@@ -2528,7 +2734,7 @@
           "extensionName": "maven",
           "usingModule": "protobuf@21.7",
           "location": {
-            "file": "https://bcr.bazel.build/modules/protobuf/21.7/MODULE.bazel",
+            "file": "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/protobuf/21.7/MODULE.bazel",
             "line": 22,
             "column": 22
           },
@@ -2555,7 +2761,7 @@
               },
               "devDependency": false,
               "location": {
-                "file": "https://bcr.bazel.build/modules/protobuf/21.7/MODULE.bazel",
+                "file": "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/protobuf/21.7/MODULE.bazel",
                 "line": 24,
                 "column": 14
               }
@@ -2573,7 +2779,7 @@
         "rules_java": "rules_java@7.4.0",
         "rules_pkg": "rules_pkg@0.10.1",
         "com_google_abseil": "abseil-cpp@20230802.0",
-        "zlib": "zlib@1.3",
+        "zlib": "zlib@1.3.1.bcr.1",
         "upb": "upb@0.0.0-20220923-a547704",
         "rules_jvm_external": "rules_jvm_external@4.4.2",
         "com_google_googletest": "googletest@1.14.0",
@@ -2590,43 +2796,12 @@
           "integrity": "sha256-VJOiH17T/FAuZv7GuUScBqVRztYwAvpIkDxA36jeeko=",
           "strip_prefix": "protobuf-21.7",
           "remote_patches": {
-            "https://bcr.bazel.build/modules/protobuf/21.7/patches/add_module_dot_bazel.patch": "sha256-q3V2+eq0v2XF0z8z+V+QF4cynD6JvHI1y3kI/+rzl5s=",
-            "https://bcr.bazel.build/modules/protobuf/21.7/patches/add_module_dot_bazel_for_examples.patch": "sha256-O7YP6s3lo/1opUiO0jqXYORNHdZ/2q3hjz1QGy8QdIU=",
-            "https://bcr.bazel.build/modules/protobuf/21.7/patches/relative_repo_names.patch": "sha256-RK9RjW8T5UJNG7flIrnFiNE9vKwWB+8uWWtJqXYT0w4=",
-            "https://bcr.bazel.build/modules/protobuf/21.7/patches/add_missing_files.patch": "sha256-Hyne4DG2u5bXcWHNxNMirA2QFAe/2Cl8oMm1XJdkQIY="
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/protobuf/21.7/patches/add_module_dot_bazel.patch": "sha256-q3V2+eq0v2XF0z8z+V+QF4cynD6JvHI1y3kI/+rzl5s=",
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/protobuf/21.7/patches/add_module_dot_bazel_for_examples.patch": "sha256-O7YP6s3lo/1opUiO0jqXYORNHdZ/2q3hjz1QGy8QdIU=",
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/protobuf/21.7/patches/relative_repo_names.patch": "sha256-RK9RjW8T5UJNG7flIrnFiNE9vKwWB+8uWWtJqXYT0w4=",
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/protobuf/21.7/patches/add_missing_files.patch": "sha256-Hyne4DG2u5bXcWHNxNMirA2QFAe/2Cl8oMm1XJdkQIY="
           },
           "remote_patch_strip": 1
-        }
-      }
-    },
-    "zlib@1.3": {
-      "name": "zlib",
-      "version": "1.3",
-      "key": "zlib@1.3",
-      "repoName": "zlib",
-      "executionPlatformsToRegister": [],
-      "toolchainsToRegister": [],
-      "extensionUsages": [],
-      "deps": {
-        "platforms": "platforms@0.0.9",
-        "rules_cc": "rules_cc@0.0.9",
-        "bazel_tools": "bazel_tools@_",
-        "local_config_platform": "local_config_platform@_"
-      },
-      "repoSpec": {
-        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-        "ruleClassName": "http_archive",
-        "attributes": {
-          "urls": [
-            "https://github.com/madler/zlib/releases/download/v1.3/zlib-1.3.tar.gz"
-          ],
-          "integrity": "sha256-/wukwpIBPbwnUws6geH5qBPNOd4Byl4Pi/NVcC76WT4=",
-          "strip_prefix": "zlib-1.3",
-          "remote_patches": {
-            "https://bcr.bazel.build/modules/zlib/1.3/patches/add_build_file.patch": "sha256-Ei+FYaaOo7A3jTKunMEodTI0Uw5NXQyZEcboMC8JskY=",
-            "https://bcr.bazel.build/modules/zlib/1.3/patches/module_dot_bazel.patch": "sha256-fPWLM+2xaF/kuy+kZc1YTfW6hNjrkG400Ho7gckuyJk="
-          },
-          "remote_patch_strip": 0
         }
       }
     },
@@ -2645,7 +2820,7 @@
           "extensionName": "apple_cc_configure_extension",
           "usingModule": "apple_support@1.5.0",
           "location": {
-            "file": "https://bcr.bazel.build/modules/apple_support/1.5.0/MODULE.bazel",
+            "file": "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/apple_support/1.5.0/MODULE.bazel",
             "line": 17,
             "column": 35
           },
@@ -2706,7 +2881,7 @@
           "integrity": "sha256-KqspgNA3YTf5adkoSPu2gharsHYzA0U0/IxlzE56DpM=",
           "strip_prefix": "benchmark-1.8.2",
           "remote_patches": {
-            "https://bcr.bazel.build/modules/google_benchmark/1.8.2/patches/module_dot_bazel.patch": "sha256-703OrC3OH7pk9qrGkAMbvp/8yEoHiesDKHNVIKVJB/M="
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/google_benchmark/1.8.2/patches/module_dot_bazel.patch": "sha256-703OrC3OH7pk9qrGkAMbvp/8yEoHiesDKHNVIKVJB/M="
           },
           "remote_patch_strip": 0
         }
@@ -3197,7 +3372,7 @@
           "integrity": "sha256-hj/GcMRW8wkjdAwWOTBRMv37nRslujhaZ644Yu8SqK8=",
           "strip_prefix": "boringssl-5c22014ca513807ed03c657e8ede076164663979",
           "remote_patches": {
-            "https://bcr.bazel.build/modules/boringssl/0.0.0-20230215-5c22014/patches/module_dot_bazel.patch": "sha256-TbAx9h+pBkDT3JmKw1bRchtNcLK1dnvsW1IlCkl/yd0="
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/boringssl/0.0.0-20230215-5c22014/patches/module_dot_bazel.patch": "sha256-TbAx9h+pBkDT3JmKw1bRchtNcLK1dnvsW1IlCkl/yd0="
           },
           "remote_patch_strip": 0
         }
@@ -3455,7 +3630,7 @@
           "integrity": "sha256-z39x6v+QskwaKLSWRan/A6mmwecTQpHOcJActj5zZLU=",
           "strip_prefix": "upb-a5477045acaa34586420942098f5fecd3570f577",
           "remote_patches": {
-            "https://bcr.bazel.build/modules/upb/0.0.0-20220923-a547704/patches/module_dot_bazel.patch": "sha256-wH4mNS6ZYy+8uC0HoAft/c7SDsq2Kxf+J8dUakXhaB0="
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/upb/0.0.0-20220923-a547704/patches/module_dot_bazel.patch": "sha256-wH4mNS6ZYy+8uC0HoAft/c7SDsq2Kxf+J8dUakXhaB0="
           },
           "remote_patch_strip": 0
         }
@@ -3474,7 +3649,7 @@
           "extensionName": "non_module_deps",
           "usingModule": "rules_jvm_external@4.4.2",
           "location": {
-            "file": "https://bcr.bazel.build/modules/rules_jvm_external/4.4.2/MODULE.bazel",
+            "file": "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/rules_jvm_external/4.4.2/MODULE.bazel",
             "line": 9,
             "column": 32
           },
@@ -3491,7 +3666,7 @@
           "extensionName": "maven",
           "usingModule": "rules_jvm_external@4.4.2",
           "location": {
-            "file": "https://bcr.bazel.build/modules/rules_jvm_external/4.4.2/MODULE.bazel",
+            "file": "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/rules_jvm_external/4.4.2/MODULE.bazel",
             "line": 16,
             "column": 22
           },
@@ -3515,7 +3690,7 @@
               },
               "devDependency": false,
               "location": {
-                "file": "https://bcr.bazel.build/modules/rules_jvm_external/4.4.2/MODULE.bazel",
+                "file": "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/rules_jvm_external/4.4.2/MODULE.bazel",
                 "line": 18,
                 "column": 14
               }
@@ -3570,7 +3745,7 @@
           "extensionName": "ext",
           "usingModule": "rules_foreign_cc@0.9.0",
           "location": {
-            "file": "https://bcr.bazel.build/modules/rules_foreign_cc/0.9.0/MODULE.bazel",
+            "file": "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/rules_foreign_cc/0.9.0/MODULE.bazel",
             "line": 13,
             "column": 20
           },
@@ -3607,8 +3782,8 @@
           "integrity": "sha256-Kk0HzWSwcZs5p8EiGKPlB2crgql7mMaonThWWJTPfFE=",
           "strip_prefix": "rules_foreign_cc-0.9.0",
           "remote_patches": {
-            "https://bcr.bazel.build/modules/rules_foreign_cc/0.9.0/patches/examples.patch": "sha256-RxT7rVHxO30W350sYu7ybi4rStwoB8b8mr34ZU9ciIk=",
-            "https://bcr.bazel.build/modules/rules_foreign_cc/0.9.0/patches/module_dot_bazel.patch": "sha256-VTNnq8ySdeo9pI4rrJ+EXa/9ZACgQQ4baUwoQpljzCM="
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/rules_foreign_cc/0.9.0/patches/examples.patch": "sha256-RxT7rVHxO30W350sYu7ybi4rStwoB8b8mr34ZU9ciIk=",
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/rules_foreign_cc/0.9.0/patches/module_dot_bazel.patch": "sha256-VTNnq8ySdeo9pI4rrJ+EXa/9ZACgQQ4baUwoQpljzCM="
           },
           "remote_patch_strip": 1
         }
@@ -3638,8 +3813,8 @@
           "integrity": "sha256-XaX4hyveFLNjTJaI2YD2i9ootRAmhyPMEpc+7bq5/sw=",
           "strip_prefix": "libpfm-4.11.0",
           "remote_patches": {
-            "https://bcr.bazel.build/modules/libpfm/4.11.0/patches/module_dot_bazel.patch": "sha256-G0wQJ2mVEoW/L5LGzmbNfuZaxI2+9NDuWJtqvCpM1pc=",
-            "https://bcr.bazel.build/modules/libpfm/4.11.0/patches/add_build_file.patch": "sha256-E61d/qQgmeOcUliWaveHPp1EZoOjkvZJsqhGhHofqUg="
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/libpfm/4.11.0/patches/module_dot_bazel.patch": "sha256-G0wQJ2mVEoW/L5LGzmbNfuZaxI2+9NDuWJtqvCpM1pc=",
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/libpfm/4.11.0/patches/add_build_file.patch": "sha256-E61d/qQgmeOcUliWaveHPp1EZoOjkvZJsqhGhHofqUg="
           },
           "remote_patch_strip": 0
         }
@@ -3867,7 +4042,7 @@
           "integrity": "sha256-qoFNrgrEALurLoiB+ZFcb0fElmS/CHxAmhX5BDjSwj4=",
           "strip_prefix": "",
           "remote_patches": {
-            "https://bcr.bazel.build/modules/stardoc/0.5.1/patches/module_dot_bazel.patch": "sha256-UAULCuTpJE7SG0YrR9XLjMfxMRmbP+za3uW9ONZ5rjI="
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir/modules/stardoc/0.5.1/patches/module_dot_bazel.patch": "sha256-UAULCuTpJE7SG0YrR9XLjMfxMRmbP+za3uW9ONZ5rjI="
           },
           "remote_patch_strip": 0
         }
@@ -3962,6 +4137,25 @@
             "bazel_tools"
           ]
         ]
+      }
+    },
+    "@@bazel_tools//tools/osx:xcode_configure.bzl%xcode_configure_extension": {
+      "general": {
+        "bzlTransitiveDigest": "Qh2bWTU6QW6wkrd87qrU4YeY+SG37Nvw3A0PR4Y0L2Y=",
+        "recordedFileInputs": {},
+        "recordedDirentsInputs": {},
+        "envVariables": {},
+        "generatedRepoSpecs": {
+          "local_config_xcode": {
+            "bzlFile": "@@bazel_tools//tools/osx:xcode_configure.bzl",
+            "ruleClassName": "xcode_autoconf",
+            "attributes": {
+              "xcode_locator": "@bazel_tools//tools/osx:xcode_locator.m",
+              "remote_xcode": ""
+            }
+          }
+        },
+        "recordedRepoMappingEntries": []
       }
     },
     "@@bazel_tools//tools/sh:sh_configure.bzl%sh_configure_extension": {

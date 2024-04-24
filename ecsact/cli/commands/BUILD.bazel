@@ -80,3 +80,23 @@ cc_library(
         "@magic_enum",
     ],
 )
+
+cc_library(
+    name = "recipe-bundle",
+    srcs = ["recipe-bundle.cc"],
+    hdrs = ["recipe-bundle.hh"],
+    copts = copts,
+    deps = [
+        ":command",
+        "//ecsact/cli:report",
+        "//ecsact/cli:report_message",
+        "//ecsact/cli/detail:json_report",
+        "//ecsact/cli/detail:text_report",
+        "//ecsact/cli/commands/build:build_recipe",
+        "//ecsact/cli/commands/recipe-bundle:build_recipe_bundle",
+        "//ecsact/cli/detail:argv0",
+        "@ecsact_interpret",
+        "@docopt.cpp//:docopt",
+        "@magic_enum",
+    ],
+)

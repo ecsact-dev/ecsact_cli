@@ -2,7 +2,9 @@ startup --windows_enable_symlinks
 common --enable_bzlmod
 common --registry=https://raw.githubusercontent.com/ecsact-dev/bazel_registry/main
 common --registry=https://raw.githubusercontent.com/bazelboost/registry/main
-common --registry=https://raw.githubusercontent.com/zaucy/bazel-central-registry/bzip2-include-dir # temporary for this PR until https://github.com/bazelbuild/bazel-central-registry/pull/1865 is merged
+common --registry=https://raw.githubusercontent.com/zaucy/bazel-central-registry/add-curl-config2 # temporary
+common --registry=file:///C:/Users/zekew/projects/bazelbuild/bazel-central-registry
+
 common --registry=https://bcr.bazel.build
 build --enable_platform_specific_config
 build --incompatible_enable_cc_toolchain_resolution

@@ -9,7 +9,7 @@ cc_library(
     hdrs = ["build_recipe_bundle.hh"],
     srcs = ["build_recipe_bundle.cc"],
     deps = [
-        "@libarchive//tar",
+        "@libarchive//libarchive",
         "//ecsact/cli/commands/build:build_recipe",
     ],
 )

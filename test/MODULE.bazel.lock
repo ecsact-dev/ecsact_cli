@@ -1,6 +1,6 @@
 {
   "lockFileVersion": 6,
-  "moduleFileHash": "70d3fe1491713b45cd43fd6df4ea391f0241e5d1fd783d8d22d2a64c935e72c5",
+  "moduleFileHash": "ddd32c3aa75fc187e865148e27e6f19be976c995fc812b75115eac6f65a4bd2e",
   "flags": {
     "cmdRegistries": [
       "https://raw.githubusercontent.com/ecsact-dev/bazel_registry/main",
@@ -18,7 +18,7 @@
   },
   "localOverrideHashes": {
     "bazel_tools": "1ae69322ac3823527337acf02016e8ee95813d8d356f47060255b8956fa642f0",
-    "ecsact_cli": "6e6ce648b8a6ffea9414248a8e1374b3e419f3953bc74e91468bb83b4f40b583"
+    "ecsact_cli": "eefc6913ad3e7289ac36ee14539d21f6c9b6547a744d6d8a995fa35186f2f1ab"
   },
   "moduleDepGraph": {
     "<root>": {

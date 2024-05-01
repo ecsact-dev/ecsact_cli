@@ -9,7 +9,7 @@ bazel_dep(name = "ecsact_interpret", version = "0.6.0")
 # TODO: https://github.com/bazelbuild/bazel-central-registry/pull/1916
 git_override(
     module_name = "libarchive",
-    commit = "9bab96c6912ab3e584942987ca59d8a0836176b2",
+    commit = "7c331f92acea5243c195cdc6fb46ecfa11ce1ce2",
     remote = "https://github.com/zaucy/libarchive.git",
 )
 

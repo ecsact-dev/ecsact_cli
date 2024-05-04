@@ -9,7 +9,12 @@ cc_library(
     hdrs = ["build_recipe_bundle.hh"],
     srcs = ["build_recipe_bundle.cc"],
     deps = [
+        "@boost.url",
+        "@curl",
+        "@magic_enum",
         "@libarchive//libarchive",
+        "//ecsact/cli/commands/codegen",
         "//ecsact/cli/commands/build:build_recipe",
+        "//ecsact/cli:report",
     ],
 )

@@ -7,6 +7,7 @@
 #include <variant>
 #include <string_view>
 #include <format>
+#include <fstream>
 #include "docopt.h"
 #include "magic_enum.hpp"
 #include "ecsact/cli/report.hh"
@@ -14,6 +15,7 @@
 #include "ecsact/cli/detail/json_report.hh"
 #include "ecsact/cli/detail/text_report.hh"
 #include "ecsact/cli/commands/build/build_recipe.hh"
+#include "ecsact/cli/commands/recipe-bundle/build_recipe_bundle.hh"
 
 namespace fs = std::filesystem;
 
@@ -37,6 +39,15 @@ Options:
 //   none : No output
 //   json : Each line of stdout/stderr is a JSON object
 //   text : Human readable text format
+
+static auto write_file( //
+	fs::path                   path,
+	std::span<const std::byte> bytes
+) -> bool {
+	auto file = std::ofstream{path, std::ios_base::binary};
+	file.write(reinterpret_cast<const char*>(bytes.data()), bytes.size());
+	return true;
+}
 
 auto ecsact::cli::detail::recipe_bundle_command( //
 	int         argc,
@@ -72,6 +83,24 @@ auto ecsact::cli::detail::recipe_bundle_command( //
 	}
 
 	auto output_path = fs::path{args.at("--output").asString()};
+
+	if(output_path.has_extension()) {
+		if(output_path.extension() != "ecsact-recipe-bundle") {
+			ecsact::cli::report_error(
+				"Output path extension {} is not allowed. Did you mean '--output={}'?",
+				output_path.extension().generic_string(),
+				fs::path{output_path}
+					.replace_extension("")
+					.replace_extension("")
+					.replace_extension("ecsact-recipe-bundle")
+					.filename()
+					.generic_string()
+			);
+			return 1;
+		}
+	} else {
+		output_path.replace_extension("ecsact-recipe-bundle");
+	}
 
 	auto recipe_composite = std::optional<build_recipe>{};
 	auto recipe_paths = args.at("<recipe>").asStringList();
@@ -116,6 +145,25 @@ auto ecsact::cli::detail::recipe_bundle_command( //
 			additional_plugin_dirs.emplace_back(recipe_path.parent_path());
 		}
 	}
+
+	auto bundle = ecsact::build_recipe_bundle::create(*recipe_composite);
+
+	if(!bundle) {
+		ecsact::cli::report_error(
+			"Failed to create recipe bundle {}",
+			bundle.error().what()
+		);
+		return 1;
+	}
+
+	if(!write_file(output_path, bundle->bytes())) {
+		return 1;
+	}
+
+	ecsact::cli::report_info(
+		"Created bundle {}",
+		fs::absolute(output_path).string()
+	);
 
 	return 0;
 }

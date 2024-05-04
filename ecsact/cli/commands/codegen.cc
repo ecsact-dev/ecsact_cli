@@ -9,13 +9,12 @@
 #include <boost/dll/shared_library.hpp>
 #include <boost/dll/library_info.hpp>
 #include "docopt.h"
-#include "magic_enum.hpp"
 #include "ecsact/interpret/eval.hh"
 #include "ecsact/runtime/meta.h"
 #include "ecsact/runtime/dylib.h"
 #include "ecsact/codegen/plugin.h"
 #include "ecsact/codegen/plugin_validate.hh"
-#include "ecsact/cli/commands/codegen/codegen.hh"
+#include "ecsact/cli/commands/codegen/codegen_util.hh"
 
 namespace fs = std::filesystem;
 constexpr auto file_readonly_perms = fs::perms::others_read |

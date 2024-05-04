@@ -15,6 +15,7 @@
 #include "ecsact/cli/commands/build/cc_compiler_config.hh"
 #include "ecsact/cli/commands/build/cc_defines_gen.hh"
 #include "ecsact/cli/commands/codegen/codegen.hh"
+#include "ecsact/cli/commands/codegen/codegen_util.hh"
 #include "ecsact/cli/commands/build/get_modules.hh"
 #include "ecsact/cli/report.hh"
 #include "ecsact/cli/detail/argv0.hh"

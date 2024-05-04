@@ -9,11 +9,23 @@ cc_library(
     hdrs = ["codegen.hh"],
     srcs = ["codegen.cc"],
     deps = [
+        ":codegen_util",
         "//ecsact/cli:report",
         "//ecsact/cli/detail/executable_path",
-        "@boost.dll",
         "@ecsact_runtime//:meta",
         "@ecsact_runtime//:dylib",
         "@ecsact_codegen//:plugin",
+    ],
+)
+
+cc_library(
+    name = "codegen_util",
+    copts = copts,
+    hdrs = ["codegen_util.hh"],
+    srcs = ["codegen_util.cc"],
+    deps = [
+        "//ecsact/cli:report",
+        "//ecsact/cli/detail/executable_path",
+        "@boost.dll",
     ],
 )

@@ -208,3 +208,8 @@ auto ecsact::build_recipe_bundle::from_file( //
 auto ecsact::build_recipe_bundle::bytes() const -> std::span<const std::byte> {
 	return std::span{_bundle_bytes.data(), _bundle_bytes.size()};
 }
+
+auto ecsact::build_recipe_bundle::extract(std::filesystem::path
+) const -> extract_result {
+	throw std::logic_error{"Unimplemented"};
+}

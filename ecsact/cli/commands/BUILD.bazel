@@ -75,6 +75,7 @@ cc_library(
         "//ecsact/cli/commands/build/recipe:cook",
         "//ecsact/cli/commands/build:cc_compiler",
         "//ecsact/cli/commands/build:build_recipe",
+        "//ecsact/cli/commands/recipe-bundle:build_recipe_bundle",
         "@ecsact_interpret",
         "@docopt.cpp//:docopt",
         "@magic_enum",

@@ -41,4 +41,14 @@ TEST(Build, Success) {
 	});
 
 	ASSERT_EQ(exit_code, 0);
+
+	exit_code = build_command(std::vector{
+		"ecsact"s,
+		"build"s,
+		std::string{test_ecsact_file_path},
+		"--recipe=test"s,
+		"--output=test_bundle_runtime"s,
+	});
+
+	ASSERT_EQ(exit_code, 0);
 }

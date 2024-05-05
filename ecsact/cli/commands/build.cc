@@ -113,8 +113,11 @@ auto ecsact::cli::detail::build_command( //
 			return 1;
 		}
 
-		if(!recipe_path.has_extension() ||
-			 recipe_path.extension() == "ecsact-recipe-bundle") {
+		if(!recipe_path.has_extension()) {
+			recipe_path.replace_extension("ecsact-recipe-bundle");
+		}
+
+		if(recipe_path.extension() == ".ecsact-recipe-bundle") {
 			auto bundle_result = ecsact::build_recipe_bundle::from_file(recipe_path);
 
 			if(!bundle_result) {
@@ -138,6 +141,11 @@ auto ecsact::cli::detail::build_command( //
 
 			recipe_path = extract_result.recipe_path();
 			recipe_path_str = recipe_path.generic_string();
+
+			ecsact::cli::report_info(
+				"Extracted build recipe bundle to {}",
+				recipe_path.parent_path().generic_string()
+			);
 		}
 
 		auto recipe_result = build_recipe::from_yaml_file(recipe_path);

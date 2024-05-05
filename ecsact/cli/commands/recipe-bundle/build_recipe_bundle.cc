@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <string_view>
 #include <filesystem>
 #include <fstream>
 #include <vector>
@@ -15,8 +16,10 @@
 #include <archive.h>
 #include <archive_entry.h>
 #include "ecsact/cli/report.hh"
+#include "xxhash.h"
 
 using namespace std::string_literals;
+using namespace std::string_view_literals;
 namespace fs = std::filesystem;
 
 template<class... Ts>
@@ -40,6 +43,33 @@ public:
 };
 
 using download_file_buffer_t = std::vector<std::byte>;
+
+constexpr auto valid_bundle_entry_prefixes = std::array{
+	"files/"sv,
+	"codegen/"sv,
+};
+
+constexpr auto valid_bundle_paths = std::array{
+	"ecsact-build-recipe.yml"sv,
+};
+
+static auto is_valid_bundle_entry_path(std::string_view path) -> bool {
+	auto valid_entry_prefix_itr =
+		std::ranges::find_if(valid_bundle_entry_prefixes, [&](auto& valid_prefix) {
+			return path.starts_with(valid_prefix);
+		});
+
+	if(valid_entry_prefix_itr != valid_bundle_entry_prefixes.end()) {
+		return true;
+	}
+
+	auto valid_bundle_path_itr =
+		std::ranges::find_if(valid_bundle_paths, [&](auto& valid_bundle_path) {
+			return valid_bundle_path == path;
+		});
+
+	return valid_bundle_path_itr != valid_bundle_paths.end();
+}
 
 static auto _download_file_write_callback(
 	const void* buffer,
@@ -89,6 +119,13 @@ static auto read_file(fs::path path) -> std::vector<std::byte> {
 	file.read(reinterpret_cast<char*>(file_buffer.data()), file_size);
 
 	return file_buffer;
+}
+
+static auto write_file(fs::path path, std::span<std::byte> data) -> void {
+	auto file = std::ofstream(path, std::ios_base::binary);
+	assert(file);
+
+	file.write(reinterpret_cast<const char*>(data.data()), data.size());
 }
 
 ecsact::build_recipe_bundle::build_recipe_bundle() = default;
@@ -209,7 +246,75 @@ auto ecsact::build_recipe_bundle::bytes() const -> std::span<const std::byte> {
 	return std::span{_bundle_bytes.data(), _bundle_bytes.size()};
 }
 
-auto ecsact::build_recipe_bundle::extract(std::filesystem::path
+auto ecsact::build_recipe_bundle::extract( //
+	std::filesystem::path extract_dir
 ) const -> extract_result {
-	throw std::logic_error{"Unimplemented"};
+	XXH64_hash_t hash = XXH3_64bits(_bundle_bytes.data(), _bundle_bytes.size());
+	auto dir = extract_dir / "ecsact-recipe-bundle" / std::format("{}", hash);
+	if(!fs::exists(dir)) {
+		fs::create_directories(dir);
+	}
+
+	auto a = std::unique_ptr<archive, decltype(&archive_read_free)>{
+		archive_read_new(),
+		archive_read_free,
+	};
+
+	archive_read_support_filter_all(a.get());
+	archive_read_support_format_all(a.get());
+	archive_read_open_memory(a.get(), _bundle_bytes.data(), _bundle_bytes.size());
+
+	auto entry = static_cast<archive_entry*>(nullptr);
+	auto data = std::vector<std::byte>{};
+
+	auto next_header_result =
+		decltype(archive_read_next_header(nullptr, nullptr)){};
+	for(;;) {
+		next_header_result = archive_read_next_header(a.get(), &entry);
+		if(next_header_result == ARCHIVE_EOF) {
+			break;
+		}
+
+		if(next_header_result < ARCHIVE_OK) {
+			return std::logic_error{archive_error_string(a.get())};
+		}
+
+		auto path = //
+			fs::path{archive_entry_pathname(entry)} //
+				.lexically_normal()
+				.generic_string();
+
+		printf("PATH: %s\n", path.c_str());
+
+		if(!is_valid_bundle_entry_path(path)) {
+			return std::logic_error{
+				std::format("Invalid path '{}' found in recipe bundle", path)
+			};
+		}
+
+		auto size = archive_entry_size(entry);
+
+		if(size == 0) {
+			return std::logic_error{std::format("No size for {}", path)};
+		}
+
+		data.resize(size);
+		auto read_size = archive_read_data(a.get(), data.data(), data.size());
+
+		if(read_size != size) {
+			return std::logic_error{std::format("Failed to read {}", path)};
+		}
+
+		write_file(dir / path, data);
+	}
+
+	auto recipe_path = dir / "ecsact-build-recipe.yml";
+
+	if(!fs::exists(recipe_path)) {
+		return std::logic_error{
+			"Missing required ecsact-build-recipe.yml at root of bundle"
+		};
+	}
+
+	return recipe_path;
 }

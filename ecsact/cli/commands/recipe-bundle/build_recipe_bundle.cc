@@ -1,6 +1,7 @@
 #include "ecsact/cli/commands/recipe-bundle/build_recipe_bundle.hh"
 
 #include <memory>
+#include <stdexcept>
 #include <string>
 #include <string_view>
 #include <filesystem>
@@ -9,6 +10,9 @@
 #include <span>
 #include <ratio>
 #include <cstddef>
+#ifdef __cpp_lib_stacktrace
+#	include <stacktrace>
+#endif
 #include <curl/curl.h>
 #include "magic_enum.hpp"
 #undef fopen
@@ -52,6 +56,17 @@ constexpr auto valid_bundle_entry_prefixes = std::array{
 constexpr auto valid_bundle_paths = std::array{
 	"ecsact-build-recipe.yml"sv,
 };
+
+static auto archive_error_as_logic_error(archive* a) -> std::logic_error {
+	auto msg = std::string{archive_error_string(a)};
+
+#ifdef __cpp_lib_stacktrace
+	msg += "\n";
+	msg += std::to_string(std::stacktrace::current(1));
+#endif
+
+	return std::logic_error{msg};
+}
 
 static auto is_valid_bundle_entry_path(std::string_view path) -> bool {
 	auto valid_entry_prefix_itr =
@@ -225,8 +240,7 @@ auto ecsact::build_recipe_bundle::create( //
 
 	archive_entry_free(entry);
 	if(archive_write_close(a.get()) != ARCHIVE_OK) {
-		auto archive_error_message = std::string{archive_error_string(a.get())};
-		return std::logic_error{archive_error_message};
+		return archive_error_as_logic_error(a.get());
 	}
 
 	auto result = build_recipe_bundle{};
@@ -260,23 +274,36 @@ auto ecsact::build_recipe_bundle::extract( //
 		archive_read_free,
 	};
 
-	archive_read_support_filter_all(a.get());
-	archive_read_support_format_all(a.get());
-	archive_read_open_memory(a.get(), _bundle_bytes.data(), _bundle_bytes.size());
+	auto result = int{};
 
-	auto entry = static_cast<archive_entry*>(nullptr);
+	result = archive_read_support_filter_all(a.get());
+	if(result != ARCHIVE_OK) {
+		return archive_error_as_logic_error(a.get());
+	}
+	result = archive_read_support_format_all(a.get());
+	if(result != ARCHIVE_OK) {
+		return archive_error_as_logic_error(a.get());
+	}
+	result = archive_read_open_memory(
+		a.get(),
+		_bundle_bytes.data(),
+		_bundle_bytes.size()
+	);
+	if(result != ARCHIVE_OK) {
+		return archive_error_as_logic_error(a.get());
+	}
+
+	auto entry = archive_entry_new2(a.get());
 	auto data = std::vector<std::byte>{};
 
-	auto next_header_result =
-		decltype(archive_read_next_header(nullptr, nullptr)){};
 	for(;;) {
-		next_header_result = archive_read_next_header(a.get(), &entry);
-		if(next_header_result == ARCHIVE_EOF) {
+		result = archive_read_next_header2(a.get(), entry);
+		if(result == ARCHIVE_EOF) {
 			break;
 		}
 
-		if(next_header_result < ARCHIVE_OK) {
-			return std::logic_error{archive_error_string(a.get())};
+		if(result < ARCHIVE_OK) {
+			return archive_error_as_logic_error(a.get());
 		}
 
 		auto path = //
@@ -307,6 +334,8 @@ auto ecsact::build_recipe_bundle::extract( //
 
 		write_file(dir / path, data);
 	}
+
+	archive_entry_free(entry);
 
 	auto recipe_path = dir / "ecsact-build-recipe.yml";
 

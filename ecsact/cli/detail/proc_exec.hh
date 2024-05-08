@@ -56,4 +56,10 @@ auto spawn_get_stdout( //
 	std::vector<std::string> args,
 	std::filesystem::path    start_dir = std::filesystem::current_path()
 ) -> std::optional<std::string>;
+
+auto spawn_get_stdout_bytes( //
+	std::filesystem::path    exe,
+	std::vector<std::string> args,
+	std::filesystem::path    start_dir = std::filesystem::current_path()
+) -> std::optional<std::vector<std::byte>>;
 } // namespace ecsact::cli::detail

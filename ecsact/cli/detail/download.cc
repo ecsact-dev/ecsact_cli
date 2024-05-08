@@ -3,10 +3,15 @@
 #include <span>
 #include <cstddef>
 #include <vector>
+#include <string>
 #include <boost/url.hpp>
 #include <curl/curl.h>
 #undef fopen // curl overrides fopen
 #include "magic_enum.hpp"
+
+#include "ecsact/cli/detail/proc_exec.hh"
+
+using namespace std::string_literals;
 
 using ecsact::cli::detail::download_file_buffer_t;
 using ecsact::cli::detail::download_file_result;
@@ -32,7 +37,10 @@ static auto _download_file_write_callback(
 	return size * count;
 }
 
-static auto download_file_with_libcurl(boost::url url) -> download_file_result {
+[[maybe_unused]]
+static auto download_file_with_libcurl( //
+	boost::url url
+) -> download_file_result {
 	auto ret_out_data = download_file_buffer_t{};
 
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -55,9 +63,40 @@ static auto download_file_with_libcurl(boost::url url) -> download_file_result {
 	return ret_out_data;
 }
 
+[[maybe_unused]]
+static auto download_file_with_curl_cli( //
+	boost::url url
+) -> download_file_result {
+	auto curl = ecsact::cli::detail::which("curl");
+
+	if(!curl) {
+		return std::logic_error{"Cannot find 'curl' in your PATH"};
+	}
+
+	auto file_bytes = ecsact::cli::detail::spawn_get_stdout_bytes(
+		*curl,
+		std::vector{
+			std::string{url.c_str()},
+			"--silent"s,
+		}
+	);
+
+	if(!file_bytes) {
+		return std::logic_error{"Failed to download file with curl cli"};
+	}
+
+	return *file_bytes;
+}
+
 auto ecsact::cli::detail::download_file( //
 	std::string_view url_str
 ) -> download_file_result {
-  auto url = boost::url{url_str};
-  return download_file_with_libcurl(url);
+	auto url = boost::url{url_str};
+// NOTE: temporary until curl in the BCR supports SSL
+// SEE: https://github.com/bazelbuild/bazel-central-registry/pull/1666
+#if defined(_WIN32) && !defined(ECSACT_CLI_USE_CURL_CLI)
+	return download_file_with_libcurl(url);
+#else
+	return download_file_with_curl_cli(url);
+#endif
 }

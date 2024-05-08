@@ -36,7 +36,8 @@ TEST(Build, Success) {
 		"--allow-unresolved-imports"s,
 		std::string{test_ecsact_file_path},
 		std::format("--recipe={}", test_build_recipe_path),
-		std::format("--output=test_ecsact_runtime"),
+		"--output=test_ecsact_runtime"s,
+		"--temp_dir=_test_build_recipe_temp"s,
 	});
 
 	ASSERT_EQ(exit_code, 0);
@@ -47,7 +48,8 @@ TEST(Build, Success) {
 		std::string{test_ecsact_file_path},
 		std::format("--recipe={}", test_build_recipe_path),
 		std::format("--recipe={}", test_build_merge_recipe_path),
-		std::format("--output=test_ecsact_runtime_merged"),
+		"--output=test_ecsact_runtime_merged"s,
+		"--temp_dir=_test_build_recipe_temp"s,
 	});
 
 	ASSERT_EQ(exit_code, 0);

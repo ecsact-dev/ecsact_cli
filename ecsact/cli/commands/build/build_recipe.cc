@@ -461,12 +461,6 @@ auto ecsact::build_recipe::merge( //
 		}
 	}
 
-	merged_build_recipe._sources.insert(
-		merged_build_recipe._sources.end(),
-		target._sources.begin(),
-		target._sources.end()
-	);
-
 	return merged_build_recipe;
 }
 

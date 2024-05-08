@@ -126,7 +126,7 @@ static auto download_file(boost::url url) -> std::vector<std::byte> {
 
 static auto read_file(fs::path path) -> std::vector<std::byte> {
 	auto file_size = fs::file_size(path);
-	auto file = std::ifstream{path, std::ios_base::binary | std::ios_base::ate};
+	auto file = std::ifstream{path, std::ios_base::binary};
 	assert(file);
 
 	auto file_buffer =
@@ -137,7 +137,11 @@ static auto read_file(fs::path path) -> std::vector<std::byte> {
 }
 
 static auto write_file(fs::path path, std::span<std::byte> data) -> void {
-	auto file = std::ofstream(path, std::ios_base::binary);
+	if(path.has_parent_path()) {
+		auto ec = std::error_code{};
+		fs::create_directories(path.parent_path(), ec);
+	}
+	auto file = std::ofstream(path, std::ios_base::binary | std::ios_base::trunc);
 	assert(file);
 
 	file.write(reinterpret_cast<const char*>(data.data()), data.size());
@@ -284,6 +288,11 @@ auto ecsact::build_recipe_bundle::extract( //
 	if(result != ARCHIVE_OK) {
 		return archive_error_as_logic_error(a.get());
 	}
+	/* auto test_file = fopen("test.ecsact-recipe-bundle", "r+"); */
+	/* result = archive_read_open_FILE(a.get(), test_file); */
+	/* if(result != ARCHIVE_OK) { */
+	/* 	return archive_error_as_logic_error(a.get()); */
+	/* } */
 	result = archive_read_open_memory(
 		a.get(),
 		_bundle_bytes.data(),

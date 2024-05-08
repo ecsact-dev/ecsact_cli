@@ -238,6 +238,12 @@ static auto handle_source( //
 			ec.message()
 		);
 		return 1;
+	} else {
+		ecsact::cli::report_info(
+			"Copied source {} to {}",
+			src.path.generic_string(),
+			outdir.generic_string()
+		);
 	}
 
 	return 0;

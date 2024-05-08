@@ -51,10 +51,10 @@ Options:
 
 constexpr auto allowed_recipe_extensions = std::array{
 	""sv,
-	"ecsact-recipe-bundle"sv,
-	"yml"sv,
-	"yaml"sv,
-	"json"sv, // json works since yaml is a superset
+	".ecsact-recipe-bundle"sv,
+	".yml"sv,
+	".yaml"sv,
+	".json"sv, // json works since yaml is a superset
 };
 
 auto ecsact::cli::detail::build_command( //

@@ -320,8 +320,6 @@ auto ecsact::build_recipe_bundle::extract( //
 				.lexically_normal()
 				.generic_string();
 
-		printf("PATH: %s\n", path.c_str());
-
 		if(!is_valid_bundle_entry_path(path)) {
 			return std::logic_error{
 				std::format("Invalid path '{}' found in recipe bundle", path)

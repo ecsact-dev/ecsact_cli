@@ -14,6 +14,18 @@ cc_library(
 )
 
 cc_library(
+    name = "download",
+    srcs = ["download.cc"],
+    hdrs = ["download.hh"],
+    copts = copts,
+    deps = [
+        "@curl",
+        "@boost.url",
+        "@magic_enum",
+    ],
+)
+
+cc_library(
     name = "json_report",
     copts = copts,
     hdrs = ["json_report.hh"],

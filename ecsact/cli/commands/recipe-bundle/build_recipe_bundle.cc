@@ -13,14 +13,14 @@
 #ifdef __cpp_lib_stacktrace
 #	include <stacktrace>
 #endif
-#include <curl/curl.h>
 #include "magic_enum.hpp"
-#undef fopen
 #include <boost/url.hpp>
 #include <archive.h>
 #include <archive_entry.h>
-#include "ecsact/cli/report.hh"
 #include "xxhash.h"
+
+#include "ecsact/cli/report.hh"
+#include "ecsact/cli/detail/download.hh"
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
@@ -45,8 +45,6 @@ public:
 		return _val;
 	}
 };
-
-using download_file_buffer_t = std::vector<std::byte>;
 
 constexpr auto valid_bundle_entry_prefixes = std::array{
 	"files/"sv,
@@ -84,79 +82,6 @@ static auto is_valid_bundle_entry_path(std::string_view path) -> bool {
 		});
 
 	return valid_bundle_path_itr != valid_bundle_paths.end();
-}
-
-static auto _download_file_write_callback(
-	const void* buffer,
-	size_t      size,
-	size_t      count,
-	void*       userdata
-) -> size_t {
-	auto& out_data = *static_cast<download_file_buffer_t*>(userdata);
-	auto  buffer_span = std::span{
-    static_cast<const std::byte*>(buffer),
-    size * count,
-  };
-
-	out_data.insert(out_data.end(), buffer_span.begin(), buffer_span.end());
-	return 0;
-}
-
-namespace {
-struct download_file_result : std::variant<std::vector<std::byte>, CURLcode> {
-	using variant::variant;
-
-	using result_type = std::vector<std::byte>;
-	using error_type = CURLcode;
-
-	inline operator bool() {
-		return std::holds_alternative<result_type>(*this);
-	}
-
-	inline auto operator*() & -> result_type& {
-		return std::get<result_type>(*this);
-	}
-
-	inline auto operator->() & -> result_type* {
-		return &std::get<result_type>(*this);
-	}
-
-	inline auto operator*() && -> result_type {
-		return std::move(std::get<result_type>(*this));
-	}
-
-	inline auto error() -> error_type {
-		return std::get<error_type>(*this);
-	}
-};
-} // namespace
-
-static auto download_file(boost::url url) -> download_file_result {
-	auto ret_out_data = download_file_buffer_t{};
-
-	curl_global_init(CURL_GLOBAL_ALL);
-	auto curl = curl_easy_init();
-
-	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, &ret_out_data);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, _download_file_write_callback);
-
-	auto res = curl_easy_perform(curl);
-
-	curl_easy_cleanup(curl);
-	curl_global_cleanup();
-
-	if(res != CURLE_OK) {
-		return static_cast<CURLcode>(res);
-	}
-
-	return ret_out_data;
-}
-
-static auto curl_error_message(CURLcode err) -> std::string {
-	auto err_name = magic_enum::enum_name(err);
-	return std::string{err_name};
 }
 
 static auto read_file(fs::path path) -> std::vector<std::byte> {
@@ -247,12 +172,12 @@ auto ecsact::build_recipe_bundle::create( //
 			auto archive_rel_path =
 				(fs::path{"files"} / src.outdir.value_or(".") / src_path_basename)
 					.lexically_normal();
-			auto download_result = download_file(src_url);
+			auto download_result = ecsact::cli::detail::download_file(src.url);
 			if(!download_result) {
 				return std::logic_error{std::format(
 					"Failed to download {}: {}",
 					src.url,
-					curl_error_message(download_result.error())
+					download_result.error().what()
 				)};
 			}
 

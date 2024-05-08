@@ -1,6 +1,6 @@
 {
   "lockFileVersion": 6,
-  "moduleFileHash": "a07aa1dfb7303e540a9d0d4a75c50b3bba553179846157935ef8ae889fe644c9",
+  "moduleFileHash": "1c9bac75244b56cb7f6a0f6415f65b587b79c10eeec1880445c3d77a825c773d",
   "flags": {
     "cmdRegistries": [
       "https://raw.githubusercontent.com/ecsact-dev/bazel_registry/main",
@@ -36,7 +36,7 @@
           "usingModule": "<root>",
           "location": {
             "file": "@@//:MODULE.bazel",
-            "line": 34,
+            "line": 33,
             "column": 21
           },
           "imports": {
@@ -56,7 +56,7 @@
               "devDependency": true,
               "location": {
                 "file": "@@//:MODULE.bazel",
-                "line": 35,
+                "line": 34,
                 "column": 15
               }
             }
@@ -73,7 +73,6 @@
         "boost.process": "boost.process@1.83.0.bzl.2",
         "ecsact_runtime": "ecsact_runtime@0.6.1",
         "ecsact_interpret": "ecsact_interpret@0.6.0",
-        "curl": "curl@8.7.1.bcr.1",
         "toolchains_llvm": "toolchains_llvm@1.0.0",
         "hedron_compile_commands": "hedron_compile_commands@_",
         "googletest": "googletest@1.14.0",
@@ -341,39 +340,6 @@
           "strip_prefix": "",
           "remote_patches": {},
           "remote_patch_strip": 0
-        }
-      }
-    },
-    "curl@8.7.1.bcr.1": {
-      "name": "curl",
-      "version": "8.7.1.bcr.1",
-      "key": "curl@8.7.1.bcr.1",
-      "repoName": "curl",
-      "executionPlatformsToRegister": [],
-      "toolchainsToRegister": [],
-      "extensionUsages": [],
-      "deps": {
-        "bazel_skylib": "bazel_skylib@1.6.1",
-        "mbedtls": "mbedtls@3.6.0",
-        "platforms": "platforms@0.0.10",
-        "bazel_tools": "bazel_tools@_",
-        "local_config_platform": "local_config_platform@_"
-      },
-      "repoSpec": {
-        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-        "ruleClassName": "http_archive",
-        "attributes": {
-          "urls": [
-            "https://github.com/curl/curl/releases/download/curl-8_7_1/curl-8.7.1.tar.gz"
-          ],
-          "integrity": "sha256-+RJJyH9o6gDPJ8RP36WnhCPkHnG31AjlkBqYltkFxJU=",
-          "strip_prefix": "curl-8.7.1",
-          "remote_patches": {
-            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/add-curl-config2/modules/curl/8.7.1.bcr.1/patches/add_build_file.patch": "sha256-v72CABzBMc2lrA1Oy/QLsxd8x0bv/zkPjxTPGfArI8I=",
-            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/add-curl-config2/modules/curl/8.7.1.bcr.1/patches/module_dot_bazel.patch": "sha256-CmB4PaZ8lHufyVHpS4z/rUPT3aPWg/I29b0ulErrYlY=",
-            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/add-curl-config2/modules/curl/8.7.1.bcr.1/patches/add_curl_config.patch": "sha256-vdS5XRiVn5iKvJcdr0FilwCrJpQnWhEqStalazJ1Dy8="
-          },
-          "remote_patch_strip": 1
         }
       }
     },
@@ -1666,36 +1632,6 @@
         }
       }
     },
-    "mbedtls@3.6.0": {
-      "name": "mbedtls",
-      "version": "3.6.0",
-      "key": "mbedtls@3.6.0",
-      "repoName": "mbedtls",
-      "executionPlatformsToRegister": [],
-      "toolchainsToRegister": [],
-      "extensionUsages": [],
-      "deps": {
-        "platforms": "platforms@0.0.10",
-        "bazel_tools": "bazel_tools@_",
-        "local_config_platform": "local_config_platform@_"
-      },
-      "repoSpec": {
-        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
-        "ruleClassName": "http_archive",
-        "attributes": {
-          "urls": [
-            "https://github.com/Mbed-TLS/mbedtls/releases/download/v3.6.0/mbedtls-3.6.0.tar.bz2"
-          ],
-          "integrity": "sha256-Ps+U/P2qyvt1d4agG3U4phdQ69hcSwJPVv+LoUkPzTg=",
-          "strip_prefix": "mbedtls-3.6.0",
-          "remote_patches": {
-            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/add-curl-config2/modules/mbedtls/3.6.0/patches/add_build.patch": "sha256-+eevKk6D53jwSk1vngf7au/XMw/T++lxiQ/hlYb0fUA=",
-            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/add-curl-config2/modules/mbedtls/3.6.0/patches/module_dot_bazel.patch": "sha256-zau8FpFxNUirkyEVgW50LwrrsB2Dt0Kp25zu0p55t0U="
-          },
-          "remote_patch_strip": 1
-        }
-      }
-    },
     "nlohmann_json@3.11.3": {
       "name": "nlohmann_json",
       "version": "3.11.3",
@@ -1750,6 +1686,39 @@
           "strip_prefix": "",
           "remote_patches": {},
           "remote_patch_strip": 0
+        }
+      }
+    },
+    "curl@8.7.1.bcr.1": {
+      "name": "curl",
+      "version": "8.7.1.bcr.1",
+      "key": "curl@8.7.1.bcr.1",
+      "repoName": "curl",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "bazel_skylib": "bazel_skylib@1.6.1",
+        "mbedtls": "mbedtls@3.6.0",
+        "platforms": "platforms@0.0.10",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://github.com/curl/curl/releases/download/curl-8_7_1/curl-8.7.1.tar.gz"
+          ],
+          "integrity": "sha256-+RJJyH9o6gDPJ8RP36WnhCPkHnG31AjlkBqYltkFxJU=",
+          "strip_prefix": "curl-8.7.1",
+          "remote_patches": {
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/add-curl-config2/modules/curl/8.7.1.bcr.1/patches/add_build_file.patch": "sha256-v72CABzBMc2lrA1Oy/QLsxd8x0bv/zkPjxTPGfArI8I=",
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/add-curl-config2/modules/curl/8.7.1.bcr.1/patches/module_dot_bazel.patch": "sha256-CmB4PaZ8lHufyVHpS4z/rUPT3aPWg/I29b0ulErrYlY=",
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/add-curl-config2/modules/curl/8.7.1.bcr.1/patches/add_curl_config.patch": "sha256-vdS5XRiVn5iKvJcdr0FilwCrJpQnWhEqStalazJ1Dy8="
+          },
+          "remote_patch_strip": 1
         }
       }
     },
@@ -3541,6 +3510,36 @@
           "strip_prefix": "",
           "remote_patches": {},
           "remote_patch_strip": 0
+        }
+      }
+    },
+    "mbedtls@3.6.0": {
+      "name": "mbedtls",
+      "version": "3.6.0",
+      "key": "mbedtls@3.6.0",
+      "repoName": "mbedtls",
+      "executionPlatformsToRegister": [],
+      "toolchainsToRegister": [],
+      "extensionUsages": [],
+      "deps": {
+        "platforms": "platforms@0.0.10",
+        "bazel_tools": "bazel_tools@_",
+        "local_config_platform": "local_config_platform@_"
+      },
+      "repoSpec": {
+        "bzlFile": "@@bazel_tools//tools/build_defs/repo:http.bzl",
+        "ruleClassName": "http_archive",
+        "attributes": {
+          "urls": [
+            "https://github.com/Mbed-TLS/mbedtls/releases/download/v3.6.0/mbedtls-3.6.0.tar.bz2"
+          ],
+          "integrity": "sha256-Ps+U/P2qyvt1d4agG3U4phdQ69hcSwJPVv+LoUkPzTg=",
+          "strip_prefix": "mbedtls-3.6.0",
+          "remote_patches": {
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/add-curl-config2/modules/mbedtls/3.6.0/patches/add_build.patch": "sha256-+eevKk6D53jwSk1vngf7au/XMw/T++lxiQ/hlYb0fUA=",
+            "https://raw.githubusercontent.com/zaucy/bazel-central-registry/add-curl-config2/modules/mbedtls/3.6.0/patches/module_dot_bazel.patch": "sha256-zau8FpFxNUirkyEVgW50LwrrsB2Dt0Kp25zu0p55t0U="
+          },
+          "remote_patch_strip": 1
         }
       }
     },

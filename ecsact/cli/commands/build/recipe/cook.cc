@@ -15,6 +15,7 @@
 #include "ecsact/cli/commands/build/cc_compiler_config.hh"
 #include "ecsact/cli/commands/build/cc_defines_gen.hh"
 #include "ecsact/cli/commands/codegen/codegen.hh"
+#include "ecsact/cli/commands/codegen/codegen_util.hh"
 #include "ecsact/cli/commands/build/get_modules.hh"
 #include "ecsact/cli/report.hh"
 #include "ecsact/cli/detail/argv0.hh"
@@ -237,6 +238,12 @@ static auto handle_source( //
 			ec.message()
 		);
 		return 1;
+	} else {
+		ecsact::cli::report_info(
+			"Copied source {} to {}",
+			src.path.generic_string(),
+			outdir.generic_string()
+		);
 	}
 
 	return 0;

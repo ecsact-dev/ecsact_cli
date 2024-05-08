@@ -1,6 +1,7 @@
 #include "ecsact/cli/detail/proc_exec.hh"
 
 #include <filesystem>
+#include <span>
 #include <boost/process.hpp>
 #include "ecsact/cli/report.hh"
 
@@ -144,4 +145,48 @@ auto ecsact::cli::detail::spawn_get_stdout( //
 	}
 
 	return proc_stdout_string;
+}
+
+auto ecsact::cli::detail::spawn_get_stdout_bytes( //
+	std::filesystem::path    exe,
+	std::vector<std::string> args,
+	fs::path                 start_dir
+) -> std::optional<std::vector<std::byte>> {
+	auto proc_stdout = bp::ipstream{};
+	auto proc = bp::child{
+		bp::exe(fs::absolute(exe)),
+		bp::args(args),
+		bp::start_dir(start_dir.string()),
+		bp::std_out > proc_stdout,
+	};
+
+	auto proc_stdout_bytes = std::vector<std::byte>{};
+	auto proc_stdout_bytes_buf = std::array<std::byte, 1024>{};
+
+	while(proc_stdout) {
+		proc_stdout.read(
+			reinterpret_cast<char*>(proc_stdout_bytes_buf.data()),
+			proc_stdout_bytes_buf.size()
+		);
+
+		auto read_amount = proc_stdout.gcount();
+		auto read_bytes = std::span{
+			proc_stdout_bytes_buf.data(),
+			static_cast<size_t>(read_amount),
+		};
+
+		proc_stdout_bytes.insert(
+			proc_stdout_bytes.end(),
+			read_bytes.data(),
+			read_bytes.data() + read_bytes.size()
+		);
+	}
+
+	proc.wait();
+
+	if(proc.exit_code() != 0) {
+		return std::nullopt;
+	}
+
+	return proc_stdout_bytes;
 }

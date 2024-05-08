@@ -39,6 +39,7 @@ cc_library(
         "//ecsact/cli/commands/build:cc_defines_gen",
         "//ecsact/cli/commands/build:get_modules",
         "//ecsact/cli/commands/codegen:codegen",
+        "//ecsact/cli/commands/codegen:codegen_util",
         "//ecsact/cli/detail:proc_exec",
         "@curl",
         "@boost.url",

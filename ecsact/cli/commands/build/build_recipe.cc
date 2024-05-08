@@ -3,15 +3,83 @@
 #include <fstream>
 #include <filesystem>
 #include <cassert>
+#include <sstream>
+#include <string>
+#include <string_view>
 #include <ranges>
 #include <iostream>
 #include <algorithm>
-#include <ranges>
 #include "yaml-cpp/yaml.h"
 #include "ecsact/cli/commands/build/get_modules.hh"
+#include "ecsact/cli/commands/codegen/codegen_util.hh"
 #include "ecsact/cli/report.hh"
 
 namespace fs = std::filesystem;
+using namespace std::string_literals;
+using namespace std::string_view_literals;
+
+namespace YAML {
+static auto operator<<( //
+	YAML::Emitter&                            out,
+	const ecsact::build_recipe::source_fetch& src
+) -> YAML::Emitter& {
+	out << YAML::BeginMap;
+	out << YAML::Key << "fetch";
+	out << YAML::Value << src.url;
+	if(src.outdir) {
+		out << YAML::Key << "outdir";
+		out << YAML::Value << *src.outdir;
+	}
+	out << YAML::EndMap;
+	return out;
+}
+
+static auto operator<<( //
+	YAML::Emitter&                           out,
+	const ecsact::build_recipe::source_path& src
+) -> YAML::Emitter& {
+	if(src.outdir) {
+		out << YAML::BeginMap;
+		out << YAML::Key << "path";
+		out << YAML::Value << src.path.generic_string();
+		out << YAML::Key << "outdir";
+		out << YAML::Value << *src.outdir;
+		out << YAML::EndMap;
+	} else {
+		out << src.path.generic_string();
+	}
+	return out;
+}
+
+static auto operator<<( //
+	YAML::Emitter&                              out,
+	const ecsact::build_recipe::source_codegen& src
+) -> YAML::Emitter& {
+	out << YAML::BeginMap;
+	out << YAML::Key << "codegen";
+	if(src.plugins.size() > 1) {
+		out << YAML::Value << src.plugins;
+	} else if(!src.plugins.empty()) {
+		out << YAML::Value << src.plugins[0];
+	}
+	if(src.outdir) {
+		out << YAML::Key << "outdir";
+		out << YAML::Value << *src.outdir;
+	}
+	out << YAML::EndMap;
+	return out;
+}
+
+static auto operator<<( //
+	YAML::Emitter&                      out,
+	const ecsact::build_recipe::source& src
+) -> YAML::Emitter& {
+	return std::visit(
+		[&](const auto& src) -> YAML::Emitter& { return out << src; },
+		src
+	);
+}
+} // namespace YAML
 
 static auto range_contains(auto& r, const auto& v) -> bool {
 	for(auto& rv : r) {
@@ -24,7 +92,16 @@ static auto range_contains(auto& r, const auto& v) -> bool {
 
 ecsact::build_recipe::build_recipe() = default;
 ecsact::build_recipe::build_recipe(build_recipe&&) = default;
+ecsact::build_recipe::build_recipe(const build_recipe&) = default;
 ecsact::build_recipe::~build_recipe() = default;
+
+auto ecsact::build_recipe::name() const -> const std::string_view {
+	return _name.empty() ? "(unnamed)"sv : _name;
+}
+
+auto ecsact::build_recipe::base_directory() const -> std::filesystem::path {
+	return _base_directory;
+}
 
 auto ecsact::build_recipe::exports() const -> std::span<const std::string> {
 	return _exports;
@@ -170,7 +247,7 @@ static auto parse_sources( //
 
 auto ecsact::build_recipe::from_yaml_file( //
 	std::filesystem::path p
-) -> std::variant<build_recipe, build_recipe_parse_error> {
+) -> create_result {
 	auto file = std::ifstream{p};
 	try {
 		auto doc = YAML::LoadFile(p.string());
@@ -200,6 +277,12 @@ auto ecsact::build_recipe::from_yaml_file( //
 		}
 
 		auto recipe = build_recipe{};
+		if(doc["name"]) {
+			recipe._name = doc["name"].as<std::string>();
+		}
+		if(p.has_parent_path()) {
+			recipe._base_directory = p.parent_path().generic_string();
+		}
 		recipe._exports = get_value(exports);
 		recipe._imports = get_value(imports);
 		recipe._sources = get_value(sources);
@@ -238,10 +321,42 @@ auto ecsact::build_recipe::from_yaml_file( //
 	}
 }
 
+auto ecsact::build_recipe::to_yaml_string() const -> std::string {
+	auto out = std::stringstream{};
+	auto emitter = YAML::Emitter{out};
+
+	emitter << YAML::BeginMap;
+
+	emitter << YAML::Key << "imports";
+	emitter << YAML::Value << _imports;
+
+	emitter << YAML::Key << "exports";
+	emitter << YAML::Value << _exports;
+
+	emitter << YAML::Key << "system_libs";
+	emitter << YAML::Value << _system_libs;
+
+	emitter << YAML::Key << "sources";
+	emitter << YAML::Value << _sources;
+
+	emitter << YAML::EndMap;
+
+	return out.str();
+}
+
+auto ecsact::build_recipe::to_yaml_bytes() const -> std::vector<std::byte> {
+	auto str = to_yaml_string();
+	static_assert(sizeof(std::byte) == sizeof(char));
+	return std::vector<std::byte>{
+		reinterpret_cast<std::byte*>(str.data()),
+		reinterpret_cast<std::byte*>(str.data()) + str.size(),
+	};
+}
+
 auto ecsact::build_recipe::merge( //
 	const build_recipe& base,
 	const build_recipe& target
-) -> std::variant<build_recipe, build_recipe_merge_error> {
+) -> merge_result {
 	auto merged_build_recipe = build_recipe{};
 
 	for(auto base_export_name : base._exports) {
@@ -255,6 +370,10 @@ auto ecsact::build_recipe::merge( //
 			}
 		}
 	}
+
+	merged_build_recipe._base_directory = base._base_directory;
+	merged_build_recipe._name =
+		std::format("{} + {}", base.name(), target.name());
 
 	merged_build_recipe._system_libs.reserve(
 		merged_build_recipe._system_libs.size() + target._system_libs.size()
@@ -315,11 +434,43 @@ auto ecsact::build_recipe::merge( //
 		base._sources.begin(),
 		base._sources.end()
 	);
-	merged_build_recipe._sources.insert(
-		merged_build_recipe._sources.end(),
-		target._sources.begin(),
-		target._sources.end()
-	);
+
+	for(auto& src : target._sources) {
+		if(std::holds_alternative<source_path>(src)) {
+			source_path src_path = std::get<source_path>(src);
+			if(!src_path.path.is_absolute()) {
+				src_path.path = fs::relative(
+					target.base_directory() / src_path.path,
+					base.base_directory()
+				);
+			}
+
+			merged_build_recipe._sources.emplace_back(std::move(src_path));
+		} else if(std::holds_alternative<source_codegen>(src)) {
+			source_codegen src_codegen = std::get<source_codegen>(src);
+			for(auto& plugin : src_codegen.plugins) {
+				if(!cli::is_default_plugin(plugin) && !fs::path{plugin}.is_absolute()) {
+					plugin =
+						fs::relative(target.base_directory() / plugin).generic_string();
+				}
+			}
+
+			merged_build_recipe._sources.emplace_back(src_codegen);
+		} else {
+			merged_build_recipe._sources.push_back(src);
+		}
+	}
 
 	return merged_build_recipe;
+}
+
+auto ecsact::build_recipe::copy() const -> build_recipe {
+	return *this;
+}
+
+auto ecsact::build_recipe::update_sources( //
+	std::span<const source> new_sources
+) -> void {
+	_sources.clear();
+	_sources.insert(_sources.begin(), new_sources.begin(), new_sources.end());
 }

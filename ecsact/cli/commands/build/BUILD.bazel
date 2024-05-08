@@ -10,6 +10,7 @@ cc_library(
     copts = copts,
     deps = [
         "//ecsact/cli:report",
+        "//ecsact/cli/commands/codegen:codegen_util",
         "//ecsact/cli/commands/build:get_modules",
         "@yaml-cpp",
     ],

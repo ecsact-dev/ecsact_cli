@@ -25,14 +25,17 @@ enum class build_recipe_merge_error {
 
 class build_recipe {
 public:
+	struct create_result;
+	struct merge_result;
+
 	static auto from_yaml_file( //
 		std::filesystem::path p
-	) -> std::variant<build_recipe, build_recipe_parse_error>;
+	) -> create_result;
 
 	static auto merge( //
 		const build_recipe& a,
 		const build_recipe& b
-	) -> std::variant<build_recipe, build_recipe_merge_error>;
+	) -> merge_result;
 
 	struct source_path {
 		std::filesystem::path      path;
@@ -54,17 +57,38 @@ public:
 	build_recipe(build_recipe&&);
 	~build_recipe();
 
+	auto name() const -> const std::string_view;
+	auto base_directory() const -> std::filesystem::path;
 	auto exports() const -> std::span<const std::string>;
 	auto imports() const -> std::span<const std::string>;
 	auto sources() const -> std::span<const source>;
 	auto system_libs() const -> std::span<const std::string>;
 
+	auto to_yaml_string() const -> std::string;
+	auto to_yaml_bytes() const -> std::vector<std::byte>;
+
+	auto update_sources(std::span<const source> new_sources) -> void;
+	auto copy() const -> build_recipe;
+
 private:
+	std::string              _name;
+	std::string              _base_directory;
 	std::vector<std::string> _exports;
 	std::vector<std::string> _imports;
 	std::vector<source>      _sources;
 	std::vector<std::string> _system_libs;
 
 	build_recipe();
+	build_recipe(const build_recipe&);
+};
+
+struct build_recipe::create_result
+	: std::variant<build_recipe, build_recipe_parse_error> {
+	using variant::variant;
+};
+
+struct build_recipe::merge_result
+	: std::variant<build_recipe, build_recipe_merge_error> {
+	using variant::variant;
 };
 } // namespace ecsact

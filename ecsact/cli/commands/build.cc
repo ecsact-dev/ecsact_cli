@@ -4,6 +4,7 @@
 #include <iostream>
 #include <format>
 #include <filesystem>
+#include <array>
 #include <variant>
 #include <string_view>
 #include <format>
@@ -20,6 +21,7 @@
 #include "ecsact/cli/commands/build/cc_compiler.hh"
 #include "ecsact/cli/commands/build/recipe/cook.hh"
 #include "ecsact/cli/commands/build/recipe/taste.hh"
+#include "ecsact/cli/commands/recipe-bundle/build_recipe_bundle.hh"
 
 namespace fs = std::filesystem;
 
@@ -46,6 +48,14 @@ Options:
 //   none : No output
 //   json : Each line of stdout/stderr is a JSON object
 //   text : Human readable text format
+
+constexpr auto allowed_recipe_extensions = std::array{
+	""sv,
+	".ecsact-recipe-bundle"sv,
+	".yml"sv,
+	".yaml"sv,
+	".json"sv, // json works since yaml is a superset
+};
 
 auto ecsact::cli::detail::build_command( //
 	int         argc,
@@ -80,6 +90,10 @@ auto ecsact::cli::detail::build_command( //
 		return 1;
 	}
 
+	auto temp_dir = args["--temp_dir"].isString() //
+		? fs::path{args["--temp_dir"].asString()}
+		: fs::temp_directory_path();
+
 	auto files = args.at("<files>").asStringList();
 	auto file_paths = std::vector<fs::path>{};
 	file_paths.reserve(files.size());
@@ -88,7 +102,52 @@ auto ecsact::cli::detail::build_command( //
 
 	auto recipe_composite = std::optional<build_recipe>{};
 	auto recipe_paths = args.at("--recipe").asStringList();
-	for(auto recipe_path : args.at("--recipe").asStringList()) {
+	for(auto& recipe_path_str : recipe_paths) {
+		auto recipe_path = fs::path{recipe_path_str};
+		if(std::ranges::find(allowed_recipe_extensions, recipe_path.extension()) ==
+			 allowed_recipe_extensions.end()) {
+			ecsact::cli::report_error(
+				"Invalid recipe file extension {}",
+				recipe_path.extension().string()
+			);
+			return 1;
+		}
+
+		if(!recipe_path.has_extension()) {
+			recipe_path.replace_extension("ecsact-recipe-bundle");
+		}
+
+		if(recipe_path.extension() == ".ecsact-recipe-bundle") {
+			auto bundle_result = ecsact::build_recipe_bundle::from_file(recipe_path);
+
+			if(!bundle_result) {
+				ecsact::cli::report_error(
+					"Failed to open build recipe bundle {}: {}",
+					recipe_path.generic_string(),
+					bundle_result.error().what()
+				);
+				return 1;
+			}
+
+			auto extract_result = bundle_result->extract(temp_dir);
+			if(!extract_result) {
+				ecsact::cli::report_error(
+					"Failed to extract build recipe bundle {}: {}",
+					recipe_path.generic_string(),
+					extract_result.error().what()
+				);
+				return 1;
+			}
+
+			recipe_path = extract_result.recipe_path();
+			recipe_path_str = recipe_path.generic_string();
+
+			ecsact::cli::report_info(
+				"Extracted build recipe bundle to {}",
+				recipe_path.parent_path().generic_string()
+			);
+		}
+
 		auto recipe_result = build_recipe::from_yaml_file(recipe_path);
 
 		if(std::holds_alternative<build_recipe_parse_error>(recipe_result)) {
@@ -137,10 +196,6 @@ auto ecsact::cli::detail::build_command( //
 			return 1;
 		}
 	}
-
-	auto temp_dir = args["--temp_dir"].isString() //
-		? fs::path{args["--temp_dir"].asString()}
-		: fs::temp_directory_path();
 
 	// TODO(zaucy): Generate stable directory based on file input
 	auto work_dir = temp_dir / "ecsact-build";

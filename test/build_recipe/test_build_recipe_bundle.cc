@@ -6,8 +6,10 @@
 #include <filesystem>
 #include <fstream>
 #include "ecsact/cli/commands/build.hh"
+#include "ecsact/cli/commands/recipe-bundle.hh"
 
 using ecsact::cli::detail::build_command;
+using ecsact::cli::detail::recipe_bundle_command;
 
 using namespace std::string_literals;
 namespace fs = std::filesystem;
@@ -30,14 +32,12 @@ TEST(Build, Success) {
 	ASSERT_TRUE(fs::exists(test_ecsact_file_path));
 	ASSERT_TRUE(fs::exists(test_build_recipe_path));
 
-	auto exit_code = build_command(std::vector{
+	auto exit_code = recipe_bundle_command(std::vector{
 		"ecsact"s,
-		"build"s,
-		"--allow-unresolved-imports"s,
-		std::string{test_ecsact_file_path},
-		std::format("--recipe={}", test_build_recipe_path),
-		"--output=test_ecsact_runtime"s,
-		"--temp_dir=_test_build_recipe_temp"s,
+		"recipe-bundle"s,
+		std::string{test_build_recipe_path},
+		std::string{test_build_merge_recipe_path},
+		"--output=test"s,
 	});
 
 	ASSERT_EQ(exit_code, 0);
@@ -46,10 +46,9 @@ TEST(Build, Success) {
 		"ecsact"s,
 		"build"s,
 		std::string{test_ecsact_file_path},
-		std::format("--recipe={}", test_build_recipe_path),
-		std::format("--recipe={}", test_build_merge_recipe_path),
-		"--output=test_ecsact_runtime_merged"s,
-		"--temp_dir=_test_build_recipe_temp"s,
+		"--recipe=test"s,
+		"--output=test_bundle_runtime"s,
+		"--temp_dir=_test_bundle_runtime_temp"s,
 	});
 
 	ASSERT_EQ(exit_code, 0);

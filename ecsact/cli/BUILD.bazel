@@ -1,6 +1,6 @@
 load("@rules_cc//cc:defs.bzl", "cc_library")
-load("//bazel/tools:cc_stamp_header.bzl", "cc_stamp_header")
 load("//bazel:copts.bzl", "copts")
+load("//bazel/tools:cc_stamp_header.bzl", "cc_stamp_header")
 
 package(default_visibility = ["//:__subpackages__"])
 
@@ -44,5 +44,6 @@ cc_binary(
         "//ecsact/cli/commands:command",
         "//ecsact/cli/commands:config",
         "//ecsact/cli/commands:build",
+        "//ecsact/cli/commands:recipe-bundle",
     ],
 )

@@ -6,24 +6,35 @@ module(
 
 bazel_dep(name = "rules_cc", version = "0.0.9")
 bazel_dep(name = "nlohmann_json", version = "3.11.3")
-bazel_dep(name = "platforms", version = "0.0.9")
+bazel_dep(name = "platforms", version = "0.0.10")
 bazel_dep(name = "rules_pkg", version = "0.10.1")
-bazel_dep(name = "bazel_skylib", version = "1.5.0")
+bazel_dep(name = "bazel_skylib", version = "1.6.1")
 bazel_dep(name = "ecsact_parse", version = "0.4.0")
 bazel_dep(name = "ecsact_runtime", version = "0.6.1")
 bazel_dep(name = "ecsact_interpret", version = "0.6.0")
 bazel_dep(name = "ecsact_codegen", version = "0.2.0")
 bazel_dep(name = "boost.dll", version = "1.83.0.bzl.2")
 bazel_dep(name = "magic_enum", version = "0.9.3")
-bazel_dep(name = "curl", version = "8.4.0.bcr.1")
+bazel_dep(name = "curl", version = "8.7.1.bcr.1")
 bazel_dep(name = "docopt.cpp", version = "0.6.2")
 bazel_dep(name = "boost.process", version = "1.83.0.bzl.2")
 bazel_dep(name = "boost.algorithm", version = "1.83.0.bzl.1")
 bazel_dep(name = "boost.url", version = "1.83.0.bzl.2")
 bazel_dep(name = "yaml-cpp", version = "0.8.0")
+bazel_dep(name = "libarchive", version = "3.7.3")
+
+# TODO: https://github.com/bazelbuild/bazel-central-registry/pull/1916
+git_override(
+    module_name = "libarchive",
+    commit = "7c331f92acea5243c195cdc6fb46ecfa11ce1ce2",
+    remote = "https://github.com/zaucy/libarchive.git",
+)
 
 bazel_dep(name = "toolchains_llvm", version = "1.0.0", dev_dependency = True)
 bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
+
+bazel_dep(name = "xxhash", version = "0.8.2")
+
 git_override(
     module_name = "hedron_compile_commands",
     commit = "204aa593e002cbd177d30f11f54cff3559110bb9",

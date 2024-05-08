@@ -6,6 +6,7 @@
 #include "ecsact/cli/bazel_stamp_header.hh"
 #include "ecsact/cli/commands/build.hh"
 #include "ecsact/cli/commands/codegen.hh"
+#include "ecsact/cli/commands/recipe-bundle.hh"
 #include "ecsact/cli/commands/command.hh"
 #include "ecsact/cli/commands/config.hh"
 
@@ -35,6 +36,7 @@ Usage:
 	ecsact build ([<options>...] | --help)
 	ecsact codegen ([<options>...] | --help)
 	ecsact config ([<options>...] | --help)
+	ecsact recipe-bundle ([<options>...] | --help)
 )";
 
 std::string colorize_logo() {
@@ -77,6 +79,7 @@ int main(int argc, const char* argv[]) {
 		{"build", &ecsact::cli::detail::build_command},
 		{"codegen", &ecsact::cli::detail::codegen_command},
 		{"config", &ecsact::cli::detail::config_command},
+		{"recipe-bundle", &ecsact::cli::detail::recipe_bundle_command},
 	};
 
 	if(argc >= 2) {

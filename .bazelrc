@@ -4,6 +4,8 @@ build --@boost.dll//:use_std_fs
 query --@boost.dll//:use_std_fs
 build --@boost.process//:use_std_fs
 query --@boost.process//:use_std_fs
+build --@curl//:use_mbedtls
+query --@curl//:use_mbedtls
 build --//:use_sdk_version
 query --//:use_sdk_version
 

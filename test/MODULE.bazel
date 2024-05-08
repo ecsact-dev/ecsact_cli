@@ -5,6 +5,7 @@ bazel_dep(name = "boost.dll", version = "1.83.0.bzl.2")
 bazel_dep(name = "boost.process", version = "1.83.0.bzl.2")
 bazel_dep(name = "ecsact_runtime", version = "0.6.1")
 bazel_dep(name = "ecsact_interpret", version = "0.6.0")
+bazel_dep(name = "curl", version = "8.7.1.bcr.1")
 
 # TODO: https://github.com/bazelbuild/bazel-central-registry/pull/1916
 git_override(
@@ -18,6 +19,7 @@ bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
 
 bazel_dep(name = "googletest", version = "1.14.0")
 bazel_dep(name = "ecsact_cli")
+
 local_path_override(
     module_name = "ecsact_cli",
     path = "..",

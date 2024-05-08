@@ -102,7 +102,36 @@ static auto _download_file_write_callback(
 	return 0;
 }
 
-static auto download_file(boost::url url) -> std::vector<std::byte> {
+namespace {
+struct download_file_result : std::variant<std::vector<std::byte>, CURLcode> {
+	using variant::variant;
+
+	using result_type = std::vector<std::byte>;
+	using error_type = CURLcode;
+
+	inline operator bool() {
+		return std::holds_alternative<result_type>(*this);
+	}
+
+	inline auto operator*() & -> result_type& {
+		return std::get<result_type>(*this);
+	}
+
+	inline auto operator->() & -> result_type* {
+		return &std::get<result_type>(*this);
+	}
+
+	inline auto operator*() && -> result_type {
+		return std::move(std::get<result_type>(*this));
+	}
+
+	inline auto error() -> error_type {
+		return std::get<error_type>(*this);
+	}
+};
+} // namespace
+
+static auto download_file(boost::url url) -> download_file_result {
 	auto ret_out_data = download_file_buffer_t{};
 
 	curl_global_init(CURL_GLOBAL_ALL);
@@ -119,9 +148,15 @@ static auto download_file(boost::url url) -> std::vector<std::byte> {
 	curl_global_cleanup();
 
 	if(res != CURLE_OK) {
+		return static_cast<CURLcode>(res);
 	}
 
 	return ret_out_data;
+}
+
+static auto curl_error_message(CURLcode err) -> std::string {
+	auto err_name = magic_enum::enum_name(err);
+	return std::string{err_name};
 }
 
 static auto read_file(fs::path path) -> std::vector<std::byte> {
@@ -191,6 +226,9 @@ auto ecsact::build_recipe_bundle::create( //
 
 	auto add_simple_buffer =
 		[&](const std::string& path, std::span<const std::byte> buffer) {
+			if(buffer.empty()) {
+				ecsact::cli::report_warning("{} is empty", path);
+			}
 			archive_entry_clear(entry);
 			archive_entry_set_pathname(entry, path.c_str());
 			archive_entry_set_size(entry, buffer.size());
@@ -199,14 +237,27 @@ auto ecsact::build_recipe_bundle::create( //
 			archive_write_data(a.get(), buffer.data(), buffer.size());
 		};
 
+	using source_visitor_result_t =
+		std::variant<build_recipe::source, std::logic_error>;
+
 	auto source_visitor = overloaded{
-		[&](build_recipe::source_fetch src) -> build_recipe::source {
+		[&](build_recipe::source_fetch src) -> source_visitor_result_t {
 			auto src_url = boost::url{src.url};
 			auto src_path_basename = fs::path{src_url.path().c_str()}.filename();
 			auto archive_rel_path =
 				(fs::path{"files"} / src.outdir.value_or(".") / src_path_basename)
 					.lexically_normal();
-			auto file_buffer = download_file(src_url);
+			auto download_result = download_file(src_url);
+			if(!download_result) {
+				return std::logic_error{std::format(
+					"Failed to download {}: {}",
+					src.url,
+					curl_error_message(download_result.error())
+				)};
+			}
+
+			auto file_buffer = *std::move(download_result);
+
 			add_simple_buffer(archive_rel_path.generic_string(), file_buffer);
 
 			return build_recipe::source_path{
@@ -214,10 +265,10 @@ auto ecsact::build_recipe_bundle::create( //
 				.outdir = src.outdir,
 			};
 		},
-		[&](build_recipe::source_codegen src) -> build_recipe::source {
+		[&](build_recipe::source_codegen src) -> source_visitor_result_t {
 			return src;
 		},
-		[&](build_recipe::source_path src) -> build_recipe::source {
+		[&](build_recipe::source_path src) -> source_visitor_result_t {
 			auto src_path_basename = src.path.filename();
 			auto archive_rel_path =
 				(fs::path{"files"} / src.outdir.value_or(".") / src_path_basename)
@@ -234,7 +285,12 @@ auto ecsact::build_recipe_bundle::create( //
 
 	for(auto& source : recipe.sources()) {
 		auto new_source = std::visit(source_visitor, source);
-		new_recipe_sources.emplace_back(std::move(new_source));
+		if(std::holds_alternative<std::logic_error>(new_source)) {
+			return std::get<std::logic_error>(new_source);
+		}
+		new_recipe_sources.emplace_back(
+			std::get<build_recipe::source>(std::move(new_source))
+		);
 	}
 
 	auto new_recipe = recipe.copy();

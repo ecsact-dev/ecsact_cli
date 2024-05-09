@@ -21,6 +21,7 @@
 
 #include "ecsact/cli/report.hh"
 #include "ecsact/cli/detail/download.hh"
+#include "ecsact/cli/commands/codegen/codegen_util.hh"
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
@@ -191,6 +192,48 @@ auto ecsact::build_recipe_bundle::create( //
 			};
 		},
 		[&](build_recipe::source_codegen src) -> source_visitor_result_t {
+			auto new_archive_rel_plugin_paths = std::vector<std::string>{};
+			new_archive_rel_plugin_paths.reserve(src.plugins.size());
+			for(auto plugin : src.plugins) {
+				if(cli::is_default_plugin(plugin)) {
+					new_archive_rel_plugin_paths.emplace_back(plugin);
+					continue;
+				}
+
+				auto plugin_file_path =
+					cli::resolve_plugin_path(cli::resolve_plugin_path_options{
+						.plugin_arg = plugin,
+						.default_plugins_dir = recipe.base_directory(),
+						.additional_plugin_dirs = {recipe.base_directory()},
+					});
+
+				if(!plugin_file_path) {
+					return std::logic_error{
+						std::format("Unable to resolve codegen plugin: {}", plugin)
+					};
+				}
+
+				if(plugin_file_path->extension() != ".wasm") {
+					ecsact::cli::report_warning(
+						"Bundled codegen plugin {} is platform specific. Bundle will only "
+						"work on current platform.",
+						plugin_file_path->filename().string()
+					);
+				}
+
+				auto plugin_file_data = read_file(*plugin_file_path);
+				auto archive_rel_path =
+					(fs::path{"codegen"} / plugin_file_path->filename())
+						.lexically_normal();
+
+				auto& p = new_archive_rel_plugin_paths.emplace_back(
+					archive_rel_path.generic_string()
+				);
+				add_simple_buffer(p, plugin_file_data);
+			}
+
+			src.plugins = new_archive_rel_plugin_paths;
+
 			return src;
 		},
 		[&](build_recipe::source_path src) -> source_visitor_result_t {

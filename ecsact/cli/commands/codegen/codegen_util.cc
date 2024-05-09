@@ -63,7 +63,7 @@ auto ecsact::cli::resolve_plugin_path(
 		}
 	}
 
-	fs::path plugin_path = fs::weakly_canonical(options.plugin_arg);
+	fs::path plugin_path = fs::path(options.plugin_arg).lexically_normal();
 	if(plugin_path.extension().empty()) {
 		plugin_path.replace_extension(current_platform_codegen_plugin_extension());
 	}
@@ -74,6 +74,7 @@ auto ecsact::cli::resolve_plugin_path(
 
 	if(plugin_path.is_relative()) {
 		for(auto dir : options.additional_plugin_dirs) {
+			checked_plugin_paths.emplace_back(dir / plugin_path);
 			if(fs::exists(dir / plugin_path)) {
 				return dir / plugin_path;
 			}

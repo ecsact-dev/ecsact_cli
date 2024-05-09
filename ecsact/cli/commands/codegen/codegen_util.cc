@@ -95,10 +95,15 @@ auto ecsact::cli::resolve_plugin_path( //
 		auto paths_checked_str = std::string{};
 
 		for(auto& checked_path : checked_plugin_paths) {
-			paths_checked_str += std::format( //
-				" - {}\n",
-				fs::relative(checked_path).string()
-			);
+			auto checked_path_str = std::string{};
+			if(std::getenv("BUILD_WORKSPACE_DIRECTORY") != nullptr) {
+				// Easier to follow absolute paths in a bazel run/test environment
+				checked_path_str = fs::absolute(checked_path).generic_string();
+			} else {
+				checked_path_str = fs::relative(checked_path).generic_string();
+			}
+
+			paths_checked_str += std::format(" - {}\n", checked_path_str);
 		}
 		ecsact::cli::report_error(
 			"Unable to find codegen plugin '{}'. Paths checked:\n{}",

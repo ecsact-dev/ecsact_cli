@@ -13,6 +13,12 @@
 namespace fs = std::filesystem;
 using namespace std::string_literals;
 
+static thread_local std::ofstream file_write_stream;
+
+static void file_write_fn(const char* str, int32_t str_len) {
+	file_write_stream << std::string_view(str, str_len);
+}
+
 auto ecsact::cli::codegen(codegen_options options) -> int {
 	auto plugins = std::vector<boost::dll::shared_library>{};
 
@@ -101,9 +107,44 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 		}
 
 		for(auto package_id : package_ids) {
-			plugin_fn(package_id, options.output_write_fn);
-		}
+			fs::path output_file_path = ecsact_meta_package_file_path(package_id);
+			if(output_file_path.empty()) {
+				ecsact::cli::report_error( //
+					"Could not find package source file path from ecsact meta "
+					"file package {}\n",
+					output_file_path.string()
+				);
+				continue;
+			}
 
+			output_file_path.replace_extension(
+				output_file_path.extension().string() + "." + plugin_name
+			);
+
+			if(output_paths.contains(output_file_path.string())) {
+				has_plugin_error = true;
+				ecsact::cli::report_error(
+					"Plugin {} has conflicts with another plugin output file "
+					"{}\n",
+					plugin.location().filename().string(),
+					output_file_path.string()
+				);
+
+				continue;
+			}
+
+			output_paths.emplace(output_file_path.string());
+			if(fs::exists(output_file_path)) {
+				fs::permissions(output_file_path, fs::perms::all);
+			}
+
+			output_file_path = options.outdir / output_file_path.filename();
+
+			file_write_stream.open(output_file_path);
+			plugin_fn(package_id, &file_write_fn);
+			file_write_stream.flush();
+			file_write_stream.close();
+		}
 		plugin.unload();
 	}
 	if(has_plugin_error) {

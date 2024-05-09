@@ -207,6 +207,10 @@ auto ecsact::cli::detail::build_command( //
 
 	auto ec = std::error_code{};
 	fs::remove_all(work_dir, ec);
+	if(ec) {
+		ecsact::cli::report_error("Filesystem remove_all: {}", ec.message());
+		return 1;
+	}
 	fs::create_directories(work_dir, ec);
 
 	for(auto file : files) {

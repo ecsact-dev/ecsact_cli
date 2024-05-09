@@ -110,9 +110,8 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 			fs::path output_file_path = ecsact_meta_package_file_path(package_id);
 			if(output_file_path.empty()) {
 				ecsact::cli::report_error( //
-					"Could not find package source file path from ecsact meta "
-					"file package {}\n",
-					output_file_path.string()
+					"Could not find package source file path from "
+					"ecsact_meta_package_file_path\n "
 				);
 				continue;
 			}

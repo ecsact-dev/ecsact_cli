@@ -189,7 +189,7 @@ static auto handle_source( //
 	auto default_plugins_dir = ecsact::cli::get_default_plugins_dir();
 	auto plugin_paths = std::vector<fs::path>{};
 
-	auto out_dir = fs::path("");
+	auto out_dir = fs::path(options.work_dir);
 
 	if(src.outdir) {
 		auto outdir_path = fs::path(*src.outdir);

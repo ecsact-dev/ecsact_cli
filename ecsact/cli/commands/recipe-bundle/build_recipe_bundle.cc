@@ -203,7 +203,7 @@ auto ecsact::build_recipe_bundle::create( //
 				auto plugin_file_path =
 					cli::resolve_plugin_path(cli::resolve_plugin_path_options{
 						.plugin_arg = plugin,
-						.default_plugins_dir = cli::get_default_plugins_dir(),
+						.default_plugins_dir = recipe.base_directory(),
 						.additional_plugin_dirs = {recipe.base_directory()},
 					});
 

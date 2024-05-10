@@ -22,6 +22,11 @@ auto ecsact::cli::get_compiler_type_by_path( //
 	if(compiler_filename == "clang") {
 		return ecsact::cli::cc_compiler_type::clang;
 	}
+
+	if(compiler_filename == "clang++") {
+		return ecsact::cli::cc_compiler_type::clang;
+	}
+
 	if(compiler_filename == "gcc") {
 		return ecsact::cli::cc_compiler_type::gcc;
 	}

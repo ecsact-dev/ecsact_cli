@@ -1,7 +1,5 @@
-load("@bazel_skylib//rules:native_binary.bzl", "native_test")
 load("@ecsact_cli//bazel:copts.bzl", "copts")
-load("@rules_cc//cc:defs.bzl", "cc_library", "cc_test")
-load("@rules_ecsact//ecsact:defs.bzl", "ecsact_binary", "ecsact_build_recipe")
+load("@rules_cc//cc:defs.bzl", "cc_test")
 
 cc_test(
     name = "test_build_recipe",
@@ -10,8 +8,8 @@ cc_test(
     data = [
         "ecsact_build_test.cc",
         "ecsact_build_test_merge.cc",
-        "test-recipe.yml",
         "test-merge-recipe.yml",
+        "test-recipe.yml",
         "//:test.ecsact",
         "//:test_codegen_plugin",
         "@ecsact_cli",
@@ -21,7 +19,6 @@ cc_test(
             "@llvm_toolchain_llvm//:bin/clang",
         ],
     }),
-    tags = ["no-sandbox"],
     env = select({
         "@platforms//os:windows": {
             "TEST_ECSACT_CLI": "$(rootpath @ecsact_cli)",
@@ -57,6 +54,7 @@ cc_test(
         ],
         "//conditions:default": [],
     }),
+    tags = ["no-sandbox"],
     deps = [
         "@ecsact_cli//ecsact/cli/commands:build",
         "@googletest//:gtest",
@@ -71,8 +69,8 @@ cc_test(
     data = [
         "ecsact_build_test.cc",
         "ecsact_build_test_merge.cc",
-        "test-recipe.yml",
         "test-merge-recipe.yml",
+        "test-recipe.yml",
         "//:test.ecsact",
         "//:test_codegen_plugin",
         "@ecsact_cli",
@@ -82,7 +80,6 @@ cc_test(
             "@llvm_toolchain_llvm//:bin/clang",
         ],
     }),
-    tags = ["no-sandbox"],
     env = select({
         "@platforms//os:windows": {
             "TEST_ECSACT_CLI": "$(rootpath @ecsact_cli)",
@@ -118,6 +115,7 @@ cc_test(
         ],
         "//conditions:default": [],
     }),
+    tags = ["no-sandbox"],
     deps = [
         "@ecsact_cli//ecsact/cli/commands:build",
         "@ecsact_cli//ecsact/cli/commands:recipe-bundle",

@@ -357,6 +357,9 @@ auto clang_gcc_compile(compile_options options) -> int {
 	auto compile_proc_args = std::vector<std::string>{};
 
 	compile_proc_args.push_back("-c");
+	compile_proc_args.push_back("-x");
+	compile_proc_args.push_back("c++");
+
 #if !defined(_WIN32)
 	compile_proc_args.push_back("-fPIC");
 #endif

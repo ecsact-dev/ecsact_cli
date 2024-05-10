@@ -49,7 +49,7 @@ TEST(Build, Success) {
 		std::format("--recipe={}", test_build_recipe_path),
 		std::format("--recipe={}", test_build_merge_recipe_path),
 		"--output=test_ecsact_runtime_merged"s,
-		"--temp_dir=_test_build_recipe_temp"s,
+		"--temp_dir=_test_build_recipe_temp2"s,
 	});
 
 	ASSERT_EQ(exit_code, 0);

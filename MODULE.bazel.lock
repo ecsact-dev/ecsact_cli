@@ -1,6 +1,6 @@
 {
   "lockFileVersion": 6,
-  "moduleFileHash": "c62b6d2c2e2c47caab0e46f6448fd8b966c7c5e3d3abc3aea392269959499e7f",
+  "moduleFileHash": "08cc9baad36357ce35927eb54ed822cc90870c21a0e16fda59f43b428a2b9c5d",
   "flags": {
     "cmdRegistries": [
       "https://raw.githubusercontent.com/ecsact-dev/bazel_registry/main",
@@ -70,7 +70,7 @@
         "bazel_skylib": "bazel_skylib@1.6.1",
         "ecsact_parse": "ecsact_parse@0.4.0",
         "ecsact_runtime": "ecsact_runtime@0.6.1",
-        "ecsact_interpret": "ecsact_interpret@0.6.0",
+        "ecsact_interpret": "ecsact_interpret@0.6.1",
         "ecsact_codegen": "ecsact_codegen@0.2.0",
         "boost.dll": "boost.dll@1.83.0.bzl.2",
         "magic_enum": "magic_enum@0.9.3",
@@ -333,10 +333,10 @@
         }
       }
     },
-    "ecsact_interpret@0.6.0": {
+    "ecsact_interpret@0.6.1": {
       "name": "ecsact_interpret",
-      "version": "0.6.0",
-      "key": "ecsact_interpret@0.6.0",
+      "version": "0.6.1",
+      "key": "ecsact_interpret@0.6.1",
       "repoName": "ecsact_interpret",
       "executionPlatformsToRegister": [],
       "toolchainsToRegister": [],
@@ -355,9 +355,9 @@
         "ruleClassName": "http_archive",
         "attributes": {
           "urls": [
-            "https://github.com/ecsact-dev/ecsact_interpret/releases/download/0.6.0/ecsact_interpret-0.6.0.tar.gz"
+            "https://github.com/ecsact-dev/ecsact_interpret/releases/download/0.6.1/ecsact_interpret-0.6.1.tar.gz"
           ],
-          "integrity": "sha256-YDtn32eLL0JDIGBSelHroEiIBaS2tBjnXsVyn3Cuf18=",
+          "integrity": "sha256-1aW5PB3CmxlhNCtu9Q4pXk+Udh3eoyPF8mkY6fwS1Zk=",
           "strip_prefix": "",
           "remote_patches": {},
           "remote_patch_strip": 0
@@ -4343,7 +4343,7 @@
     },
     "@@rules_foreign_cc~//foreign_cc:extensions.bzl%ext": {
       "general": {
-        "bzlTransitiveDigest": "QbxK92//k6c63fpMer2Lkk6224s9gwYoVFFS6mdkucI=",
+        "bzlTransitiveDigest": "0/GTFp9D0gb6hOu9jXXnaWa5hPbzPpIzLVxITdJTwvo=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -4614,7 +4614,7 @@
     },
     "@@rules_java~//java:extensions.bzl%toolchains": {
       "general": {
-        "bzlTransitiveDigest": "tJHbmWnq7m+9eUBnUdv7jZziQ26FmcGL9C5/hU3Q9UQ=",
+        "bzlTransitiveDigest": "0N5b5J9fUzo0sgvH4F3kIEaeXunz4Wy2/UtSFV/eXUY=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -6169,7 +6169,7 @@
     },
     "@@rules_python~//python/extensions:python.bzl%python": {
       "general": {
-        "bzlTransitiveDigest": "mh86AsACwkNSoqpB2hzQpecNE0j+gb57EL0ZjxD3ZRE=",
+        "bzlTransitiveDigest": "IMdPzfoNLlz06lDUvDoajmn/Uz0yQDmK1+WG+jfMMNE=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},
@@ -6479,7 +6479,7 @@
     },
     "@@toolchains_llvm~//toolchain/extensions:llvm.bzl%llvm": {
       "general": {
-        "bzlTransitiveDigest": "rdQ1nlqTcj0kPoX7LxaygMQPcdnBPV85jNsRMF1M/Hw=",
+        "bzlTransitiveDigest": "S0z5hqi5KbDjXVFL5scNHSTTjB1/WWgKnGICpMb8kok=",
         "recordedFileInputs": {},
         "recordedDirentsInputs": {},
         "envVariables": {},

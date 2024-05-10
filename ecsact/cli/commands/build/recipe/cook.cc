@@ -189,6 +189,13 @@ static auto handle_source( //
 	auto default_plugins_dir = ecsact::cli::get_default_plugins_dir();
 	auto plugin_paths = std::vector<fs::path>{};
 
+	auto out_dir = fs::path(options.work_dir);
+
+	if(src.outdir) {
+		auto outdir_path = fs::path(*src.outdir);
+		out_dir = options.work_dir / outdir_path;
+	}
+
 	for(auto plugin : src.plugins) {
 		auto plugin_path = ecsact::cli::resolve_plugin_path({
 			.plugin_arg = plugin,
@@ -199,11 +206,13 @@ static auto handle_source( //
 		if(!plugin_path) {
 			return 1;
 		}
+
+		plugin_paths.push_back(*plugin_path);
 	}
 
 	auto exit_code = ecsact::cli::codegen({
 		.plugin_paths = plugin_paths,
-		.outdir = src.outdir ? *src.outdir : "",
+		.outdir = out_dir,
 	});
 
 	return exit_code;

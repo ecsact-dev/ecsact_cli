@@ -11,6 +11,7 @@
 #include "docopt.h"
 #include "magic_enum.hpp"
 #include "ecsact/interpret/eval.hh"
+#include "ecsact/runtime/dynamic.h"
 #include "ecsact/runtime/meta.hh"
 #include "ecsact/cli/report.hh"
 #include "ecsact/cli/detail/argv0.hh"
@@ -207,6 +208,13 @@ auto ecsact::cli::detail::build_command( //
 
 	auto ec = std::error_code{};
 	fs::remove_all(work_dir, ec);
+	if(ec) {
+		ecsact::cli::report_error(
+			"Failed to clear work directory: {}",
+			ec.message()
+		);
+		return 1;
+	}
 	fs::create_directories(work_dir, ec);
 
 	for(auto file : files) {
@@ -218,6 +226,9 @@ auto ecsact::cli::detail::build_command( //
 		file_paths.emplace_back(file);
 	}
 
+	if(auto main_pkg_id = ecsact::meta::main_package(); main_pkg_id) {
+		ecsact_destroy_package(*main_pkg_id);
+	}
 	auto eval_errors = ecsact::eval_files(file_paths);
 
 	if(!eval_errors.empty()) {

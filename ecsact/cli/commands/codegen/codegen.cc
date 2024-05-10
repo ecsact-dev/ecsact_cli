@@ -125,7 +125,7 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 				has_plugin_error = true;
 				ecsact::cli::report_error( //
 					"Could not find package source file path from "
-					"ecsact_meta_package_file_path\n "
+					"ecsact_meta_package_file_path"
 				);
 				continue;
 			}

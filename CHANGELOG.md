@@ -2,6 +2,20 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.5 - 2024-05-10
+#### Bug Fixes
+- error handling for codegen and recipe plugins work (#92) - (967aed2) - Austin Kelway
+#### Features
+- **(build)** merge multiple build recipes (#84) - (cc68d8d) - Ezekiel Warren
+- support bundled codegen plugins (#90) - (9e666df) - Ezekiel Warren
+- better error output when running with bazel (#91) - (df45dca) - Ezekiel Warren
+- recipe bundle command (#85) - (b17ce9c) - Ezekiel Warren
+#### Miscellaneous Chores
+- **(deps)** update dependency bazel to v7.1.2 (#89) - (249211c) - renovate[bot]
+- **(deps)** update dependency curl to v8.4.0.bcr.1 (#83) - (b99cc9d) - renovate[bot]
+
+- - -
+
 ## 0.3.4 - 2024-04-04
 #### Bug Fixes
 - intermediate-dir for msvc cl (#80) - (f6dae10) - Ezekiel Warren

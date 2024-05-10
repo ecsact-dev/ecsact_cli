@@ -149,7 +149,6 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 
 				continue;
 			}
-
 			output_paths.emplace(output_file_path.string(), plugin_name);
 			if(fs::exists(output_file_path)) {
 				fs::permissions(output_file_path, fs::perms::all);

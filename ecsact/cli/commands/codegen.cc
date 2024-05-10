@@ -10,7 +10,8 @@
 #include <boost/dll/library_info.hpp>
 #include "docopt.h"
 #include "ecsact/interpret/eval.hh"
-#include "ecsact/runtime/meta.h"
+#include "ecsact/runtime/dynamic.h"
+#include "ecsact/runtime/meta.hh"
 #include "ecsact/runtime/dylib.h"
 #include "ecsact/codegen/plugin.h"
 #include "ecsact/codegen/plugin_validate.hh"
@@ -118,6 +119,9 @@ int ecsact::cli::detail::codegen_command(int argc, const char* argv[]) {
 		return 1;
 	}
 
+	if(auto main_pkg_id = ecsact::meta::main_package(); main_pkg_id) {
+		ecsact_destroy_package(*main_pkg_id);
+	}
 	auto eval_errors = ecsact::eval_files(files);
 	if(!eval_errors.empty()) {
 		for(auto& eval_err : eval_errors) {

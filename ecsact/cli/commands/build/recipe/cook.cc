@@ -393,6 +393,8 @@ auto clang_gcc_compile(compile_options options) -> int {
 		return 1;
 	}
 
+	compile_proc_args.push_back("-DECSACT_BUILD");
+
 	for(auto def : generated_defines) {
 		compile_proc_args.push_back(std::format("-D{}", def));
 	}
@@ -504,6 +506,7 @@ auto cl_compile(compile_options options) -> int {
 	cl_args.push_back("/nologo");
 	cl_args.push_back("/std:c++20");
 	cl_args.push_back("/diagnostics:column");
+	cl_args.push_back("/DECSACT_BUILD");
 
 	// TODO(zaucy): Add debug mode
 	// if(options.debug) {

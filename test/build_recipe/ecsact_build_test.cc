@@ -3,6 +3,11 @@
 
 #include "local_dep.hh"
 
+// This define is _always_ defined when using the Ecsact CLI build command
+#ifndef ECSACT_BUILD
+#	error "This test should only have been built through 'ecsact build'"
+#endif
+
 ecsact_registry_id ecsact_create_registry( //
 	const char*
 ) {

@@ -15,9 +15,9 @@ jobs:
             ~/.cache/bazel-disk-cache
           key: ${{runner.os}}-bazel-cache
       - uses: actions/checkout@v4
-      - run: 'bazel build --config=ci //:ecsact_cli'
-      - run: 'cp ./bazel-bin/ecsact/cli/ecsact ecsact_${{ github.ref_name }}_linux_x64'
-      - run: 'gh release upload ${{ github.ref_name }} ecsact_${{ github.ref_name }}_linux_x64'
+      - run: "bazel build --config=ci //:ecsact_cli"
+      - run: "cp ./bazel-bin/ecsact/cli/ecsact ecsact_${{ github.ref_name }}_linux_x64"
+      - run: "gh release upload ${{ github.ref_name }} ecsact_${{ github.ref_name }}_linux_x64"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OWNER: ${{ github.repository_owner }}
@@ -33,9 +33,9 @@ jobs:
             /Users/runneradmin/.cache/bazel-disk-cache
           key: ${{runner.os}}-bazel-cache
       - uses: actions/checkout@v4
-      - run: 'bazel build --config=ci //:ecsact_cli'
+      - run: "bazel build --config=ci //:ecsact_cli"
       - run: 'Copy-Item .\bazel-bin\ecsact\cli\ecsact.exe -Destination .\ecsact_${{ github.ref_name }}_windows_x64.exe'
-      - run: 'gh release upload ${{ github.ref_name }} ./ecsact_${{ github.ref_name }}_windows_x64.exe'
+      - run: "gh release upload ${{ github.ref_name }} ./ecsact_${{ github.ref_name }}_windows_x64.exe"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OWNER: ${{ github.repository_owner }}

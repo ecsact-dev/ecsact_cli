@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.7 - 2024-05-17
+#### Features
+- always build with ECSACT_BUILD define (#98) - (dd252ff) - Ezekiel Warren
+
+- - -
+
 ## 0.3.6 - 2024-05-10
 #### Bug Fixes
 - force clang to compile in c++ (#97) - (c0203cd) - Austin Kelway

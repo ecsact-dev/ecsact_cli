@@ -344,6 +344,7 @@ struct compile_options {
 	fs::path                 output_path;
 	std::vector<std::string> imports;
 	std::vector<std::string> exports;
+	bool                     debug;
 };
 
 auto clang_gcc_compile(compile_options options) -> int {
@@ -562,6 +563,9 @@ auto cl_compile(compile_options options) -> int {
 	}
 
 	cl_args.push_back("/link");
+	if(options.debug) {
+		cl_args.push_back("/DEBUG");
+	}
 	cl_args.push_back("/DLL");
 
 	for(auto lib_dir : options.compiler.std_lib_paths) {
@@ -769,6 +773,7 @@ auto ecsact::cli::cook_recipe( //
 			.output_path = output_path,
 			.imports = as_vec(recipe.imports()),
 			.exports = as_vec(recipe.exports()),
+			.debug = recipe_options.debug,
 		});
 	} else {
 		exit_code = clang_gcc_compile({
@@ -780,6 +785,7 @@ auto ecsact::cli::cook_recipe( //
 			.output_path = output_path,
 			.imports = as_vec(recipe.imports()),
 			.exports = as_vec(recipe.exports()),
+			.debug = recipe_options.debug,
 		});
 	}
 

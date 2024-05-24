@@ -32,7 +32,7 @@ constexpr auto USAGE = R"docopt(Ecsact Build Command
 
 Usage:
   ecsact build (-h | --help)
-  ecsact build <files>... --recipe=<name>... --output=<path> [--allow-unresolved-imports] [--format=<type>] [--temp_dir=<path>] [--compiler_config=<path>] [--report_filter=<filter>]
+  ecsact build <files>... --recipe=<name>... --output=<path> [--allow-unresolved-imports] [--format=<type>] [--temp_dir=<path>] [--compiler_config=<path>] [--report_filter=<filter>] [--debug]
 
 Options:
   <files>                   Ecsact files used to build Ecsact Runtime
@@ -42,6 +42,7 @@ Options:
 	--compiler_config=<path>  Optionally specify the compiler by name or path
   -f --format=<type>        The format used to report progress of the build [default: text]
 	--report_filter=<filter>  Filtering out report logs [default: none]
+    --debug                 Compile with debug symbols
 )docopt";
 
 // TODO(zaucy): Add this documentation to docopt (msvc regex fails)
@@ -289,6 +290,7 @@ auto ecsact::cli::detail::build_command( //
 		.files = file_paths,
 		.work_dir = work_dir,
 		.output_path = output_path,
+		.debug = args["--debug"].asBool(),
 		.additional_plugin_dirs = additional_plugin_dirs,
 	};
 	auto runtime_output_path =

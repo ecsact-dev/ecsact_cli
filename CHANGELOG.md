@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.9 - 2024-05-27
+#### Features
+- Add experimental lib for par_unseq foreach (#103) - (f293d41) - Austin Kelway
+
+- - -
+
 ## 0.3.8 - 2024-05-27
 #### Features
 - add debug flag (#102) - (8ce5d71) - Austin Kelway

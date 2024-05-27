@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.8 - 2024-05-27
+#### Features
+- add debug flag (#102) - (8ce5d71) - Austin Kelway
+#### Miscellaneous Chores
+- ignore bazel lock files - (04e25f9) - Ezekiel Warren
+- sync with ecsact_common (#81) - (e458c22) - seaubot
+
+- - -
+
 ## 0.3.7 - 2024-05-17
 #### Features
 - always build with ECSACT_BUILD define (#98) - (dd252ff) - Ezekiel Warren

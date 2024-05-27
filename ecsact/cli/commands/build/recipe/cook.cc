@@ -363,6 +363,7 @@ auto clang_gcc_compile(compile_options options) -> int {
 
 #if !defined(_WIN32)
 	compile_proc_args.push_back("-fPIC");
+	compile_proc_args.push_back("-fexperimental-library");
 #endif
 	compile_proc_args.push_back("-std=c++20");
 	compile_proc_args.push_back("-stdlib=libc++");

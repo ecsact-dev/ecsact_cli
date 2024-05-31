@@ -204,11 +204,27 @@ static auto parse_sources( //
 				result.emplace_back(entry);
 			} else if(fetch) {
 				auto outdir = std::optional<std::string>{};
+				auto integrity = std::optional<std::string>{};
+				auto strip_prefix = std::optional<std::string>{};
+				if(src["integrity"]) {
+					integrity = src["integrity"].as<std::string>();
+					if(integrity->empty()) {
+						integrity = {};
+					}
+				}
+				if(src["strip_prefix"]) {
+					strip_prefix = src["strip_prefix"].as<std::string>();
+					if(strip_prefix->empty()) {
+						strip_prefix = {};
+					}
+				}
 				if(src["outdir"]) {
 					outdir = src["outdir"].as<std::string>();
 				}
 				result.emplace_back(source_fetch{
 					.url = fetch.as<std::string>(),
+					.integrity = integrity,
+					.strip_prefix = strip_prefix,
 					.outdir = outdir,
 				});
 			} else if(path) {

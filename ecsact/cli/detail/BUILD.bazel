@@ -14,6 +14,16 @@ cc_library(
 )
 
 cc_library(
+    name = "archive",
+    srcs = ["archive.cc"],
+    hdrs = ["archive.hh"],
+    copts = copts,
+    deps = [
+        "@libarchive//libarchive",
+    ],
+)
+
+cc_library(
     name = "download",
     srcs = ["download.cc"],
     hdrs = ["download.hh"],

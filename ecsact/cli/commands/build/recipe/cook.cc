@@ -6,6 +6,7 @@
 #include <string>
 #include <fstream>
 #include <cstdio>
+#include <set>
 #include <curl/curl.h>
 #undef fopen
 #include <boost/url.hpp>
@@ -17,13 +18,20 @@
 #include "ecsact/cli/commands/codegen/codegen.hh"
 #include "ecsact/cli/commands/codegen/codegen_util.hh"
 #include "ecsact/cli/commands/build/get_modules.hh"
+#include "ecsact/cli/commands/build/recipe/integrity.hh"
 #include "ecsact/cli/report.hh"
 #include "ecsact/cli/detail/argv0.hh"
+#include "ecsact/cli/detail/download.hh"
+#include "ecsact/cli/detail/archive.hh"
 #ifndef ECSACT_CLI_USE_SDK_VERSION
 #	include "tools/cpp/runfiles/runfiles.h"
 #endif
 
 using ecsact::cli::message_variant_t;
+using ecsact::cli::report_error;
+using ecsact::cli::report_warning;
+using ecsact::cli::detail::download_file;
+using ecsact::cli::detail::integrity;
 
 namespace fs = std::filesystem;
 
@@ -47,82 +55,6 @@ static auto fetch_write_file_fn(
 	void*  out_file
 ) -> size_t {
 	return fwrite(data, size, nmemb, static_cast<FILE*>(out_file));
-}
-
-[[maybe_unused]]
-static auto download_file_with_curl_cli( //
-	boost::url url,
-	fs::path   out_file_path
-) -> int {
-	auto curl = ecsact::cli::detail::which("curl");
-
-	if(!curl) {
-		ecsact::cli::report_error("Cannot find 'curl' in your PATH");
-		return 1;
-	}
-
-	return ecsact::cli::detail::spawn_and_report_output(
-		*curl,
-		std::vector{
-			std::string{url.c_str()},
-			"--silent"s,
-			"--output"s,
-			out_file_path.string(),
-		}
-	);
-}
-
-[[maybe_unused]]
-static auto download_file_with_libcurl( //
-	boost::url url,
-	fs::path   out_file_path
-) -> int {
-	curl_global_init(CURL_GLOBAL_ALL);
-	auto curl = curl_easy_init();
-
-	curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-	auto out_file = fopen(out_file_path.string().c_str(), "wb");
-
-	if(!out_file) {
-		ecsact::cli::report_error("failed to open {}", out_file_path.string());
-		return 1;
-	}
-
-	curl_easy_setopt(curl, CURLOPT_WRITEDATA, out_file);
-	curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, fetch_write_file_fn);
-
-	ecsact::cli::report_info(
-		"downloading {} -> {}",
-		std::string{url.c_str()},
-		out_file_path.string()
-	);
-	auto res = curl_easy_perform(curl);
-
-	fclose(out_file);
-
-	curl_easy_cleanup(curl);
-	curl_global_cleanup();
-
-	if(res != CURLE_OK) {
-		ecsact::cli::report_error(
-			"failed to download {} ({})",
-			std::string{url.c_str()},
-			magic_enum::enum_name(res)
-		);
-		return 1;
-	}
-
-	return 0;
-}
-
-static auto download_file(boost::url url, fs::path out_file_path) -> int {
-// NOTE: temporary until curl in the BCR supports SSL
-// SEE: https://github.com/bazelbuild/bazel-central-registry/pull/1666
-#if defined(_WIN32) && !defined(ECSACT_CLI_USE_CURL_CLI)
-	return download_file_with_libcurl(url, out_file_path);
-#else
-	return download_file_with_curl_cli(url, out_file_path);
-#endif
 }
 
 static auto is_cpp_file(fs::path p) -> bool {
@@ -156,6 +88,23 @@ static auto is_cpp_file(fs::path p) -> bool {
 	return false;
 }
 
+static auto is_archive(std::string_view pathlike) -> bool {
+	constexpr auto valid_suffix = std::array{
+		".tar.gz"sv,
+		".tgz"sv,
+		".zip"sv,
+		".tar.xz"sv,
+	};
+
+	for(auto suffix : valid_suffix) {
+		if(pathlike.ends_with(suffix)) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 static auto handle_source( //
 	ecsact::build_recipe::source_fetch      src,
 	const ecsact::cli::cook_recipe_options& options
@@ -164,22 +113,93 @@ static auto handle_source( //
 		? options.work_dir / *src.outdir
 		: options.work_dir;
 	auto url = boost::url{src.url};
-	auto out_file_path = outdir / fs::path{url.path().c_str()}.filename();
+	auto created_out_dirs = std::set<std::string>{};
 
-	if(!fs::exists(out_file_path.parent_path())) {
+	auto ensure_dir = [&created_out_dirs](fs::path p) -> int {
+		auto dir = p.parent_path();
+		if(created_out_dirs.contains(dir.generic_string())) {
+			return 0;
+		}
+
 		auto ec = std::error_code{};
-		fs::create_directories(out_file_path.parent_path(), ec);
+		fs::create_directories(dir, ec);
 		if(ec) {
 			ecsact::cli::report_error(
 				"failed to create dir {}: {}",
-				out_file_path.parent_path().string(),
+				dir.string(),
 				ec.message()
 			);
 			return 1;
 		}
+
+		created_out_dirs.insert(dir.generic_string());
+		return 0;
+	};
+
+	auto src_integrity = std::optional<integrity>{};
+	if(src.integrity) {
+		src_integrity = integrity::from_string(*src.integrity);
+		if(!*src_integrity) {
+			report_error("unknown or invalid integrity string: {}", *src.integrity);
+			return 1;
+		}
 	}
 
-	return download_file(url, out_file_path);
+	auto downloaded_data = download_file(src.url);
+	if(!downloaded_data) {
+		report_error(
+			"failed to download {}: {}",
+			src.url,
+			downloaded_data.error().what()
+		);
+		return 1;
+	}
+	auto downloaded_data_integrity = integrity::from_bytes(
+		src_integrity ? src_integrity->kind() : integrity::sha256,
+		std::span{downloaded_data->data(), downloaded_data->size()}
+	);
+
+	if(src_integrity) {
+		if(*src_integrity != downloaded_data_integrity) {
+			report_warning(
+				"{} integrity is {} and was expected to be {}",
+				src.url,
+				downloaded_data_integrity.to_string(),
+				src_integrity->to_string()
+			);
+			return 1;
+		}
+	} else {
+		report_warning(
+			"{} integrity is {}",
+			src.url,
+			downloaded_data_integrity.to_string()
+		);
+	}
+
+	if(is_archive(src.url)) {
+		ecsact::cli::detail::read_archive(
+			*downloaded_data,
+			[&](std::string_view path, std::span<std::byte> data) {
+				ecsact::cli::report_info(
+					"archive path={} data.size={}",
+					path,
+					data.size()
+				);
+				auto out_file_path = outdir / fs::path{path};
+				ensure_dir(out_file_path);
+				// TODO(zaucy): Write the file to the out directory!
+				// TODO(zaucy): strip prefix
+			}
+		);
+	} else {
+		auto out_file_path = outdir / fs::path{url.path().c_str()}.filename();
+		ensure_dir(out_file_path);
+		// TODO(zaucy): Write the file to the out directory!
+		// TODO(zaucy): strip prefix
+	}
+
+	return 0;
 }
 
 static auto handle_source( //

@@ -17,6 +17,16 @@ cc_library(
 )
 
 cc_library(
+    name = "integrity",
+    copts = copts,
+    srcs = ["integrity.cc"],
+    hdrs = ["integrity.hh"],
+    deps = [
+        "@boringssl//:crypto",
+    ],
+)
+
+cc_library(
     name = "cook",
     copts = copts,
     srcs = ["cook.cc"],
@@ -32,8 +42,11 @@ cc_library(
         "//conditions:default": [],
     }),
     deps = [
+        ":integrity",
         "//ecsact/cli:report",
         "//ecsact/cli/detail:argv0",
+        "//ecsact/cli/detail:download",
+        "//ecsact/cli/detail:archive",
         "//ecsact/cli/commands/build:build_recipe",
         "//ecsact/cli/commands/build:cc_compiler_config",
         "//ecsact/cli/commands/build:cc_defines_gen",

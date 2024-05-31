@@ -44,6 +44,8 @@ public:
 
 	struct source_fetch {
 		std::string                url;
+		std::optional<std::string> integrity;
+		std::optional<std::string> strip_prefix;
 		std::optional<std::string> outdir;
 	};
 

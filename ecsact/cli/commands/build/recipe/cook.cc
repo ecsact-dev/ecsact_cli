@@ -105,6 +105,13 @@ static auto is_archive(std::string_view pathlike) -> bool {
 	return false;
 }
 
+static auto write_file(fs::path path, std::span<std::byte> data) -> void {
+	auto file = std::ofstream(path, std::ios_base::binary | std::ios_base::trunc);
+	assert(file);
+
+	file.write(reinterpret_cast<const char*>(data.data()), data.size());
+}
+
 static auto handle_source( //
 	ecsact::build_recipe::source_fetch      src,
 	const ecsact::cli::cook_recipe_options& options
@@ -186,17 +193,26 @@ static auto handle_source( //
 					path,
 					data.size()
 				);
+				if(src.strip_prefix) {
+					if(path.starts_with(*src.strip_prefix)) {
+						path = path.substr(src.strip_prefix->size());
+					}
+				}
 				auto out_file_path = outdir / fs::path{path};
 				ensure_dir(out_file_path);
-				// TODO(zaucy): Write the file to the out directory!
-				// TODO(zaucy): strip prefix
+				write_file(out_file_path, *downloaded_data);
 			}
 		);
 	} else {
-		auto out_file_path = outdir / fs::path{url.path().c_str()}.filename();
+		auto path = std::string{url.path().c_str()};
+		if(src.strip_prefix) {
+			if(path.starts_with(*src.strip_prefix)) {
+				path = path.substr(src.strip_prefix->size());
+			}
+		}
+		auto out_file_path = outdir / fs::path{path}.filename();
 		ensure_dir(out_file_path);
-		// TODO(zaucy): Write the file to the out directory!
-		// TODO(zaucy): strip prefix
+		write_file(out_file_path, *downloaded_data);
 	}
 
 	return 0;

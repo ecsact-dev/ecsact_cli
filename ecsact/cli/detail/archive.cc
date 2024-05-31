@@ -66,7 +66,7 @@ auto ecsact::cli::detail::read_archive( //
 			throw archive_error_as_logic_error(a.get());
 		}
 
-		auto path = archive_entry_pathname(entry);
+		auto path = std::string_view{archive_entry_pathname(entry)};
 		auto size = archive_entry_size(entry);
 
 		if(size == 0) {
@@ -78,6 +78,10 @@ auto ecsact::cli::detail::read_archive( //
 
 		if(read_size != size) {
 			throw std::logic_error{std::format("Failed to read {}", path)};
+		}
+
+		if(path.starts_with("/")) {
+			path = path.substr(1);
 		}
 
 		read_callback(path, std::span{data.data(), data.size()});

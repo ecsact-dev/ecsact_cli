@@ -2,6 +2,15 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.10 - 2024-06-01
+#### Features
+- fetch archive, fetch integrity checks, and globbing (#104) - (88f6b34) - Ezekiel Warren
+- update ecsact interpreter (#105) - (3a7ebca) - Ezekiel Warren
+#### Miscellaneous Chores
+- remove bazel lock file - (ffbc2cf) - Ezekiel Warren
+
+- - -
+
 ## 0.3.9 - 2024-05-27
 #### Features
 - Add experimental lib for par_unseq foreach (#103) - (f293d41) - Austin Kelway

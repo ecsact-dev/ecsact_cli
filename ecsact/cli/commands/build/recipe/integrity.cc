@@ -5,6 +5,7 @@
 #include <format>
 #include <tuple>
 #include <openssl/sha.h>
+#include <openssl/base64.h>
 
 using namespace std::string_view_literals;
 
@@ -46,16 +47,15 @@ auto ecsact::cli::detail::integrity::from_bytes( //
 auto ecsact::cli::detail::integrity::from_string( //
 	std::string_view str
 ) -> integrity {
-	if(str.starts_with(integrity_sha256::string_suffix())) {
+	if(str.starts_with(integrity_sha256::string_prefix())) {
 		auto result = integrity_sha256{};
 		auto integrity_bytes_str =
-			std::string{str.substr(integrity_sha256::string_suffix().size())};
-		auto ss = std::istringstream{integrity_bytes_str};
-		for(int i = 0; i < result._data.size(); i++) {
-			auto byte = int{};
-			ss >> std::hex >> std::setw(2) >> byte;
-			result._data[i] = static_cast<std::byte>(byte);
-		}
+			str.substr(integrity_sha256::string_prefix().size());
+		EVP_DecodeBlock(
+			reinterpret_cast<uint8_t*>(result._data.data()),
+			reinterpret_cast<const uint8_t*>(integrity_bytes_str.data()),
+			integrity_bytes_str.size()
+		);
 		return result;
 	}
 
@@ -63,9 +63,14 @@ auto ecsact::cli::detail::integrity::from_string( //
 }
 
 auto ecsact::cli::detail::integrity_sha256::to_string() const -> std::string {
-	auto ss = std::ostringstream{};
-	for(int i = 0; i < _data.size(); i++) {
-		ss << std::hex << std::setw(2) << (int)_data[i];
-	}
-	return std::format("sha256-{}", ss.str());
+	auto output = std::string{integrity_sha256::string_prefix()};
+	output.resize(output.size() + (_data.size() * 4));
+	EVP_EncodeBlock(
+		reinterpret_cast<uint8_t*>(
+			output.data() + integrity_sha256::string_prefix().size()
+		),
+		reinterpret_cast<const uint8_t*>(_data.data()),
+		_data.size()
+	);
+	return output;
 }

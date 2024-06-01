@@ -35,7 +35,7 @@ struct integrity_unknown {
 };
 
 struct integrity_sha256 {
-	static constexpr auto string_suffix() -> std::string_view {
+	static constexpr auto string_prefix() -> std::string_view {
 		return "sha256-";
 	}
 

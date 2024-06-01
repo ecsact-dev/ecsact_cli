@@ -35,6 +35,7 @@ using ecsact::cli::detail::download_file;
 using ecsact::cli::detail::expand_path_globs;
 using ecsact::cli::detail::integrity;
 using ecsact::cli::detail::path_before_glob;
+using ecsact::cli::detail::path_matches_glob;
 using ecsact::cli::detail::path_strip_prefix;
 
 namespace fs = std::filesystem;
@@ -202,9 +203,24 @@ static auto handle_source( //
 						path = path.substr(src.strip_prefix->size());
 					}
 				}
-				auto out_file_path = outdir / fs::path{path};
-				ensure_dir(out_file_path);
-				write_file(out_file_path, *downloaded_data);
+				if(src.paths) {
+					for(auto glob : *src.paths) {
+						if(path_matches_glob(path, glob)) {
+							auto before_glob = path_before_glob(glob);
+							auto rel_outdir = outdir;
+							if(auto stripped = path_strip_prefix(path, before_glob)) {
+								rel_outdir = outdir / *stripped;
+							}
+							auto out_file_path = rel_outdir / fs::path{path};
+							ensure_dir(out_file_path);
+							write_file(out_file_path, data);
+						}
+					}
+				} else {
+					auto out_file_path = outdir / fs::path{path};
+					ensure_dir(out_file_path);
+					write_file(out_file_path, data);
+				}
 			}
 		);
 	} else {

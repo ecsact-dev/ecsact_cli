@@ -5,6 +5,7 @@
 
 using ecsact::cli::detail::expand_path_globs;
 using ecsact::cli::detail::path_before_glob;
+using ecsact::cli::detail::path_matches_glob;
 using std::ranges::find;
 
 namespace fs = std::filesystem;
@@ -115,4 +116,16 @@ TEST(Glob, PathBeforeGlob) {
 	ASSERT_EQ(path_before_glob("a/b/*").generic_string(), "a/b");
 	ASSERT_EQ(path_before_glob("a/b/*.txt/c/*.d").generic_string(), "a/b");
 	ASSERT_EQ(path_before_glob("a/b/c.txt").generic_string(), "a/b/c.txt");
+}
+
+TEST(Glob, GlobMatch) {
+	EXPECT_TRUE(path_matches_glob("a/b/c", "a/b/*"));
+	EXPECT_TRUE(path_matches_glob("a/b/c.txt", "a/b/*.txt"));
+	EXPECT_TRUE(path_matches_glob("a/b/c", "a/b/**"));
+	EXPECT_TRUE(path_matches_glob("a/b/c/d/e", "a/b/**"));
+	EXPECT_TRUE(path_matches_glob("a/b/c/d/e.txt", "a/b/**.txt"));
+	EXPECT_TRUE(path_matches_glob("a/b/c", "**"));
+
+	EXPECT_FALSE(path_matches_glob("a/z/c", "a/b/*"));
+	EXPECT_FALSE(path_matches_glob("z/b/c/d/e.txt", "a/b/**.txt"));
 }

@@ -15,6 +15,11 @@ auto expand_path_globs( //
 	std::error_code&      ec
 ) -> std::vector<std::filesystem::path>;
 
+auto path_matches_glob(
+	const std::filesystem::path& p,
+	const std::filesystem::path& glob_pattern
+) -> bool;
+
 #pragma clang diagnostic push
 #pragma clang diagnostic ignored "-Wcomment"
 /**

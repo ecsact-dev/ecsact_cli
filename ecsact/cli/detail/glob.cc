@@ -98,6 +98,38 @@ auto ecsact::cli::detail::expand_path_globs( //
 	return result;
 }
 
+auto ecsact::cli::detail::path_matches_glob(
+	const std::filesystem::path& p,
+	const std::filesystem::path& glob_pattern
+) -> bool {
+	auto p_itr = p.begin();
+	auto glob_itr = glob_pattern.begin();
+
+	for(; p_itr != p.end() && glob_itr != glob_pattern.end();
+			++p_itr, ++glob_itr) {
+		if(*p_itr == *glob_itr) {
+			continue;
+		}
+
+		auto glob_comp_str = glob_itr->string();
+		if(glob_comp_str.starts_with(recursive_wildcard)) {
+			auto filename_suffix = glob_comp_str.substr(recursive_wildcard.size());
+			if(p_itr->string().ends_with(filename_suffix)) {
+				return true;
+			}
+		} else if(glob_comp_str.starts_with(wildcard)) {
+			auto filename_suffix = glob_comp_str.substr(wildcard.size());
+			if(!p_itr->string().ends_with(filename_suffix)) {
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+
+	return glob_itr == glob_pattern.end();
+}
+
 auto ecsact::cli::detail::path_before_glob(fs::path p) -> fs::path {
 	auto itr = p.begin();
 	for(; itr != p.end(); ++itr) {

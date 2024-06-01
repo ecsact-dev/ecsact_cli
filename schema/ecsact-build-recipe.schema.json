@@ -67,6 +67,12 @@
                 "type": "string",
                 "description": "URL to source file that will be downloaded"
               },
+              "integrity": {
+                "type": "string"
+              },
+              "strip_prefix": {
+                "type": "sting"
+              },
               "outdir": {
                 "type": "string",
                 "description": "Directory the fetched file(s) are downloaded to"

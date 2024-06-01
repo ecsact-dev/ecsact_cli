@@ -14,6 +14,16 @@ cc_library(
 )
 
 cc_library(
+    name = "archive",
+    srcs = ["archive.cc"],
+    hdrs = ["archive.hh"],
+    copts = copts,
+    deps = [
+        "@libarchive//libarchive",
+    ],
+)
+
+cc_library(
     name = "download",
     srcs = ["download.cc"],
     hdrs = ["download.hh"],
@@ -24,6 +34,13 @@ cc_library(
         "@boost.url",
         "@magic_enum",
     ],
+)
+
+cc_library(
+    name = "glob",
+    srcs = ["glob.cc"],
+    hdrs = ["glob.hh"],
+    copts = copts,
 )
 
 cc_library(

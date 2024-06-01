@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <unordered_map>
 #include <variant>
 #include <vector>
 #include <span>
@@ -43,8 +44,11 @@ public:
 	};
 
 	struct source_fetch {
-		std::string                url;
-		std::optional<std::string> outdir;
+		std::string                             url;
+		std::optional<std::string>              integrity;
+		std::optional<std::string>              strip_prefix;
+		std::optional<std::string>              outdir;
+		std::optional<std::vector<std::string>> paths;
 	};
 
 	struct source_codegen {

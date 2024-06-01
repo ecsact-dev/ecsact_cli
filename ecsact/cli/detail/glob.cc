@@ -65,6 +65,10 @@ static auto expand_path_globs_internal(
 					}
 				}
 			}
+
+			if(ec) {
+				return;
+			}
 		} else if(str.starts_with(wildcard)) {
 			has_wildcards = true;
 			auto path_suffix = path_from_itrs(std::next(itr), path.end());
@@ -75,6 +79,10 @@ static auto expand_path_globs_internal(
 						out_paths.push_back(entry.path());
 					}
 				}
+			}
+
+			if(ec) {
+				return;
 			}
 		}
 	}

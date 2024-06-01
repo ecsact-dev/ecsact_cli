@@ -2,7 +2,9 @@
 
 #include <filesystem>
 #include "ecsact/cli/detail/glob.hh"
+#include "tools/cpp/runfiles/runfiles.h"
 
+using bazel::tools::cpp::runfiles::Runfiles;
 using ecsact::cli::detail::expand_path_globs;
 using ecsact::cli::detail::path_before_glob;
 using ecsact::cli::detail::path_matches_glob;
@@ -10,14 +12,30 @@ using std::ranges::find;
 
 namespace fs = std::filesystem;
 
-TEST(Glob, SimpleWildcard) {
-	ASSERT_NE(std::getenv("BUILD_WORKING_DIRECTORY"), nullptr);
-	auto dir = fs::path{std::getenv("BUILD_WORKING_DIRECTORY")};
-	auto test_root_dir = dir / "misc" / "glob";
+class Glob : public testing::Test {
+protected:
+	fs::path test_root_dir;
+
+	void SetUp() override {
+		auto runfiles_err = std::string{};
+		auto runfiles = Runfiles::CreateForTest(&runfiles_err);
+		ASSERT_NE(runfiles, nullptr) << runfiles_err;
+		ASSERT_NE(std::getenv("GLOB_TEST_ROOT_FILE"), nullptr);
+		auto readme = fs::path{std::getenv("GLOB_TEST_ROOT_FILE")};
+		ASSERT_FALSE(readme.empty());
+		ASSERT_TRUE(fs::exists(readme)) << readme.generic_string() << "\n";
+		test_root_dir = readme.parent_path();
+		if(fs::is_symlink(test_root_dir)) {
+			test_root_dir = fs::read_symlink(test_root_dir);
+		}
+	}
+};
+
+TEST_F(Glob, SimpleWildcard) {
 	auto glob_pattern = test_root_dir / "*";
 	auto ec = std::error_code{};
 	auto paths = expand_path_globs(glob_pattern, ec);
-	ASSERT_FALSE(ec);
+	ASSERT_FALSE(ec) << ec.message() << "\n";
 	auto expected_paths = std::vector{
 		test_root_dir / "README.md",
 		test_root_dir / "something",
@@ -33,14 +51,11 @@ TEST(Glob, SimpleWildcard) {
 	}
 }
 
-TEST(Glob, WildcardWithSuffix) {
-	ASSERT_NE(std::getenv("BUILD_WORKING_DIRECTORY"), nullptr);
-	auto dir = fs::path{std::getenv("BUILD_WORKING_DIRECTORY")};
-	auto test_root_dir = dir / "misc" / "glob";
+TEST_F(Glob, WildcardWithSuffix) {
 	auto glob_pattern = test_root_dir / "*.txt";
 	auto ec = std::error_code{};
 	auto paths = expand_path_globs(glob_pattern, ec);
-	ASSERT_FALSE(ec);
+	ASSERT_FALSE(ec) << ec.message() << "\n";
 	auto expected_paths = std::vector{
 		test_root_dir / "test.txt",
 		test_root_dir / "test2.txt",
@@ -53,14 +68,11 @@ TEST(Glob, WildcardWithSuffix) {
 	}
 }
 
-TEST(Glob, SimpleRecursiveWildcard) {
-	ASSERT_NE(std::getenv("BUILD_WORKING_DIRECTORY"), nullptr);
-	auto dir = fs::path{std::getenv("BUILD_WORKING_DIRECTORY")};
-	auto test_root_dir = dir / "misc" / "glob";
+TEST_F(Glob, SimpleRecursiveWildcard) {
 	auto glob_pattern = test_root_dir / "**";
 	auto ec = std::error_code{};
 	auto paths = expand_path_globs(glob_pattern, ec);
-	ASSERT_FALSE(ec);
+	ASSERT_FALSE(ec) << ec.message() << "\n";
 	auto expected_paths = std::vector{
 		test_root_dir / "README.md",
 		test_root_dir / "something",
@@ -88,14 +100,11 @@ TEST(Glob, SimpleRecursiveWildcard) {
 	}
 }
 
-TEST(Glob, RecursiveWildcardSuffix) {
-	ASSERT_NE(std::getenv("BUILD_WORKING_DIRECTORY"), nullptr);
-	auto dir = fs::path{std::getenv("BUILD_WORKING_DIRECTORY")};
-	auto test_root_dir = dir / "misc" / "glob";
+TEST_F(Glob, RecursiveWildcardSuffix) {
 	auto glob_pattern = test_root_dir / "**.txt";
 	auto ec = std::error_code{};
 	auto paths = expand_path_globs(glob_pattern, ec);
-	ASSERT_FALSE(ec);
+	ASSERT_FALSE(ec) << ec.message() << "\n";
 	auto expected_paths = std::vector{
 		test_root_dir / "test.txt",
 		test_root_dir / "test2.txt",
@@ -112,13 +121,13 @@ TEST(Glob, RecursiveWildcardSuffix) {
 	}
 }
 
-TEST(Glob, PathBeforeGlob) {
+TEST_F(Glob, PathBeforeGlob) {
 	ASSERT_EQ(path_before_glob("a/b/*").generic_string(), "a/b");
 	ASSERT_EQ(path_before_glob("a/b/*.txt/c/*.d").generic_string(), "a/b");
 	ASSERT_EQ(path_before_glob("a/b/c.txt").generic_string(), "a/b/c.txt");
 }
 
-TEST(Glob, GlobMatch) {
+TEST_F(Glob, GlobMatch) {
 	EXPECT_TRUE(path_matches_glob("a/b/c", "a/b/*"));
 	EXPECT_TRUE(path_matches_glob("a/b/c.txt", "a/b/*.txt"));
 	EXPECT_TRUE(path_matches_glob("a/b/c", "a/b/**"));

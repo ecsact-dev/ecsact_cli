@@ -1,0 +1,19 @@
+load("@ecsact_cli//bazel:copts.bzl", "copts")
+load("@rules_cc//cc:defs.bzl", "cc_test")
+
+filegroup(
+    name = "glob_test_files",
+    srcs = glob(["glob/**/*"]),
+)
+
+cc_test(
+    name = "glob",
+    srcs = ["glob_test.cc"],
+    copts = copts,
+    data = [":glob_test_files"],
+    deps = [
+        "@ecsact_cli//ecsact/cli/detail:glob",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)

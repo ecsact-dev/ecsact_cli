@@ -22,6 +22,7 @@
 #include "ecsact/cli/report.hh"
 #include "ecsact/cli/detail/argv0.hh"
 #include "ecsact/cli/detail/download.hh"
+#include "ecsact/cli/detail/glob.hh"
 #include "ecsact/cli/detail/archive.hh"
 #ifndef ECSACT_CLI_USE_SDK_VERSION
 #	include "tools/cpp/runfiles/runfiles.h"
@@ -31,7 +32,10 @@ using ecsact::cli::message_variant_t;
 using ecsact::cli::report_error;
 using ecsact::cli::report_warning;
 using ecsact::cli::detail::download_file;
+using ecsact::cli::detail::expand_path_globs;
 using ecsact::cli::detail::integrity;
+using ecsact::cli::detail::path_before_glob;
+using ecsact::cli::detail::path_strip_prefix;
 
 namespace fs = std::filesystem;
 
@@ -265,30 +269,48 @@ static auto handle_source( //
 	auto ec = std::error_code{};
 	fs::create_directories(outdir, ec);
 
-	if(!fs::exists(src.path)) {
+	auto before_glob = path_before_glob(src.path);
+	auto paths = expand_path_globs(src.path, ec);
+	if(ec) {
 		ecsact::cli::report_error(
-			"Source file {} does not exist",
-			src.path.generic_string()
+			"Failed to glob {}: {}",
+			src.path.generic_string(),
+			ec.message()
 		);
 		return 1;
 	}
 
-	fs::copy(src.path, outdir, ec);
+	for(auto path : paths) {
+		if(!fs::exists(src.path)) {
+			ecsact::cli::report_error(
+				"Source file {} does not exist",
+				src.path.generic_string()
+			);
+			return 1;
+		}
+		auto rel_outdir = outdir;
+		if(auto stripped = path_strip_prefix(src.path, before_glob)) {
+			rel_outdir = outdir / *stripped;
+		}
 
-	if(ec) {
-		ecsact::cli::report_error(
-			"Failed to copy source {} to {}: {}",
-			src.path.generic_string(),
-			outdir.generic_string(),
-			ec.message()
-		);
-		return 1;
-	} else {
-		ecsact::cli::report_info(
-			"Copied source {} to {}",
-			src.path.generic_string(),
-			outdir.generic_string()
-		);
+		fs::create_directories(rel_outdir, ec);
+		fs::copy(src.path, rel_outdir, ec);
+
+		if(ec) {
+			ecsact::cli::report_error(
+				"Failed to copy source {} to {}: {}",
+				src.path.generic_string(),
+				rel_outdir.generic_string(),
+				ec.message()
+			);
+			return 1;
+		} else {
+			ecsact::cli::report_info(
+				"Copied source {} to {}",
+				src.path.generic_string(),
+				rel_outdir.generic_string()
+			);
+		}
 	}
 
 	return 0;

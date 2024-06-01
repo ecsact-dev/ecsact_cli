@@ -46,6 +46,7 @@ cc_library(
         "//ecsact/cli:report",
         "//ecsact/cli/detail:argv0",
         "//ecsact/cli/detail:download",
+        "//ecsact/cli/detail:glob",
         "//ecsact/cli/detail:archive",
         "//ecsact/cli/commands/build:build_recipe",
         "//ecsact/cli/commands/build:cc_compiler_config",

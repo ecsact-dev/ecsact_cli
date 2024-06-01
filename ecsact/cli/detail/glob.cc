@@ -3,7 +3,6 @@
 #include <filesystem>
 #include <string_view>
 #include <cassert>
-#include <system_error>
 
 namespace fs = std::filesystem;
 using namespace std::string_view_literals;

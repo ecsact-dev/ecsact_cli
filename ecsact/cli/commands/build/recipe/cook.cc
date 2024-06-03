@@ -510,24 +510,17 @@ auto cl_compile(compile_options options) -> int {
 	cl_args.push_back("/diagnostics:column");
 	cl_args.push_back("/DECSACT_BUILD");
 
-	// TODO(zaucy): Add debug mode
-	// if(options.debug) {
-	// 	compile_proc_args.push_back("/DEBUG:FULL");
-	// 	compile_proc_args.push_back("/MDd");
-	// 	compile_proc_args.push_back("/Z7");
-	// 	compile_proc_args.push_back("/EHsc");
-	// 	compile_proc_args.push_back("/bigobj");
-	// }
-
-	if(options.debug) {
-		cl_args.push_back("/FC"); // full source paths
-	}
-
 	// cl_args.push_back("/we4530"); // treat exceptions as errors
 	cl_args.push_back("/wd4530"); // ignore use of exceptions warning
-	cl_args.push_back("/MD");
 	if(!options.debug) {
+		cl_args.push_back("/MD");
 		cl_args.push_back("/DNDEBUG");
+	} else {
+		cl_args.push_back("/FC"); // full source paths
+		cl_args.push_back("/MDd");
+		cl_args.push_back("/Z7");
+		cl_args.push_back("/EHsc");
+		cl_args.push_back("/bigobj");
 	}
 	cl_args.push_back("/O2");
 	cl_args.push_back("/GL");

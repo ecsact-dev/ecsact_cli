@@ -519,10 +519,16 @@ auto cl_compile(compile_options options) -> int {
 	// 	compile_proc_args.push_back("/bigobj");
 	// }
 
+	if(options.debug) {
+		cl_args.push_back("/FC"); // full source paths
+	}
+
 	// cl_args.push_back("/we4530"); // treat exceptions as errors
 	cl_args.push_back("/wd4530"); // ignore use of exceptions warning
 	cl_args.push_back("/MD");
-	cl_args.push_back("/DNDEBUG");
+	if(!options.debug) {
+		cl_args.push_back("/DNDEBUG");
+	}
 	cl_args.push_back("/O2");
 	cl_args.push_back("/GL");
 	cl_args.push_back("/MP");

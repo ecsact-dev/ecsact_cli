@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.11 - 2024-06-19
+#### Miscellaneous Chores
+- remove libarchive git_override - (030cd05) - Kelwan
+- ci detect 'always' label - (9a75122) - Ezekiel Warren
+
+- - -
+
 ## 0.3.10 - 2024-06-01
 #### Features
 - fetch archive, fetch integrity checks, and globbing (#104) - (88f6b34) - Ezekiel Warren

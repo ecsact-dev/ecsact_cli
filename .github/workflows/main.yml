@@ -5,7 +5,6 @@ name: main
 
 on:
   pull_request:
-    types: [ labeled, opened, synchronize, reopened ]
   merge_group:
 
 jobs:
@@ -26,7 +25,7 @@ jobs:
         with: { clang-format-version: "18" }
 
   test-windows:
-    if: github.event_name == 'merge_group' || contains(github.event.pull_request.labels.*.name, 'ci:always')
+    if: (github.event_name == 'pull_request' && github.event.pull_request.user.login == 'renovate[bot]') || (github.event_name == 'merge_group' && github.event.pull_request.user.login != 'renovate[bot]')
     runs-on: windows-latest
     steps:
       - uses: actions/cache@v4
@@ -42,7 +41,7 @@ jobs:
         working-directory: test
 
   test-linux:
-    if: github.event_name == 'merge_group' || contains(github.event.pull_request.labels.*.name, 'ci:always')
+    if: (github.event_name == 'pull_request' && github.event.pull_request.user.login == 'renovate[bot]') || (github.event_name == 'merge_group' && github.event.pull_request.user.login != 'renovate[bot]')
     runs-on: ubuntu-latest
     steps:
       - uses: actions/cache@v4

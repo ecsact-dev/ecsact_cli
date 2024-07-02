@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.12 - 2024-07-02
+#### Features
+- codegen error reporting (#112) - (39052f0) - Ezekiel Warren
+#### Miscellaneous Chores
+- **(deps)** update escact repositories (#109) - (611c9f0) - renovate[bot]
+- sync with ecsact_common (#111) - (16202af) - seaubot
+- sync with ecsact_common (#110) - (aac1175) - seaubot
+- sync with ecsact_common (#99) - (fb1a5cb) - seaubot
+
+- - -
+
 ## 0.3.11 - 2024-06-19
 #### Miscellaneous Chores
 - remove libarchive git_override - (030cd05) - Kelwan

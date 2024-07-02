@@ -15,8 +15,7 @@
 #include "ecsact/runtime/meta.hh"
 #include "ecsact/cli/report.hh"
 #include "ecsact/cli/detail/argv0.hh"
-#include "ecsact/cli/detail/json_report.hh"
-#include "ecsact/cli/detail/text_report.hh"
+#include "ecsact/cli/commands/common.hh"
 #include "ecsact/cli/commands/build/recipe/taste.hh"
 #include "ecsact/cli/commands/build/build_recipe.hh"
 #include "ecsact/cli/commands/build/cc_compiler.hh"
@@ -39,10 +38,10 @@ Options:
   -r --recipe=<name>        Name or path to recipe
   -o --output=<path>        Runtime output path
   --temp_dir=<path>         Optional temporary directory to use instead of generated one
-	--compiler_config=<path>  Optionally specify the compiler by name or path
+  --compiler_config=<path>  Optionally specify the compiler by name or path
   -f --format=<type>        The format used to report progress of the build [default: text]
-	--report_filter=<filter>  Filtering out report logs [default: none]
-    --debug                 Compile with debug symbols
+  --report_filter=<filter>  Filtering out report logs [default: none]
+  --debug                 Compile with debug symbols
 )docopt";
 
 // TODO(zaucy): Add this documentation to docopt (msvc regex fails)
@@ -64,32 +63,10 @@ auto ecsact::cli::detail::build_command( //
 	const char* argv[]
 ) -> int {
 	auto args = docopt::docopt(USAGE, {argv + 1, argv + argc});
-	auto format = args["--format"].asString();
 	auto exec_path = canon_argv0(argv[0]);
 
-	if(format == "text") {
-		set_report_handler(text_report{});
-	} else if(format == "json") {
-		set_report_handler(json_report{});
-	} else if(format == "none") {
-		set_report_handler({});
-	} else {
-		std::cerr << "Invalid --format value: " << format << "\n";
-		std::cout << USAGE;
-		return 1;
-	}
-
-	auto report_filter = args["--report_filter"].asString();
-	if(report_filter == "none") {
-		set_report_filter(report_filter::none);
-	} else if(report_filter == "error_only") {
-		set_report_filter(report_filter::error_only);
-	} else if(report_filter == "errors_and_warnings") {
-		set_report_filter(report_filter::errors_and_warnings);
-	} else {
-		std::cerr << "Invalid --report_filter value: " << report_filter << "\n";
-		std::cout << USAGE;
-		return 1;
+	if(auto exit_code = process_common_args(args); exit_code != 0) {
+		return exit_code;
 	}
 
 	auto temp_dir = args["--temp_dir"].isString() //

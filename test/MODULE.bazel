@@ -23,11 +23,6 @@ local_path_override(
     path = "..",
 )
 
-local_path_override(
-    module_name = "ecsact_codegen",
-    path = "../../ecsact_codegen",
-)
-
 git_override(
     module_name = "hedron_compile_commands",
     commit = "204aa593e002cbd177d30f11f54cff3559110bb9",

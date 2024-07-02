@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.13 - 2024-07-02
+#### Bug Fixes
+- ecasct recipe bundle extension check (#113) - (a6304a8) - Austin Kelway
+
+- - -
+
 ## 0.3.12 - 2024-07-02
 #### Features
 - codegen error reporting (#112) - (39052f0) - Ezekiel Warren

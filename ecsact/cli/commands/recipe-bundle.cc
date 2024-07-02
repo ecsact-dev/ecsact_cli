@@ -14,6 +14,7 @@
 #include "ecsact/cli/detail/argv0.hh"
 #include "ecsact/cli/detail/json_report.hh"
 #include "ecsact/cli/detail/text_report.hh"
+#include "ecsact/cli/commands/common.hh"
 #include "ecsact/cli/commands/build/build_recipe.hh"
 #include "ecsact/cli/commands/recipe-bundle/build_recipe_bundle.hh"
 
@@ -54,34 +55,11 @@ auto ecsact::cli::detail::recipe_bundle_command( //
 	const char* argv[]
 ) -> int {
 	auto args = docopt::docopt(USAGE, {argv + 1, argv + argc});
-	auto format = args["--format"].asString();
+	if(auto exit_code = process_common_args(args); exit_code != 0) {
+		return exit_code;
+	}
+
 	auto exec_path = canon_argv0(argv[0]);
-
-	if(format == "text") {
-		set_report_handler(text_report{});
-	} else if(format == "json") {
-		set_report_handler(json_report{});
-	} else if(format == "none") {
-		set_report_handler({});
-	} else {
-		std::cerr << "Invalid --format value: " << format << "\n";
-		std::cout << USAGE;
-		return 1;
-	}
-
-	auto report_filter = args["--report_filter"].asString();
-	if(report_filter == "none") {
-		set_report_filter(report_filter::none);
-	} else if(report_filter == "error_only") {
-		set_report_filter(report_filter::error_only);
-	} else if(report_filter == "errors_and_warnings") {
-		set_report_filter(report_filter::errors_and_warnings);
-	} else {
-		std::cerr << "Invalid --report_filter value: " << report_filter << "\n";
-		std::cout << USAGE;
-		return 1;
-	}
-
 	auto output_path = fs::path{args.at("--output").asString()};
 
 	if(output_path.has_extension()) {

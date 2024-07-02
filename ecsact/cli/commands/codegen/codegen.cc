@@ -19,6 +19,28 @@ static void file_write_fn(const char* str, int32_t str_len) {
 	file_write_stream << std::string_view(str, str_len);
 }
 
+static bool received_fatal_codegen_report = false;
+
+static auto codegen_report_fn(
+	ecsact_codegen_report_message_type type,
+	const char*                        str,
+	int32_t                            str_len
+) -> void {
+	auto msg = std::string{str, static_cast<size_t>(str_len)};
+	switch(type) {
+		default:
+		case ECSACT_CODEGEN_REPORT_INFO:
+			return report(ecsact::cli::info_message{msg});
+		case ECSACT_CODEGEN_REPORT_WARNING:
+			return report(ecsact::cli::warning_message{msg});
+		case ECSACT_CODEGEN_REPORT_ERROR:
+			return report(ecsact::cli::error_message{msg});
+		case ECSACT_CODEGEN_REPORT_FATAL:
+			received_fatal_codegen_report = true;
+			return report(ecsact::cli::error_message{msg});
+	}
+}
+
 auto ecsact::cli::codegen(codegen_options options) -> int {
 	auto plugins = std::vector<boost::dll::shared_library>{};
 	// key = plugin name, value = plugin path
@@ -157,7 +179,12 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 			output_file_path = options.outdir / output_file_path.filename();
 
 			file_write_stream.open(output_file_path);
-			plugin_fn(package_id, &file_write_fn);
+			plugin_fn(package_id, &file_write_fn, &codegen_report_fn);
+			if(received_fatal_codegen_report) {
+				received_fatal_codegen_report = false;
+				has_plugin_error = true;
+				report_error("Codegen plugin '{}' reported fatal error", plugin_name);
+			}
 			file_write_stream.flush();
 			file_write_stream.close();
 		}

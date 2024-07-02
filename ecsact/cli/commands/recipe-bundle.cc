@@ -63,7 +63,7 @@ auto ecsact::cli::detail::recipe_bundle_command( //
 	auto output_path = fs::path{args.at("--output").asString()};
 
 	if(output_path.has_extension()) {
-		if(output_path.extension() != "ecsact-recipe-bundle") {
+		if(output_path.extension() != ".ecsact-recipe-bundle") {
 			ecsact::cli::report_error(
 				"Output path extension {} is not allowed. Did you mean '--output={}'?",
 				output_path.extension().generic_string(),

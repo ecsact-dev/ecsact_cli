@@ -29,12 +29,28 @@ cc_library(
 # )
 
 cc_library(
+    name = "common",
+    srcs = ["common.cc"],
+    hdrs = ["common.hh"],
+    copts = copts,
+    deps = [
+        "@docopt.cpp//:docopt",
+        "//ecsact/cli:report",
+        "//ecsact/cli:report_message",
+        "//ecsact/cli/detail:json_report",
+        "//ecsact/cli/detail:text_report",
+    ],
+)
+
+
+cc_library(
     name = "codegen",
     srcs = ["codegen.cc"],
     hdrs = ["codegen.hh"],
     copts = copts,
     deps = [
         ":command",
+        ":common",
         "//ecsact/cli/commands/codegen:codegen",
         "@magic_enum",
         "@docopt.cpp//:docopt",
@@ -67,10 +83,9 @@ cc_library(
     copts = copts,
     deps = [
         ":command",
+        ":common",
         "//ecsact/cli:report",
         "//ecsact/cli:report_message",
-        "//ecsact/cli/detail:json_report",
-        "//ecsact/cli/detail:text_report",
         "//ecsact/cli/commands/build/recipe:taste",
         "//ecsact/cli/commands/build/recipe:cook",
         "//ecsact/cli/commands/build:cc_compiler",
@@ -89,10 +104,9 @@ cc_library(
     copts = copts,
     deps = [
         ":command",
+        ":common",
         "//ecsact/cli:report",
         "//ecsact/cli:report_message",
-        "//ecsact/cli/detail:json_report",
-        "//ecsact/cli/detail:text_report",
         "//ecsact/cli/commands/build:build_recipe",
         "//ecsact/cli/commands/recipe-bundle:build_recipe_bundle",
         "//ecsact/cli/detail:argv0",

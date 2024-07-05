@@ -24,8 +24,9 @@ Options:
 		Available config keys:
 			install_dir       directory Ecsact SDK was installed to
 			include_dir       directory containing Ecsact headers
-			plugin_dir        directory containing built-in Ecsact codegen plugins
-			builtin_plugins   list of built-in Ecsact codegen plugins available.
+			plugin_dir        directory containing built-in Ecsact codegen plugins 
+			builtin_plugins   list of built-in Ecsact codegen plugins available
+			recipe_bundles    directory containing runtime recipe bundles
 
 )";
 
@@ -44,6 +45,13 @@ constexpr auto CANNOT_FIND_PLUGIN_DIR = R"(
 	https://github.com/ecsact-dev/ecsact_sdk/issues
 )";
 
+constexpr auto CANNOT_FIND_RECIPES_DIR = R"(
+[ERROR] Cannot find Ecsact recipes directory.
+	Make sure you're using a standard Ecsact SDK installation.
+	If you believe this is a mistake please file an issue at
+	https://github.com/ecsact-dev/ecsact_sdk/issues
+)";
+
 int ecsact::cli::detail::config_command(int argc, const char* argv[]) {
 	using namespace std::string_literals;
 
@@ -51,6 +59,7 @@ int ecsact::cli::detail::config_command(int argc, const char* argv[]) {
 	auto exec_path = canon_argv0(argv[0]);
 	auto install_prefix = exec_path.parent_path().parent_path();
 	auto plugin_dir = install_prefix / "share" / "ecsact" / "plugins";
+	auto recipes_dir = install_prefix / "share" / "ecsact" / "recipes";
 	auto output = "{}"_json;
 
 	std::unordered_map<std::string, std::function<int()>> key_handlers{
@@ -117,6 +126,32 @@ int ecsact::cli::detail::config_command(int argc, const char* argv[]) {
 				return 0;
 			},
 		},
+		{
+			"recipe_bundles",
+			[&] {
+				if(fs::exists(recipes_dir)) {
+					std::vector<std::string> recipe_bundles;
+
+					for(auto& entry : fs::directory_iterator(recipes_dir)) {
+						auto filename =
+							entry.path().filename().replace_extension("").string();
+						const auto prefix = "ecsact_"s;
+
+						if(filename.starts_with(prefix)) {
+							recipe_bundles.emplace_back(
+								filename.substr(prefix.size(), filename.size())
+							);
+						}
+					}
+					output["recipes_dir"] = recipe_bundles;
+				} else {
+					std::cerr << CANNOT_FIND_RECIPES_DIR;
+					return 1;
+				}
+				return 0;
+			},
+		},
+
 	};
 
 	auto keys = args.at("<keys>").asStringList();

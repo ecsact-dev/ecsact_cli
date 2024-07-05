@@ -58,6 +58,29 @@ constexpr auto allowed_recipe_extensions = std::array{
 	".json"sv, // json works since yaml is a superset
 };
 
+auto resolve_builtin_recipe(std::string recipe_str, const char* argv[])
+	-> std::optional<fs::path> {
+	using namespace std::string_literals;
+
+	auto exec_path = ecsact::cli::detail::canon_argv0(argv[0]);
+	auto install_prefix = exec_path.parent_path().parent_path();
+	auto recipes_dir = install_prefix / "share" / "ecsact" / "recipes";
+
+	for(auto& entry : fs::directory_iterator(recipes_dir)) {
+		auto filename = entry.path().filename().replace_extension("").string();
+		const auto prefix = "ecsact_"s;
+
+		auto stripped_filename = filename.substr(prefix.size(), filename.size());
+
+		if(recipe_str == stripped_filename) {
+			auto path = fs::path(filename);
+			path.replace_extension(".ecsact-recipe-bundle");
+			return recipes_dir / path;
+		}
+	}
+	return std::nullopt;
+}
+
 auto ecsact::cli::detail::build_command( //
 	int         argc,
 	const char* argv[]
@@ -82,7 +105,15 @@ auto ecsact::cli::detail::build_command( //
 	auto recipe_composite = std::optional<build_recipe>{};
 	auto recipe_paths = args.at("--recipe").asStringList();
 	for(auto& recipe_path_str : recipe_paths) {
-		auto recipe_path = fs::path{recipe_path_str};
+		auto builtin_path = resolve_builtin_recipe(recipe_path_str, argv);
+
+		fs::path recipe_path;
+		if(builtin_path) {
+			recipe_path = *builtin_path;
+		} else {
+			recipe_path = fs::path{recipe_path_str};
+		}
+
 		if(std::ranges::find(allowed_recipe_extensions, recipe_path.extension()) ==
 			 allowed_recipe_extensions.end()) {
 			ecsact::cli::report_error(
@@ -168,7 +199,8 @@ auto ecsact::cli::detail::build_command( //
 			}
 			ecsact::cli::report_error(
 				"Build recipes do not resolve all imports. Make sure all imported "
-				"functions in provided recipes are also exported by another recipe. If "
+				"functions in provided recipes are also exported by another recipe. "
+				"If "
 				"you would like to allow unresolved imports you may provide the "
 				"--allow-unresolved-imports flag to suppress this error."
 			);

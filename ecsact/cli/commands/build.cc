@@ -58,8 +58,10 @@ constexpr auto allowed_recipe_extensions = std::array{
 	".json"sv, // json works since yaml is a superset
 };
 
-auto resolve_builtin_recipe(std::string recipe_str, const char* argv[])
-	-> std::optional<fs::path> {
+auto resolve_builtin_recipe( //
+	std::string recipe_str,
+	const char* argv[]
+) -> std::optional<fs::path> {
 	using namespace std::string_literals;
 
 	auto exec_path = ecsact::cli::detail::canon_argv0(argv[0]);
@@ -200,8 +202,7 @@ auto ecsact::cli::detail::build_command( //
 			ecsact::cli::report_error(
 				"Build recipes do not resolve all imports. Make sure all imported "
 				"functions in provided recipes are also exported by another recipe. "
-				"If "
-				"you would like to allow unresolved imports you may provide the "
+				"If you would like to allow unresolved imports you may provide the "
 				"--allow-unresolved-imports flag to suppress this error."
 			);
 			return 1;

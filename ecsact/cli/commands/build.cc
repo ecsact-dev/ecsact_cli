@@ -1,7 +1,6 @@
 #include "ecsact/cli/commands/build.hh"
 
 #include <memory>
-#include <iostream>
 #include <format>
 #include <filesystem>
 #include <array>
@@ -68,16 +67,18 @@ auto resolve_builtin_recipe( //
 	auto install_prefix = exec_path.parent_path().parent_path();
 	auto recipes_dir = install_prefix / "share" / "ecsact" / "recipes";
 
-	for(auto& entry : fs::directory_iterator(recipes_dir)) {
-		auto filename = entry.path().filename().replace_extension("").string();
-		const auto prefix = "ecsact_"s;
+	if(fs::exists(recipes_dir)) {
+		for(auto& entry : fs::directory_iterator(recipes_dir)) {
+			auto filename = entry.path().filename().replace_extension("").string();
+			const auto prefix = "ecsact_"s;
 
-		auto stripped_filename = filename.substr(prefix.size(), filename.size());
+			auto stripped_filename = filename.substr(prefix.size(), filename.size());
 
-		if(recipe_str == stripped_filename) {
-			auto path = fs::path(filename);
-			path.replace_extension(".ecsact-recipe-bundle");
-			return recipes_dir / path;
+			if(recipe_str == stripped_filename) {
+				auto path = fs::path(filename);
+				path.replace_extension(".ecsact-recipe-bundle");
+				return recipes_dir / path;
+			}
 		}
 	}
 	return std::nullopt;

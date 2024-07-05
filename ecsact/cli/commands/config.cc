@@ -1,5 +1,4 @@
 #include "./config.hh"
-
 #include <iostream>
 #include <filesystem>
 #include <map>

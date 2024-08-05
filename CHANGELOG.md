@@ -2,6 +2,14 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.14 - 2024-08-05
+#### Features
+- Add recipes to CLI config and add builtin recipe shortcuts (#116) - (cdda706) - Austin Kelway
+#### Miscellaneous Chores
+- fix logo in readme - (43188f3) - Ezekiel Warren
+
+- - -
+
 ## 0.3.13 - 2024-07-02
 #### Bug Fixes
 - ecasct recipe bundle extension check (#113) - (a6304a8) - Austin Kelway

@@ -132,14 +132,12 @@ static auto vsdevcmd_env_var(
 		.arguments = {env_var_name},
 	});
 
-	for(;;) {
-		std::string var;
-		std::getline(is, var, ';');
+	auto var = std::string{};
+	while(std::getline(is, var, ';')) {
 		boost::trim_right(var);
-		if(var.empty()) {
-			break;
+		if(!var.empty()) {
+			result.emplace_back(var);
 		}
-		result.emplace_back(std::move(var));
 	}
 
 	extract_script_proc.detach();
@@ -288,7 +286,16 @@ static auto cc_vswhere( //
 	};
 
 	auto standard_include_paths = vsdevcmd_env_varl("INCLUDE");
+	if(standard_include_paths.empty()) {
+		ecsact::cli::report_error("Extracted INCLUDE paths is empty");
+		return {};
+	}
+
 	auto standard_lib_paths = vsdevcmd_env_varl("LIB");
+	if(standard_lib_paths.empty()) {
+		ecsact::cli::report_error("Extracted LIB paths is empty");
+		return {};
+	}
 
 	// https://github.com/microsoft/vswhere/wiki/Find-VC
 	auto version_text_path = std::format(

@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.15 - 2024-08-07
+#### Features
+- report bad extractions as an error (#119) - (d319ae2) - Ezekiel Warren
+
+- - -
+
 ## 0.3.14 - 2024-08-05
 #### Features
 - Add recipes to CLI config and add builtin recipe shortcuts (#116) - (cdda706) - Austin Kelway

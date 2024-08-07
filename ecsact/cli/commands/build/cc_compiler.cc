@@ -1,11 +1,11 @@
 #include "ecsact/cli/commands/build/cc_compiler.hh"
 
 #include <filesystem>
-#include <cstddef>
+#include <string>
+#include <string_view>
 #include <fstream>
 #include <boost/process.hpp>
 #include "nlohmann/json.hpp"
-#include "magic_enum.hpp"
 #include "ecsact/cli/commands/build/cc_compiler.hh"
 #include "ecsact/cli/commands/build/cc_compiler_util.hh"
 #include "ecsact/cli/report.hh"
@@ -115,13 +115,16 @@ static auto vsdevcmd_env_var(
 	const fs::path&    vsdevcmd_path,
 	const std::string& env_var_name
 ) -> std::vector<std::string> {
+	auto proc_env = boost::this_process::environment();
 	auto result = std::vector<std::string>{};
-	auto is = bp::ipstream{};
+	auto std_is = bp::ipstream{};
+	auto err_is = bp::ipstream{};
 	auto extract_script_proc = bp::child{
-		vsdevcmd_path.string(),
+		fs::absolute(vsdevcmd_path).string(),
 		bp::args({env_var_name}),
-		bp::std_out > is,
-		bp::std_err > bp::null,
+		bp::std_out > std_is,
+		bp::std_err > err_is,
+		bp::std_in < bp::null,
 	};
 
 	auto subcommand_id =
@@ -132,21 +135,29 @@ static auto vsdevcmd_env_var(
 		.arguments = {env_var_name},
 	});
 
-	for(;;) {
-		std::string var;
-		std::getline(is, var, ';');
-		boost::trim_right(var);
-		if(var.empty()) {
-			break;
+	auto line = std::string{};
+	while(std::getline(std_is, line, ';')) {
+		boost::trim_right(line);
+		if(!line.empty()) {
+			result.emplace_back(line);
 		}
-		result.emplace_back(std::move(var));
 	}
 
-	extract_script_proc.detach();
+	while(std::getline(err_is, line)) {
+		boost::trim(line);
+		if(!line.empty()) {
+			ecsact::cli::report(ecsact::cli::subcommand_stderr_message{
+				.id = subcommand_id,
+				.line = line
+			});
+		}
+	}
+
+	extract_script_proc.wait();
 
 	ecsact::cli::report(subcommand_end_message{
 		.id = subcommand_id,
-		.exit_code = 0, // We detached, so we don't have an exit code
+		.exit_code = extract_script_proc.exit_code(),
 	});
 
 	return result;
@@ -288,7 +299,16 @@ static auto cc_vswhere( //
 	};
 
 	auto standard_include_paths = vsdevcmd_env_varl("INCLUDE");
+	if(standard_include_paths.empty()) {
+		ecsact::cli::report_error("Extracted INCLUDE paths is empty");
+		return {};
+	}
+
 	auto standard_lib_paths = vsdevcmd_env_varl("LIB");
+	if(standard_lib_paths.empty()) {
+		ecsact::cli::report_error("Extracted LIB paths is empty");
+		return {};
+	}
 
 	// https://github.com/microsoft/vswhere/wiki/Find-VC
 	auto version_text_path = std::format(

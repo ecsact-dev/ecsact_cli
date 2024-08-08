@@ -8,6 +8,7 @@
 #include <unordered_set>
 #include <boost/dll/shared_library.hpp>
 #include <boost/dll/library_info.hpp>
+#include "codegen/codegen.hh"
 #include "docopt.h"
 #include "ecsact/interpret/eval.hh"
 #include "ecsact/cli/commands/common.hh"
@@ -37,36 +38,12 @@ Options:
   --report_filter=<filter>  Filtering out report logs [default: none]
 )";
 
-static void stdout_write_fn(const char* str, int32_t str_len) {
-	std::cout << std::string_view(str, str_len);
-}
-
-static bool received_fatal_codegen_report = false;
-
-static auto codegen_report_fn(
-	ecsact_codegen_report_message_type type,
-	const char*                        str,
-	int32_t                            str_len
+static auto stdout_write_fn(
+	int32_t     filename_index,
+	const char* str,
+	int32_t     str_len
 ) -> void {
-	auto msg = std::string{str, static_cast<size_t>(str_len)};
-	switch(type) {
-		default:
-		case ECSACT_CODEGEN_REPORT_INFO:
-			return report(ecsact::cli::info_message{msg});
-		case ECSACT_CODEGEN_REPORT_WARNING:
-			return report(ecsact::cli::warning_message{msg});
-		case ECSACT_CODEGEN_REPORT_ERROR:
-			return report(ecsact::cli::error_message{msg});
-		case ECSACT_CODEGEN_REPORT_FATAL:
-			received_fatal_codegen_report = true;
-			return report(ecsact::cli::error_message{msg});
-	}
-}
-
-static thread_local std::ofstream file_write_stream;
-
-static void file_write_fn(const char* str, int32_t str_len) {
-	file_write_stream << std::string_view(str, str_len);
+	std::cout << std::string_view(str, str_len);
 }
 
 int ecsact::cli::detail::codegen_command(int argc, const char* argv[]) {
@@ -161,135 +138,37 @@ int ecsact::cli::detail::codegen_command(int argc, const char* argv[]) {
 		return 1;
 	}
 
-	std::vector<ecsact_package_id> package_ids;
-	package_ids.resize(static_cast<int32_t>(ecsact_meta_count_packages()));
-	ecsact_meta_get_package_ids(
-		static_cast<int32_t>(package_ids.size()),
-		package_ids.data(),
-		nullptr
-	);
-
-	std::unordered_set<std::string> output_paths;
-	bool                            has_plugin_error = false;
-
-	for(auto& plugin : plugins) {
-		// precondition: these methods should've been checked in validation
-		assert(plugin.has("ecsact_codegen_plugin"));
-		assert(plugin.has("ecsact_codegen_plugin_name"));
-		assert(plugin.has("ecsact_dylib_set_fn_addr"));
-
-		auto plugin_fn =
-			plugin.get<decltype(ecsact_codegen_plugin)>("ecsact_codegen_plugin");
-		auto plugin_name_fn = plugin.get<decltype(ecsact_codegen_plugin_name)>(
-			"ecsact_codegen_plugin_name"
-		);
-		std::string plugin_name = plugin_name_fn();
-
-		decltype(&ecsact_dylib_has_fn) dylib_has_fn = nullptr;
-
-		if(plugin.has("ecsact_dylib_has_fn")) {
-			dylib_has_fn =
-				plugin.get<decltype(ecsact_dylib_has_fn)>("ecsact_dylib_has_fn");
-		}
-
-		auto dylib_set_fn_addr =
-			plugin.get<decltype(ecsact_dylib_set_fn_addr)>("ecsact_dylib_set_fn_addr"
-			);
-
-		auto set_meta_fn_ptr = [&](const char* fn_name, auto fn_ptr) {
-			if(dylib_has_fn && !dylib_has_fn(fn_name)) {
-				return;
-			}
-			dylib_set_fn_addr(fn_name, reinterpret_cast<void (*)()>(fn_ptr));
-		};
-
-#define CALL_SET_META_FN_PTR(fn_name, unused) \
-	set_meta_fn_ptr(#fn_name, &::fn_name)
-		FOR_EACH_ECSACT_META_API_FN(CALL_SET_META_FN_PTR);
-#undef CALL_SET_META_FN_PTR
-
-		std::optional<fs::path> outdir;
-		if(args.at("--outdir").isString()) {
-			outdir = fs::path(args.at("--outdir").asString());
-			if(!fs::exists(*outdir)) {
-				std::error_code ec;
-				fs::create_directories(*outdir, ec);
-				if(ec) {
-					report_error(
-						"Failed to create out directory {}: {}",
-						outdir->string(),
-						ec.message()
-					);
-					return 3;
-				}
-			}
-		}
-
-		if(args.at("--stdout").asBool()) {
-			plugin_fn(*package_ids.begin(), &stdout_write_fn, &codegen_report_fn);
-			std::cout.flush();
-			if(received_fatal_codegen_report) {
-				received_fatal_codegen_report = false;
-				has_plugin_error = true;
-				report_error("Codegen plugin '{}' reported fatal error", plugin_name);
-			}
-		} else {
-			for(auto package_id : package_ids) {
-				fs::path output_file_path = ecsact_meta_package_file_path(package_id);
-				if(output_file_path.empty()) {
-					report_error(
-						"Could not find package source file path from "
-						"'ecsact_meta_package_file_path'"
-					);
-					continue;
-				}
-
-				output_file_path.replace_extension(
-					output_file_path.extension().string() + "." + plugin_name
+	std::optional<fs::path> outdir;
+	if(args.at("--outdir").isString()) {
+		outdir = fs::path(args.at("--outdir").asString());
+		if(!fs::exists(*outdir)) {
+			std::error_code ec;
+			fs::create_directories(*outdir, ec);
+			if(ec) {
+				report_error(
+					"Failed to create out directory {}: {}",
+					outdir->string(),
+					ec.message()
 				);
-
-				if(outdir) {
-					output_file_path = *outdir / output_file_path.filename();
-				}
-
-				if(output_paths.contains(output_file_path.string())) {
-					has_plugin_error = true;
-					report_error(
-						"Plugin '{}' has conflicts with another plugin output file '{}'",
-						plugin.location().filename().string(),
-						output_file_path.string()
-					);
-					continue;
-				}
-
-				output_paths.emplace(output_file_path.string());
-				if(fs::exists(output_file_path)) {
-					fs::permissions(output_file_path, fs::perms::all);
-				}
-				file_write_stream.open(output_file_path);
-				plugin_fn(package_id, &file_write_fn, &codegen_report_fn);
-				file_write_stream.flush();
-				file_write_stream.close();
-				fs::permissions(output_file_path, file_readonly_perms);
-				if(received_fatal_codegen_report) {
-					received_fatal_codegen_report = false;
-					report_error(
-						"Codegen plugin '{}' reported fatal error while processing package "
-						"'{}'",
-						plugin_name,
-						ecsact::meta::package_name(package_id)
-					);
-					has_plugin_error = true;
-				}
+				return 3;
 			}
 		}
-
-		plugin.unload();
 	}
 
-	if(has_plugin_error) {
-		return 2;
+	auto codegen_options = ecsact::cli::codegen_options{
+		.plugin_paths = plugin_paths,
+		.outdir = outdir,
+	};
+
+	if(args.at("--stdout").asBool()) {
+		codegen_options.write_fn = &stdout_write_fn;
 	}
 
-	return 0;
+	auto exit_code = ecsact::cli::codegen(codegen_options);
+
+	if(args.at("--stdout").asBool()) {
+		std::cout.flush();
+	}
+
+	return exit_code;
 }

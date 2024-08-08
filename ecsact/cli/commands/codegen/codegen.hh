@@ -1,17 +1,15 @@
 #pragma once
 
 #include <vector>
-#include <string>
 #include <filesystem>
-#include <optional>
+#include "ecsact/codegen/plugin.h"
 
 namespace ecsact::cli {
 
-using codegen_output_write_fn_t = void (*)(const char* str, int32_t str_len);
-
 struct codegen_options {
-	std::vector<std::filesystem::path> plugin_paths;
-	std::filesystem::path              outdir;
+	std::vector<std::filesystem::path>       plugin_paths;
+	std::optional<std::filesystem::path>     outdir;
+	std::optional<ecsact_codegen_write_fn_t> write_fn;
 };
 
 auto codegen(codegen_options options) -> int;

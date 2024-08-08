@@ -28,6 +28,8 @@ bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
 bazel_dep(name = "xxhash", version = "0.8.2")
 bazel_dep(name = "boringssl", version = "0.0.0-20240530-2db0eb3")
 
+local_path_override(module_name = "ecsact_codegen", path = "../ecsact_codegen")
+
 git_override(
     module_name = "hedron_compile_commands",
     commit = "204aa593e002cbd177d30f11f54cff3559110bb9",

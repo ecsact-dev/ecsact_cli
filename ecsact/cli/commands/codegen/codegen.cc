@@ -1,5 +1,6 @@
 #include "ecsact/cli/commands/codegen/codegen.hh"
 
+#include <filesystem>
 #include <string.h>
 #include <array>
 #include <format>
@@ -222,7 +223,7 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 
 			for(auto& output_file_path : plugin_output_paths) {
 				if(options.outdir) {
-					output_file_path = *options.outdir / output_file_path;
+					output_file_path = *options.outdir / output_file_path.filename();
 				} else {
 					output_file_path = output_file_path;
 				}
@@ -264,6 +265,8 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 
 					auto& file_write_stream = file_write_streams.emplace_back();
 					file_write_stream.open(output_file_path);
+
+					report_info("WRITING TO {}", fs::absolute(output_file_path).string());
 				}
 
 				plugin_fn(package_id, &file_write_fn, &codegen_report_fn);

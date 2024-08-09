@@ -1,31 +1,42 @@
 #include "ecsact/cli/commands/codegen/codegen.hh"
 
 #include <string.h>
-#include <unordered_set>
 #include <array>
 #include <format>
 #include <boost/dll.hpp>
+#include "ecsact/runtime/meta.h"
 #include "ecsact/cli/report.hh"
-#include "ecsact/runtime/meta.hh"
 #include "ecsact/codegen/plugin.h"
-#include "ecsact/cli/commands/codegen/codegen_util.hh"
 #include "ecsact/runtime/dylib.h"
-#include "ecsact/cli/detail/executable_path/executable_path.hh"
 
 namespace fs = std::filesystem;
 using namespace std::string_literals;
 
-static thread_local std::vector<std::ofstream> file_write_streams;
+static std::vector<std::ofstream> file_write_streams;
+static bool                       received_fatal_codegen_report = false;
+
+static auto valid_filename_index(int32_t filename_index) -> bool {
+	if(filename_index < 0 || filename_index > file_write_streams.size() - 1) {
+		received_fatal_codegen_report = true;
+		ecsact::cli::report_error(
+			"Plugin used invalid filename index. Please contact plugin author."
+		);
+		return false;
+	}
+
+	return true;
+}
 
 static void file_write_fn(
 	int32_t     filename_index,
 	const char* str,
 	int32_t     str_len
 ) {
+	if(!valid_filename_index(filename_index)) {
+		return;
+	}
 	file_write_streams.at(filename_index) << std::string_view(str, str_len);
 }
-
-static bool received_fatal_codegen_report = false;
 
 static auto codegen_report_fn(
 	int32_t                            filename_index,
@@ -33,6 +44,9 @@ static auto codegen_report_fn(
 	const char*                        str,
 	int32_t                            str_len
 ) -> void {
+	if(!valid_filename_index(filename_index)) {
+		return;
+	}
 	auto msg = std::string{str, static_cast<size_t>(str_len)};
 	switch(type) {
 		default:
@@ -241,7 +255,10 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 					}
 
 					if(options.outdir) {
-						output_file_path = *options.outdir / output_file_path.filename();
+						output_file_path = *options.outdir / output_file_path;
+						report_info("{}", fs::absolute(output_file_path).string());
+					} else {
+						output_file_path = output_file_path;
 					}
 
 					auto& file_write_stream =

@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.16 - 2024-08-09
+#### Features
+- support new codegen api for multi output (#120) - (f14dff8) - Ezekiel Warren
+
+- - -
+
 ## 0.3.15 - 2024-08-07
 #### Features
 - report bad extractions as an error (#119) - (d319ae2) - Ezekiel Warren

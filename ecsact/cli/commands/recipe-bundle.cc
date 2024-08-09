@@ -22,6 +22,7 @@
 namespace fs = std::filesystem;
 
 using namespace std::string_view_literals;
+using namespace std::string_literals;
 
 constexpr auto USAGE = R"docopt(Ecsact Recipe Bundle Command
 
@@ -109,7 +110,15 @@ auto ecsact::cli::detail::recipe_bundle_command( //
 				}
 
 				for(auto plugin : result->plugins) {
-					ecsact::codegen::plugin_validate(plugin);
+					auto validate_result = ecsact::codegen::plugin_validate(plugin);
+					if(!validate_result.ok()) {
+						auto err_msg = "Plugin validation failed for '" + plugin + "'\n";
+						for(auto err : validate_result.errors) {
+							err_msg += " - "s + to_string(err) + "\n";
+						}
+						ecsact::cli::report_error("{}", err_msg);
+						return 1;
+					}
 				}
 			}
 		}

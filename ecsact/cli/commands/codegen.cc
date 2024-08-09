@@ -8,9 +8,9 @@
 #include <unordered_set>
 #include <boost/dll/shared_library.hpp>
 #include <boost/dll/library_info.hpp>
-#include "codegen/codegen.hh"
 #include "docopt.h"
 #include "ecsact/interpret/eval.hh"
+#include "ecsact/cli/commands/codegen/codegen.hh"
 #include "ecsact/cli/commands/common.hh"
 #include "ecsact/cli/report.hh"
 #include "ecsact/runtime/dynamic.h"

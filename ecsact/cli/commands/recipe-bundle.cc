@@ -17,6 +17,7 @@
 #include "ecsact/cli/commands/common.hh"
 #include "ecsact/cli/commands/build/build_recipe.hh"
 #include "ecsact/cli/commands/recipe-bundle/build_recipe_bundle.hh"
+#include "ecsact/codegen/plugin_validate.hh"
 
 namespace fs = std::filesystem;
 
@@ -82,7 +83,7 @@ auto ecsact::cli::detail::recipe_bundle_command( //
 
 	auto recipe_composite = std::optional<build_recipe>{};
 	auto recipe_paths = args.at("<recipe>").asStringList();
-	for(auto recipe_path : args.at("<recipe>").asStringList()) {
+	for(auto recipe_path : recipe_paths) {
 		auto recipe_result = build_recipe::from_yaml_file(recipe_path);
 
 		if(std::holds_alternative<build_recipe_parse_error>(recipe_result)) {
@@ -95,6 +96,24 @@ auto ecsact::cli::detail::recipe_bundle_command( //
 		}
 
 		auto recipe = std::move(std::get<build_recipe>(recipe_result));
+
+		for(auto& source : recipe.sources()) {
+			auto result = std::get_if<build_recipe::source_codegen>(&source);
+			if(result) {
+				if(result->plugins.empty()) {
+					ecsact::cli::report_error(
+						"Recipe source has no plugins {}",
+						recipe_path
+					);
+					return 1;
+				}
+
+				for(auto plugin : result->plugins) {
+					ecsact::codegen::plugin_validate(plugin);
+				}
+			}
+		}
+
 		if(!recipe_composite) {
 			recipe_composite.emplace(std::move(recipe));
 		} else {

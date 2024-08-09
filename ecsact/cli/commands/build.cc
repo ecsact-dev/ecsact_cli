@@ -21,6 +21,7 @@
 #include "ecsact/cli/commands/build/recipe/cook.hh"
 #include "ecsact/cli/commands/build/recipe/taste.hh"
 #include "ecsact/cli/commands/recipe-bundle/build_recipe_bundle.hh"
+#include "ecsact/codegen/plugin_validate.hh"
 
 namespace fs = std::filesystem;
 
@@ -173,6 +174,24 @@ auto ecsact::cli::detail::build_command( //
 		}
 
 		auto recipe = std::move(std::get<build_recipe>(recipe_result));
+
+		for(auto& source : recipe.sources()) {
+			auto result = std::get_if<build_recipe::source_codegen>(&source);
+			if(result) {
+				if(result->plugins.empty()) {
+					ecsact::cli::report_error(
+						"Recipe source has no plugins {}",
+						recipe_path_str
+					);
+					return 1;
+				}
+
+				for(auto plugin : result->plugins) {
+					ecsact::codegen::plugin_validate(plugin);
+				}
+			}
+		}
+
 		if(!recipe_composite) {
 			recipe_composite.emplace(std::move(recipe));
 		} else {

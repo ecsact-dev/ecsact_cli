@@ -584,16 +584,7 @@ auto cl_compile(compile_options options) -> int {
 	cl_args.push_back("/diagnostics:column");
 	cl_args.push_back("/DECSACT_BUILD");
 
-	// TODO(zaucy): Add debug mode
-	// if(options.debug) {
-	// 	compile_proc_args.push_back("/DEBUG:FULL");
-	// 	compile_proc_args.push_back("/MDd");
-	// 	compile_proc_args.push_back("/Z7");
-	// 	compile_proc_args.push_back("/EHsc");
-	// 	compile_proc_args.push_back("/bigobj");
-	// }
-
-	// cl_args.push_back("/we4530"); // treat exceptions as errors
+	cl_args.push_back("/we4530"); // treat exceptions as errors
 	cl_args.push_back("/wd4530"); // ignore use of exceptions warning
 	cl_args.push_back("/MD");
 	cl_args.push_back("/DNDEBUG");
@@ -604,6 +595,18 @@ auto cl_compile(compile_options options) -> int {
 	cl_args.push_back(
 		std::format("{}\\", fs::path{options.work_dir}.lexically_normal().string())
 	);
+
+	if(!options.debug) {
+		cl_args.push_back("/MD");
+		cl_args.push_back("/DNDEBUG");
+	} else {
+		cl_args.push_back("/FC"); // full source paths
+		cl_args.push_back("/MD");
+		cl_args.push_back("/Z7");
+		cl_args.push_back("/EHsc");
+		cl_args.push_back("/bigobj");
+		cl_args.push_back("/Od");
+	}
 
 	auto generated_defines =
 		ecsact::cli::cc_defines_gen(options.imports, options.exports);

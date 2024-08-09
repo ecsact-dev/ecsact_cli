@@ -207,8 +207,12 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 				plugin_outputs_fn(package_id, filenames.data(), 16, 1024, nullptr);
 
 				for(auto i = 0; filenames_count > i; ++i) {
+#if defined(__STDC_WANT_SECURE_LIB__) && __STDC_WANT_SECURE_LIB__
 					auto filename =
 						std::string_view{filenames[i], strnlen_s(filenames[i], 1023)};
+#else
+					auto filename = std::string_view{filenames[i], strlen(filenames[i])};
+#endif
 					plugin_output_paths.emplace_back(
 						fs::path{package_file_path}.parent_path() / filename
 					);
@@ -221,11 +225,9 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 				);
 			}
 
-			for(auto& output_file_path : plugin_output_paths) {
-				if(options.outdir) {
+			if(options.outdir) {
+				for(auto& output_file_path : plugin_output_paths) {
 					output_file_path = *options.outdir / output_file_path.filename();
-				} else {
-					output_file_path = output_file_path;
 				}
 			}
 
@@ -265,8 +267,6 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 
 					auto& file_write_stream = file_write_streams.emplace_back();
 					file_write_stream.open(output_file_path);
-
-					report_info("WRITING TO {}", fs::absolute(output_file_path).string());
 				}
 
 				plugin_fn(package_id, &file_write_fn, &codegen_report_fn);

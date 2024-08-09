@@ -2,6 +2,7 @@
 
 #include <vector>
 #include <filesystem>
+#include <optional>
 #include "ecsact/codegen/plugin.h"
 
 namespace ecsact::cli {

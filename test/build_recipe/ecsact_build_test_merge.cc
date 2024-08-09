@@ -5,7 +5,12 @@
 #	error "This test should only have been built through 'ecsact build'"
 #endif
 
-void ecsact_system_execution_context_get(struct ecsact_system_execution_context*, ecsact_component_like_id, void*) {
+void ecsact_system_execution_context_get(
+	struct ecsact_system_execution_context*,
+	ecsact_component_like_id,
+	void*,
+	...
+) {
 }
 
 void ecsact_system_execution_context_action(struct ecsact_system_execution_context*, void*) {

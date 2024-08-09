@@ -220,6 +220,14 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 				);
 			}
 
+			for(auto& output_file_path : plugin_output_paths) {
+				if(options.outdir) {
+					output_file_path = *options.outdir / output_file_path;
+				} else {
+					output_file_path = output_file_path;
+				}
+			}
+
 			auto has_plugin_output_conflict_error = false;
 			for(auto filename_index = 0; plugin_output_paths.size() > filename_index;
 					++filename_index) {
@@ -254,26 +262,18 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 						fs::permissions(output_file_path, fs::perms::all);
 					}
 
-					if(options.outdir) {
-						output_file_path = *options.outdir / output_file_path;
-						report_info("{}", fs::absolute(output_file_path).string());
-					} else {
-						output_file_path = output_file_path;
-					}
-
-					auto& file_write_stream =
-						file_write_streams.emplace_back(output_file_path);
-
+					auto& file_write_stream = file_write_streams.emplace_back();
 					file_write_stream.open(output_file_path);
-					plugin_fn(package_id, &file_write_fn, &codegen_report_fn);
-					if(received_fatal_codegen_report) {
-						received_fatal_codegen_report = false;
-						has_plugin_error = true;
-						report_error(
-							"Codegen plugin '{}' reported fatal error",
-							plugin_name
-						);
-					}
+				}
+
+				plugin_fn(package_id, &file_write_fn, &codegen_report_fn);
+				if(received_fatal_codegen_report) {
+					received_fatal_codegen_report = false;
+					has_plugin_error = true;
+					report_error("Codegen plugin '{}' reported fatal error", plugin_name);
+				}
+
+				for(auto& file_write_stream : file_write_streams) {
 					file_write_stream.flush();
 					file_write_stream.close();
 				}

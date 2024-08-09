@@ -1,32 +1,10 @@
 #include <string_view>
-#include <array>
-#include "ecsact/codegen/plugin.hh"
-#include "ecsact/runtime/meta.hh"
-#include "ecsact/runtime/dylib.h"
+#include "ecsact/codegen/plugin.h"
 
 using namespace std::string_view_literals;
 
-auto ecsact_codegen_output_filenames( //
-	ecsact_package_id package_id,
-	char* const*      out_filenames,
-	int32_t           max_filenames,
-	int32_t           max_filename_length,
-	int32_t*          out_filenames_length
-) -> void {
-	auto pkg_filename = //
-		ecsact::meta::package_file_path(package_id).filename().string();
-	auto filenames = std::array{pkg_filename + ".txt"};
-	ecsact::set_codegen_plugin_output_filenames(
-		filenames,
-		out_filenames,
-		max_filenames,
-		max_filename_length,
-		out_filenames_length
-	);
-}
-
 auto ecsact_codegen_plugin_name() -> const char* {
-	return "Example Codegen";
+	return "txt";
 }
 
 auto ecsact_codegen_plugin( //

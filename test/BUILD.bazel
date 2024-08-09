@@ -7,13 +7,18 @@ exports_files([
     "test.ecsact",
 ])
 
-cc_binary(
-    name = "test_codegen_plugin.so",
+_TEST_PLUGINS = [
+    "test_codegen_plugin",
+    "test_codegen_plugin_multi_output",
+]
+
+[cc_binary(
+    name = "{}.so".format(plugin),
     linkshared = True,
     copts = copts,
     tags = ["manual"],
     srcs = [
-        "test_codegen_plugin.cc",
+        "{}.cc".format(plugin),
         "@ecsact_runtime//dylib:dylib.cc",
     ],
     deps = [
@@ -23,15 +28,15 @@ cc_binary(
         "@ecsact_runtime//dylib:util",
     ],
     defines = ["ECSACT_META_API_LOAD_AT_RUNTIME"],
-)
+) for plugin in _TEST_PLUGINS]
 
-cc_binary(
-    name = "test_codegen_plugin.dll",
+[cc_binary(
+    name = "{}.dll".format(plugin),
     linkshared = True,
     copts = copts,
     tags = ["manual"],
     srcs = [
-        "test_codegen_plugin.cc",
+        "{}.cc".format(plugin),
         "@ecsact_runtime//dylib:dylib.cc",
     ],
     deps = [
@@ -41,15 +46,15 @@ cc_binary(
         "@ecsact_runtime//dylib:util",
     ],
     defines = ["ECSACT_META_API_LOAD_AT_RUNTIME"],
-)
+) for plugin in _TEST_PLUGINS]
 
-alias(
-    name = "test_codegen_plugin",
+[alias(
+    name = plugin,
     actual = select({
-        "@platforms//os:windows": "test_codegen_plugin.dll",
-        "@platforms//os:linux": "test_codegen_plugin.so",
+        "@platforms//os:windows": "{}.dll".format(plugin),
+        "@platforms//os:linux": "{}.so".format(plugin),
     }),
-)
+) for plugin in _TEST_PLUGINS]
 
 cc_test(
     name = "test_codegen",
@@ -64,6 +69,28 @@ cc_test(
         "TEST_ECSACT_CLI": "$(rootpath @ecsact_cli)",
         "TEST_ECSACT_FILE_PATH": "$(rootpath test.ecsact)",
         "TEST_CODEGEN_PLUGIN_PATH": "$(rootpath :test_codegen_plugin)",
+    },
+    deps = [
+        "@bazel_tools//tools/cpp/runfiles",
+        "@ecsact_cli//ecsact/cli/commands:codegen",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "test_codegen_multi_output",
+    copts = copts,
+    srcs = ["test_codegen_multi_output.cc"],
+    data = [
+        "@ecsact_cli",
+        "test.ecsact",
+        ":test_codegen_plugin_multi_output",
+    ],
+    env = {
+        "TEST_ECSACT_CLI": "$(rootpath @ecsact_cli)",
+        "TEST_ECSACT_FILE_PATH": "$(rootpath test.ecsact)",
+        "TEST_CODEGEN_PLUGIN_PATH": "$(rootpath :test_codegen_plugin_multi_output)",
     },
     deps = [
         "@bazel_tools//tools/cpp/runfiles",

@@ -25,14 +25,24 @@ TEST(Codegen, Success) {
 	ASSERT_NE(test_ecsact_file_path, nullptr);
 	ASSERT_NE(runfiles, nullptr) << runfiles_err;
 
-	auto generated_file_path = fs::path{"_test_codegen_outdir/test.ecsact.txt"};
+	auto generated_txt_file_path = fs::path{"_test_codegen_outdir/test.txt"};
+	auto generated_zomsky_file_path =
+		fs::path{"_test_codegen_outdir/test.zomsky"};
 
-	if(fs::exists(generated_file_path)) {
-		fs::remove(generated_file_path);
+	if(fs::exists(generated_txt_file_path)) {
+		fs::remove(generated_txt_file_path);
 	}
 
-	ASSERT_TRUE(fs::exists(test_codegen_plugin_path));
-	ASSERT_TRUE(fs::exists(test_ecsact_file_path));
+	if(fs::exists(generated_zomsky_file_path)) {
+		fs::remove(generated_zomsky_file_path);
+	}
+
+	ASSERT_TRUE(fs::exists(test_codegen_plugin_path))
+		<< "Cannot find test plugin: "
+		<< fs::absolute(test_codegen_plugin_path).string();
+	ASSERT_TRUE(fs::exists(test_ecsact_file_path))
+		<< "Cannot find test ecsact file: "
+		<< fs::absolute(test_ecsact_file_path).string();
 
 #if _WIN32
 	// TODO: this doesn't work on linux
@@ -56,14 +66,25 @@ TEST(Codegen, Success) {
 
 	ASSERT_EQ(exit_code, 0);
 
-	ASSERT_TRUE(fs::exists(generated_file_path));
-	auto generated_file = std::ifstream{generated_file_path};
-	auto generated_file_contents = std::string{
-		std::istreambuf_iterator<char>(generated_file),
+	ASSERT_TRUE(fs::exists(generated_txt_file_path));
+	auto generated_txt_file = std::ifstream{generated_txt_file_path};
+	auto generated_txt_file_contents = std::string{
+		std::istreambuf_iterator<char>(generated_txt_file),
 		std::istreambuf_iterator<char>(),
 	};
 
-	ASSERT_EQ(generated_file_contents, "this is just a test, breathe!")
+	ASSERT_EQ(generated_txt_file_contents, "throw this in the text file")
 		<< "Unexpected content at "
-		<< fs::absolute(generated_file_path).generic_string();
+		<< fs::absolute(generated_txt_file_path).generic_string();
+
+	ASSERT_TRUE(fs::exists(generated_zomsky_file_path));
+	auto generated_zomsky_file = std::ifstream{generated_zomsky_file_path};
+	auto generated_zomsky_file_contents = std::string{
+		std::istreambuf_iterator<char>(generated_zomsky_file),
+		std::istreambuf_iterator<char>(),
+	};
+
+	ASSERT_EQ(generated_zomsky_file_contents, "throw this in the zomsky file")
+		<< "Unexpected content at "
+		<< fs::absolute(generated_zomsky_file_path).generic_string();
 }

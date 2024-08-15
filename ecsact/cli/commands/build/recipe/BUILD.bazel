@@ -5,22 +5,22 @@ package(default_visibility = ["//:__subpackages__"])
 
 cc_library(
     name = "taste",
-    copts = copts,
     srcs = ["taste.cc"],
     hdrs = ["taste.hh"],
+    copts = copts,
     deps = [
         "//ecsact/cli:report",
         "//ecsact/cli/commands/build:build_recipe",
-        "@ecsact_runtime//:dylib",
         "@boost.dll",
+        "@ecsact_runtime//:dylib",
     ],
 )
 
 cc_library(
     name = "integrity",
-    copts = copts,
     srcs = ["integrity.cc"],
     hdrs = ["integrity.hh"],
+    copts = copts,
     deps = [
         "@boringssl//:crypto",
     ],
@@ -28,42 +28,9 @@ cc_library(
 
 cc_library(
     name = "cook",
-    copts = copts,
     srcs = ["cook.cc"],
     hdrs = ["cook.hh"],
-    defines = select({
-        "//:use_sdk_version_enabled": ["ECSACT_CLI_USE_SDK_VERSION"],
-        "//:use_sdk_version_disabled": [],
-    }),
-    linkopts = select({
-        "@rules_cc//cc/compiler:msvc-cl": [
-            "/DEFAULTLIB:Wldap32.lib",
-        ],
-        "//conditions:default": [],
-    }),
-    deps = [
-        ":integrity",
-        "//ecsact/cli:report",
-        "//ecsact/cli/detail:argv0",
-        "//ecsact/cli/detail:download",
-        "//ecsact/cli/detail:glob",
-        "//ecsact/cli/detail:archive",
-        "//ecsact/cli/commands/build:build_recipe",
-        "//ecsact/cli/commands/build:cc_compiler_config",
-        "//ecsact/cli/commands/build:cc_defines_gen",
-        "//ecsact/cli/commands/build:get_modules",
-        "//ecsact/cli/commands/codegen:codegen",
-        "//ecsact/cli/commands/codegen:codegen_util",
-        "//ecsact/cli/detail:proc_exec",
-        "@curl",
-        "@boost.url",
-        "@magic_enum",
-    ] + select({
-        "//:use_sdk_version_enabled": [],
-        "//:use_sdk_version_disabled": [
-            "@bazel_tools//tools/cpp/runfiles",
-        ],
-    }),
+    copts = copts,
     data = select({
         "//:use_sdk_version_enabled": [
         ],
@@ -83,6 +50,39 @@ cc_library(
             "@ecsact_runtime//:ecsact/runtime/serialize.h",
             "@ecsact_runtime//:ecsact/runtime/serialize.hh",
             "@ecsact_runtime//:ecsact/runtime/static.h",
+        ],
+    }),
+    defines = select({
+        "//:use_sdk_version_enabled": ["ECSACT_CLI_USE_SDK_VERSION"],
+        "//:use_sdk_version_disabled": [],
+    }),
+    linkopts = select({
+        "@rules_cc//cc/compiler:msvc-cl": [
+            "/DEFAULTLIB:Wldap32.lib",
+        ],
+        "//conditions:default": [],
+    }),
+    deps = [
+        ":integrity",
+        "//ecsact/cli:report",
+        "//ecsact/cli/commands/build:build_recipe",
+        "//ecsact/cli/commands/build:cc_compiler_config",
+        "//ecsact/cli/commands/build:cc_defines_gen",
+        "//ecsact/cli/commands/build:get_modules",
+        "//ecsact/cli/commands/codegen",
+        "//ecsact/cli/commands/codegen:codegen_util",
+        "//ecsact/cli/detail:archive",
+        "//ecsact/cli/detail:argv0",
+        "//ecsact/cli/detail:download",
+        "//ecsact/cli/detail:glob",
+        "//ecsact/cli/detail:proc_exec",
+        "@boost.url",
+        "@curl",
+        "@magic_enum",
+    ] + select({
+        "//:use_sdk_version_enabled": [],
+        "//:use_sdk_version_disabled": [
+            "@bazel_tools//tools/cpp/runfiles",
         ],
     }),
 )

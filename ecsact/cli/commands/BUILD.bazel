@@ -34,14 +34,13 @@ cc_library(
     hdrs = ["common.hh"],
     copts = copts,
     deps = [
-        "@docopt.cpp//:docopt",
         "//ecsact/cli:report",
         "//ecsact/cli:report_message",
         "//ecsact/cli/detail:json_report",
         "//ecsact/cli/detail:text_report",
+        "@docopt.cpp//:docopt",
     ],
 )
-
 
 cc_library(
     name = "codegen",
@@ -51,15 +50,15 @@ cc_library(
     deps = [
         ":command",
         ":common",
-        "//ecsact/cli/commands/codegen:codegen",
-        "@magic_enum",
-        "@docopt.cpp//:docopt",
+        "//ecsact/cli/commands/codegen",
         "@boost.dll",
-        "@ecsact_interpret",
+        "@docopt.cpp//:docopt",
         "@ecsact_codegen//:plugin",
         "@ecsact_codegen//:plugin_validate",
+        "@ecsact_interpret",
         "@ecsact_runtime//:dylib",
         "@ecsact_runtime//:meta",
+        "@magic_enum",
     ],
 )
 
@@ -86,13 +85,14 @@ cc_library(
         ":common",
         "//ecsact/cli:report",
         "//ecsact/cli:report_message",
-        "//ecsact/cli/commands/build/recipe:taste",
-        "//ecsact/cli/commands/build/recipe:cook",
-        "//ecsact/cli/commands/build:cc_compiler",
         "//ecsact/cli/commands/build:build_recipe",
+        "//ecsact/cli/commands/build:cc_compiler",
+        "//ecsact/cli/commands/build/recipe:cook",
+        "//ecsact/cli/commands/build/recipe:taste",
         "//ecsact/cli/commands/recipe-bundle:build_recipe_bundle",
-        "@ecsact_interpret",
         "@docopt.cpp//:docopt",
+        "@ecsact_codegen//:plugin_validate",
+        "@ecsact_interpret",
         "@magic_enum",
     ],
 )
@@ -110,8 +110,9 @@ cc_library(
         "//ecsact/cli/commands/build:build_recipe",
         "//ecsact/cli/commands/recipe-bundle:build_recipe_bundle",
         "//ecsact/cli/detail:argv0",
-        "@ecsact_interpret",
         "@docopt.cpp//:docopt",
+        "@ecsact_codegen//:plugin_validate",
+        "@ecsact_interpret",
         "@magic_enum",
     ],
 )

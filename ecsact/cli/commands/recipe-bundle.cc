@@ -110,7 +110,10 @@ auto ecsact::cli::detail::recipe_bundle_command( //
 				}
 
 				for(auto plugin : result->plugins) {
-					auto validate_result = ecsact::codegen::plugin_validate(plugin);
+					auto recipe_plugin_path =
+						fs::path(recipe_path).parent_path() / plugin;
+					auto validate_result =
+						ecsact::codegen::plugin_validate(recipe_plugin_path);
 					if(!validate_result.ok()) {
 						auto err_msg = "Plugin validation failed for '" + plugin + "'\n";
 						for(auto err : validate_result.errors) {

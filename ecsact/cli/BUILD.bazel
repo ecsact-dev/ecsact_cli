@@ -6,15 +6,15 @@ package(default_visibility = ["//:__subpackages__"])
 
 cc_library(
     name = "report_message",
-    copts = copts,
     hdrs = ["report_message.hh"],
+    copts = copts,
 )
 
 cc_library(
     name = "report",
-    copts = copts,
-    hdrs = ["report.hh"],
     srcs = ["report.cc"],
+    hdrs = ["report.hh"],
+    copts = copts,
     deps = [
         ":report_message",
     ],
@@ -27,17 +27,17 @@ cc_stamp_header(
 
 cc_binary(
     name = "ecsact",
-    visibility = ["//visibility:public"],
     srcs = [
-        "ecsact_cli.cc",
         "bazel_stamp_header.hh",
+        "ecsact_cli.cc",
     ],
+    copts = copts,
     defines = select({
         "//:use_sdk_version_enabled": ["ECSACT_CLI_USE_SDK_VERSION"],
         "//:use_sdk_version_disabled": [],
     }),
-    copts = copts,
     stamp = 1,
+    visibility = ["//visibility:public"],
     deps = [
         # "//ecsact/cli/commands:benchmark",
         "//ecsact/cli/commands:codegen",

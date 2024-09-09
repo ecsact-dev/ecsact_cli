@@ -8,6 +8,7 @@
 #include <string_view>
 #include <format>
 #include <fstream>
+#include "codegen/codegen_util.hh"
 #include "docopt.h"
 #include "magic_enum.hpp"
 #include "ecsact/cli/report.hh"
@@ -84,6 +85,14 @@ auto ecsact::cli::detail::recipe_bundle_command( //
 
 	auto recipe_composite = std::optional<build_recipe>{};
 	auto recipe_paths = args.at("<recipe>").asStringList();
+
+	auto additional_plugin_dirs = std::vector<fs::path>{};
+	for(fs::path recipe_path : recipe_paths) {
+		if(recipe_path.has_parent_path()) {
+			additional_plugin_dirs.emplace_back(recipe_path.parent_path());
+		}
+	}
+
 	for(auto recipe_path : recipe_paths) {
 		auto recipe_result = build_recipe::from_yaml_file(recipe_path);
 
@@ -103,76 +112,85 @@ auto ecsact::cli::detail::recipe_bundle_command( //
 			if(result) {
 				if(result->plugins.empty()) {
 					ecsact::cli::report_error(
-						"Recipe source has no plugins {}",
+						"Recipe source in recipe bundle has no plugins {}",
 						recipe_path
 					);
 					return 1;
 				}
 
 				for(auto plugin : result->plugins) {
-					auto recipe_plugin_path =
-						fs::path(recipe_path).parent_path() / plugin;
-					auto validate_result =
-						ecsact::codegen::plugin_validate(recipe_plugin_path);
-					if(!validate_result.ok()) {
-						auto err_msg = "Plugin validation failed for '" + plugin + "'\n";
-						for(auto err : validate_result.errors) {
-							err_msg += " - "s + to_string(err) + "\n";
+					auto checked_plugin_paths = std::vector<fs::path>{};
+					auto plugin_path = resolve_plugin_path(
+						{.plugin_arg = plugin,
+						 .default_plugins_dir = get_default_plugins_dir(),
+						 .additional_plugin_dirs = additional_plugin_dirs},
+						checked_plugin_paths
+					);
+					if(plugin_path) {
+						auto validate_result =
+							ecsact::codegen::plugin_validate(*plugin_path);
+
+						if(!validate_result.ok()) {
+							auto err_msg = "Plugin validation failed for '" + plugin + "'\n";
+							for(auto err : validate_result.errors) {
+								err_msg += " - "s + to_string(err) + "\n";
+							}
+							ecsact::cli::report_error("{}", err_msg);
+							return 1;
+						}
+					} else {
+						auto err_msg = "Unable to find codegen plugin '" + plugin +
+							"'. Paths checked:\n";
+						for(auto& checked_path : checked_plugin_paths) {
+							err_msg += " - " + fs::relative(checked_path).string() + "\n";
 						}
 						ecsact::cli::report_error("{}", err_msg);
-						return 1;
 					}
 				}
+			}
+
+			if(!recipe_composite) {
+				recipe_composite.emplace(std::move(recipe));
+			} else {
+				auto merge_result = build_recipe::merge(*recipe_composite, recipe);
+				if(std::holds_alternative<build_recipe_merge_error>(merge_result)) {
+					auto merge_error = std::get<build_recipe_merge_error>(merge_result);
+					ecsact::cli::report_error(
+						"Recipe Merge Error {}",
+						magic_enum::enum_name(merge_error)
+					);
+					return 1;
+				}
+
+				recipe_composite.emplace(std::get<build_recipe>(std::move(merge_result))
+				);
 			}
 		}
 
 		if(!recipe_composite) {
-			recipe_composite.emplace(std::move(recipe));
-		} else {
-			auto merge_result = build_recipe::merge(*recipe_composite, recipe);
-			if(std::holds_alternative<build_recipe_merge_error>(merge_result)) {
-				auto merge_error = std::get<build_recipe_merge_error>(merge_result);
-				ecsact::cli::report_error(
-					"Recipe Merge Error {}",
-					magic_enum::enum_name(merge_error)
-				);
-				return 1;
-			}
-
-			recipe_composite.emplace(std::get<build_recipe>(std::move(merge_result)));
+			ecsact::cli::report_error("No recipes");
+			return 1;
 		}
-	}
 
-	if(!recipe_composite) {
-		ecsact::cli::report_error("No recipes");
-		return 1;
-	}
+		auto bundle = ecsact::build_recipe_bundle::create(*recipe_composite);
 
-	auto additional_plugin_dirs = std::vector<fs::path>{};
-	for(fs::path recipe_path : recipe_paths) {
-		if(recipe_path.has_parent_path()) {
-			additional_plugin_dirs.emplace_back(recipe_path.parent_path());
+		if(!bundle) {
+			ecsact::cli::report_error(
+				"Failed to create recipe bundle {}",
+				bundle.error().what()
+			);
+			return 1;
 		}
-	}
 
-	auto bundle = ecsact::build_recipe_bundle::create(*recipe_composite);
+		if(!write_file(output_path, bundle->bytes())) {
+			return 1;
+		}
 
-	if(!bundle) {
-		ecsact::cli::report_error(
-			"Failed to create recipe bundle {}",
-			bundle.error().what()
+		ecsact::cli::report_info(
+			"Created bundle {}",
+			fs::absolute(output_path).string()
 		);
-		return 1;
+
+		return 0;
 	}
-
-	if(!write_file(output_path, bundle->bytes())) {
-		return 1;
-	}
-
-	ecsact::cli::report_info(
-		"Created bundle {}",
-		fs::absolute(output_path).string()
-	);
-
-	return 0;
 }

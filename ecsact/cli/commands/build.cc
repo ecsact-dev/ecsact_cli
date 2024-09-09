@@ -22,6 +22,7 @@
 #include "ecsact/cli/commands/build/recipe/taste.hh"
 #include "ecsact/cli/commands/recipe-bundle/build_recipe_bundle.hh"
 #include "ecsact/codegen/plugin_validate.hh"
+#include "codegen/codegen_util.hh"
 
 namespace fs = std::filesystem;
 
@@ -109,28 +110,15 @@ auto ecsact::cli::detail::build_command( //
 
 	auto recipe_composite = std::optional<build_recipe>{};
 	auto recipe_paths = args.at("--recipe").asStringList();
+
 	for(auto& recipe_path_str : recipe_paths) {
 		auto builtin_path = resolve_builtin_recipe(recipe_path_str, argv);
 
-		fs::path recipe_path;
 		if(builtin_path) {
-			recipe_path = *builtin_path;
-		} else {
-			recipe_path = fs::path{recipe_path_str};
+			recipe_path_str = builtin_path->string();
 		}
 
-		if(std::ranges::find(allowed_recipe_extensions, recipe_path.extension()) ==
-			 allowed_recipe_extensions.end()) {
-			ecsact::cli::report_error(
-				"Invalid recipe file extension {}",
-				recipe_path.extension().string()
-			);
-			return 1;
-		}
-
-		if(!recipe_path.has_extension()) {
-			recipe_path.replace_extension("ecsact-recipe-bundle");
-		}
+		auto recipe_path = fs::path(recipe_path_str);
 
 		if(recipe_path.extension() == ".ecsact-recipe-bundle") {
 			auto bundle_result = ecsact::build_recipe_bundle::from_file(recipe_path);
@@ -154,13 +142,35 @@ auto ecsact::cli::detail::build_command( //
 				return 1;
 			}
 
-			recipe_path = extract_result.recipe_path();
-			recipe_path_str = recipe_path.generic_string();
+			recipe_path_str = extract_result.recipe_path().generic_string();
 
 			ecsact::cli::report_info(
 				"Extracted build recipe bundle to {}",
 				recipe_path.parent_path().generic_string()
 			);
+		}
+	}
+
+	auto additional_plugin_dirs = std::vector<fs::path>{};
+	for(fs::path recipe_path : recipe_paths) {
+		if(recipe_path.has_parent_path()) {
+			additional_plugin_dirs.emplace_back(recipe_path.parent_path());
+		}
+	}
+
+	for(const auto& recipe_path_str : recipe_paths) {
+		auto recipe_path = fs::path(recipe_path_str);
+		if(std::ranges::find(allowed_recipe_extensions, recipe_path.extension()) ==
+			 allowed_recipe_extensions.end()) {
+			ecsact::cli::report_error(
+				"Invalid recipe file extension {}",
+				recipe_path.extension().string()
+			);
+			return 1;
+		}
+
+		if(!recipe_path.has_extension()) {
+			recipe_path.replace_extension("ecsact-recipe-bundle");
 		}
 
 		auto recipe_result = build_recipe::from_yaml_file(recipe_path);
@@ -181,23 +191,38 @@ auto ecsact::cli::detail::build_command( //
 			if(result) {
 				if(result->plugins.empty()) {
 					ecsact::cli::report_error(
-						"Recipe source has no plugins {}",
+						"Recipe source build has no plugins {}",
 						recipe_path_str
 					);
 					return 1;
 				}
 
 				for(auto plugin : result->plugins) {
-					auto recipe_plugin_path = recipe_path.parent_path() / plugin;
-					auto validate_result =
-						ecsact::codegen::plugin_validate(recipe_plugin_path);
-					if(!validate_result.ok()) {
-						auto err_msg = "Plugin validation failed for '" + plugin + "'\n";
-						for(auto err : validate_result.errors) {
-							err_msg += " - "s + to_string(err) + "\n";
+					auto checked_plugin_paths = std::vector<fs::path>{};
+					auto plugin_path = resolve_plugin_path(
+						{.plugin_arg = plugin,
+						 .default_plugins_dir = get_default_plugins_dir(),
+						 .additional_plugin_dirs = additional_plugin_dirs},
+						checked_plugin_paths
+					);
+					if(plugin_path) {
+						auto validate_result =
+							ecsact::codegen::plugin_validate(*plugin_path);
+						if(!validate_result.ok()) {
+							auto err_msg = "Plugin validation failed for '" + plugin + "'\n";
+							for(auto err : validate_result.errors) {
+								err_msg += " - "s + to_string(err) + "\n";
+							}
+							ecsact::cli::report_error("{}", err_msg);
+							return 1;
+						}
+					} else {
+						auto err_msg = "Unable to find codegen plugin '" + plugin +
+							"'. Paths checked:\n";
+						for(auto& checked_path : checked_plugin_paths) {
+							err_msg += " - " + fs::relative(checked_path).string() + "\n";
 						}
 						ecsact::cli::report_error("{}", err_msg);
-						return 1;
 					}
 				}
 			}
@@ -319,13 +344,6 @@ auto ecsact::cli::detail::build_command( //
 		to_string(compiler->compiler_type),
 		compiler->compiler_version
 	);
-
-	auto additional_plugin_dirs = std::vector<fs::path>{};
-	for(fs::path recipe_path : recipe_paths) {
-		if(recipe_path.has_parent_path()) {
-			additional_plugin_dirs.emplace_back(recipe_path.parent_path());
-		}
-	}
 
 	auto cook_options = cook_recipe_options{
 		.files = file_paths,

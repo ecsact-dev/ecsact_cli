@@ -182,6 +182,8 @@ static auto parse_sources( //
 
 	for(auto src : sources) {
 		if(src.IsMap()) {
+			ecsact::cli::report_error("UHHH IT'S A MAP??");
+
 			auto codegen = src["codegen"];
 			auto fetch = src["fetch"];
 			auto path = src["path"];
@@ -192,12 +194,20 @@ static auto parse_sources( //
 			}
 
 			if(codegen) {
+				ecsact::cli::report_error("CODEGEN??");
+
 				auto entry = source_codegen{};
 				if(src["outdir"]) {
 					entry.outdir = src["outdir"].as<std::string>();
 				}
 				if(codegen.IsSequence()) {
+					ecsact::cli::report_error("CODEGEN??!!");
+
 					entry.plugins = codegen.as<std::vector<std::string>>();
+					for(auto plugin : entry.plugins) {
+						ecsact::cli::report_error("CODEGEN PLUGINS: {}", plugin);
+					}
+
 				} else {
 					entry.plugins.push_back(codegen.as<std::string>());
 				}

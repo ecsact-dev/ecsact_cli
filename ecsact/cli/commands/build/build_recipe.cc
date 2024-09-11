@@ -459,10 +459,28 @@ auto ecsact::build_recipe::merge( //
 	for(auto& src : target._sources) {
 		if(std::holds_alternative<source_path>(src)) {
 			source_path src_path = std::get<source_path>(src);
+
 			if(!src_path.path.is_absolute()) {
-				src_path.path = fs::relative(
-					target.base_directory() / src_path.path,
-					base.base_directory()
+				ecsact::cli::report_warning(
+					"ORIGINAL SOURCE PATH: {}",
+					src_path.path.generic_string()
+				);
+
+				src_path.path =
+					fs::relative(target.base_directory(), base.base_directory()) /
+					fs::relative(src_path.path, target.base_directory());
+
+				ecsact::cli::report_warning(
+					"NEW SOURCE PATH: {}",
+					src_path.path.generic_string()
+				);
+				ecsact::cli::report_warning(
+					"TARGET DIR: {}",
+					target.base_directory().generic_string()
+				);
+				ecsact::cli::report_warning(
+					"BASE DIR: {}",
+					base.base_directory().generic_string()
 				);
 			}
 
@@ -475,7 +493,6 @@ auto ecsact::build_recipe::merge( //
 						fs::relative(target.base_directory() / plugin).generic_string();
 				}
 			}
-
 			merged_build_recipe._sources.emplace_back(src_codegen);
 		} else {
 			merged_build_recipe._sources.push_back(src);

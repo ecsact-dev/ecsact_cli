@@ -118,6 +118,7 @@ static auto write_file(fs::path path, std::span<std::byte> data) -> void {
 }
 
 static auto handle_source( //
+	fs::path                                base_directory,
 	ecsact::build_recipe::source_fetch      src,
 	const ecsact::cli::cook_recipe_options& options
 ) -> int {
@@ -239,6 +240,7 @@ static auto handle_source( //
 }
 
 static auto handle_source( //
+	fs::path                                base_directory,
 	ecsact::build_recipe::source_codegen    src,
 	const ecsact::cli::cook_recipe_options& options
 ) -> int {
@@ -275,6 +277,7 @@ static auto handle_source( //
 }
 
 static auto handle_source( //
+	fs::path                                base_directory,
 	ecsact::build_recipe::source_path       src,
 	const ecsact::cli::cook_recipe_options& options
 ) -> int {
@@ -285,8 +288,8 @@ static auto handle_source( //
 	auto ec = std::error_code{};
 	fs::create_directories(outdir, ec);
 
-	auto before_glob = path_before_glob(src.path);
-	auto paths = expand_path_globs(src.path, ec);
+	auto before_glob = path_before_glob(base_directory / src.path);
+	auto paths = expand_path_globs(base_directory / src.path, ec);
 	if(ec) {
 		ecsact::cli::report_error(
 			"Failed to glob {}: {}",
@@ -297,7 +300,12 @@ static auto handle_source( //
 	}
 
 	for(auto path : paths) {
-		if(!fs::exists(src.path)) {
+		if(!fs::exists(base_directory / src.path)) {
+			ecsact::cli::report_warning(
+				"Current path: {}",
+				fs::current_path().generic_string()
+			);
+
 			ecsact::cli::report_error(
 				"Source file {} does not exist",
 				src.path.generic_string()
@@ -310,7 +318,7 @@ static auto handle_source( //
 		}
 
 		fs::create_directories(rel_outdir, ec);
-		fs::copy(src.path, rel_outdir, ec);
+		fs::copy(base_directory / src.path, rel_outdir, ec);
 
 		if(ec) {
 			ecsact::cli::report_error(
@@ -707,7 +715,9 @@ auto ecsact::cli::cook_recipe( //
 
 	for(auto& src : recipe.sources()) {
 		exit_code = std::visit(
-			[&](auto& src) { return handle_source(src, recipe_options); },
+			[&](auto& src) {
+				return handle_source(recipe.base_directory(), src, recipe_options);
+			},
 			src
 		);
 

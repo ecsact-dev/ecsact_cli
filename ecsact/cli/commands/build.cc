@@ -108,6 +108,10 @@ auto ecsact::cli::detail::build_command( //
 	auto recipe_composite = std::optional<build_recipe>{};
 	auto recipe_paths = args.at("--recipe").asStringList();
 	for(auto& recipe_path_str : recipe_paths) {
+		ecsact::cli::report_warning("RECIPE PATH: {}", recipe_path_str);
+	}
+
+	for(auto& recipe_path_str : recipe_paths) {
 		auto builtin_path = resolve_builtin_recipe(recipe_path_str, argv);
 
 		fs::path recipe_path;

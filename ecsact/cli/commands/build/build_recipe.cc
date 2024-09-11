@@ -266,76 +266,90 @@ static auto parse_sources( //
 	return result;
 }
 
+auto ecsact::build_recipe::build_recipe_from_yaml_node( //
+	YAML::Node doc,
+	fs::path   p
+) -> create_result {
+	if(!doc.IsMap()) {
+		return ecsact::build_recipe_parse_error::expected_map_top_level;
+	}
+
+	auto exports = parse_exports(doc["exports"]);
+	if(auto err = get_if_error(exports)) {
+		return *err;
+	}
+
+	auto imports = parse_imports(doc["imports"]);
+	if(auto err = get_if_error(imports)) {
+		return *err;
+	}
+
+	auto sources = parse_sources(p, doc["sources"]);
+	if(auto err = get_if_error(sources)) {
+		return *err;
+	}
+
+	auto system_libs = parse_system_libs(doc["system_libs"]);
+	if(auto err = get_if_error(system_libs)) {
+		return *err;
+	}
+
+	auto recipe = ecsact::build_recipe{};
+	if(doc["name"]) {
+		recipe._name = doc["name"].as<std::string>();
+	}
+	if(p.has_parent_path()) {
+		recipe._base_directory = p.parent_path().generic_string();
+	}
+	recipe._exports = get_value(exports);
+	recipe._imports = get_value(imports);
+	recipe._sources = get_value(sources);
+	recipe._system_libs = get_value(system_libs);
+
+	if(recipe._exports.empty()) {
+		return build_recipe_parse_error::missing_exports;
+	}
+
+	auto import_modules =
+		ecsact::cli::detail::get_ecsact_modules(recipe._imports);
+	auto export_modules =
+		ecsact::cli::detail::get_ecsact_modules(recipe._exports);
+
+	if(!import_modules.unknown_module_methods.empty()) {
+		return build_recipe_parse_error::unknown_import_method;
+	}
+
+	if(!export_modules.unknown_module_methods.empty()) {
+		return build_recipe_parse_error::unknown_export_method;
+	}
+
+	for(auto&& [imp_mod, _] : import_modules.module_methods) {
+		for(auto&& [exp_mod, _] : export_modules.module_methods) {
+			if(imp_mod == exp_mod) {
+				return build_recipe_parse_error::
+					conflicting_import_export_method_modules;
+			}
+		}
+	}
+
+	return recipe;
+}
+
+auto ecsact::build_recipe::from_yaml_string( //
+	const std::string& str,
+	fs::path           p
+) -> create_result {
+	auto doc = YAML::Load(str);
+	return build_recipe_from_yaml_node(doc, p);
+}
+
 auto ecsact::build_recipe::from_yaml_file( //
 	std::filesystem::path p
 ) -> create_result {
 	auto file = std::ifstream{p};
 	try {
 		auto doc = YAML::LoadFile(p.string());
-
-		if(!doc.IsMap()) {
-			return build_recipe_parse_error::expected_map_top_level;
-		}
-
-		auto exports = parse_exports(doc["exports"]);
-		if(auto err = get_if_error(exports)) {
-			return *err;
-		}
-
-		auto imports = parse_imports(doc["imports"]);
-		if(auto err = get_if_error(imports)) {
-			return *err;
-		}
-
-		auto sources = parse_sources(p, doc["sources"]);
-		if(auto err = get_if_error(sources)) {
-			return *err;
-		}
-
-		auto system_libs = parse_system_libs(doc["system_libs"]);
-		if(auto err = get_if_error(system_libs)) {
-			return *err;
-		}
-
-		auto recipe = build_recipe{};
-		if(doc["name"]) {
-			recipe._name = doc["name"].as<std::string>();
-		}
-		if(p.has_parent_path()) {
-			recipe._base_directory = p.parent_path().generic_string();
-		}
-		recipe._exports = get_value(exports);
-		recipe._imports = get_value(imports);
-		recipe._sources = get_value(sources);
-		recipe._system_libs = get_value(system_libs);
-
-		if(recipe._exports.empty()) {
-			return build_recipe_parse_error::missing_exports;
-		}
-
-		auto import_modules =
-			ecsact::cli::detail::get_ecsact_modules(recipe._imports);
-		auto export_modules =
-			ecsact::cli::detail::get_ecsact_modules(recipe._exports);
-
-		if(!import_modules.unknown_module_methods.empty()) {
-			return build_recipe_parse_error::unknown_import_method;
-		}
-
-		if(!export_modules.unknown_module_methods.empty()) {
-			return build_recipe_parse_error::unknown_export_method;
-		}
-
-		for(auto&& [imp_mod, _] : import_modules.module_methods) {
-			for(auto&& [exp_mod, _] : export_modules.module_methods) {
-				if(imp_mod == exp_mod) {
-					return build_recipe_parse_error::
-						conflicting_import_export_method_modules;
-				}
-			}
-		}
-
-		return recipe;
+		return build_recipe_from_yaml_node(doc, p);
 	} catch(const YAML::BadFile& err) {
 		ecsact::cli::report_error("YAML PARSE: {}", err.what());
 		return build_recipe_parse_error::bad_file;

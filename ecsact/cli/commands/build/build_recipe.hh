@@ -1,12 +1,17 @@
 #pragma once
 
 #include <string>
-#include <unordered_map>
 #include <variant>
 #include <vector>
 #include <span>
 #include <filesystem>
+#include <cstddef>
 #include <optional>
+#include <filesystem>
+
+namespace YAML {
+class Node;
+}
 
 namespace ecsact {
 
@@ -30,6 +35,11 @@ public:
 	struct merge_result;
 
 	static auto from_yaml_file( //
+		std::filesystem::path p
+	) -> create_result;
+
+	static auto from_yaml_string( //
+		const std::string&    str,
 		std::filesystem::path p
 	) -> create_result;
 
@@ -84,6 +94,11 @@ private:
 
 	build_recipe();
 	build_recipe(const build_recipe&);
+
+	static auto build_recipe_from_yaml_node( //
+		YAML::Node            doc,
+		std::filesystem::path p
+	) -> create_result;
 };
 
 struct build_recipe::create_result

@@ -5,6 +5,7 @@
 #include "ecsact/cli/commands/build/build_recipe.hh"
 
 using ecsact::build_recipe;
+using namespace std::string_literals;
 
 constexpr auto RECIPE_A = R"yaml(
 name: A
@@ -60,7 +61,8 @@ auto contains_source_path(auto&& r, auto p) -> bool {
 			return false;
 		}
 
-		return src_path->path.generic_string() == p;
+		return src_path->path.generic_string() == p ||
+			src_path->path.generic_string() == "./"s + p;
 	});
 
 	return itr != r.end();

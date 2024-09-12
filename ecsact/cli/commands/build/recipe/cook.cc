@@ -118,6 +118,7 @@ static auto write_file(fs::path path, std::span<std::byte> data) -> void {
 }
 
 static auto handle_source( //
+	fs::path                                base_directory,
 	ecsact::build_recipe::source_fetch      src,
 	const ecsact::cli::cook_recipe_options& options
 ) -> int {
@@ -239,6 +240,7 @@ static auto handle_source( //
 }
 
 static auto handle_source( //
+	fs::path                                base_directory,
 	ecsact::build_recipe::source_codegen    src,
 	const ecsact::cli::cook_recipe_options& options
 ) -> int {
@@ -275,9 +277,15 @@ static auto handle_source( //
 }
 
 static auto handle_source( //
+	fs::path                                base_directory,
 	ecsact::build_recipe::source_path       src,
 	const ecsact::cli::cook_recipe_options& options
 ) -> int {
+	auto src_path = src.path;
+	if(!src_path.is_absolute()) {
+		src_path = (base_directory / src_path).lexically_normal();
+	}
+
 	auto outdir = src.outdir //
 		? options.work_dir / *src.outdir
 		: options.work_dir;
@@ -285,37 +293,37 @@ static auto handle_source( //
 	auto ec = std::error_code{};
 	fs::create_directories(outdir, ec);
 
-	auto before_glob = path_before_glob(src.path);
-	auto paths = expand_path_globs(src.path, ec);
+	auto before_glob = path_before_glob(src_path);
+	auto paths = expand_path_globs(src_path, ec);
 	if(ec) {
 		ecsact::cli::report_error(
 			"Failed to glob {}: {}",
-			src.path.generic_string(),
+			src_path.generic_string(),
 			ec.message()
 		);
 		return 1;
 	}
 
 	for(auto path : paths) {
-		if(!fs::exists(src.path)) {
+		if(!fs::exists(src_path)) {
 			ecsact::cli::report_error(
 				"Source file {} does not exist",
-				src.path.generic_string()
+				src_path.generic_string()
 			);
 			return 1;
 		}
 		auto rel_outdir = outdir;
-		if(auto stripped = path_strip_prefix(src.path, before_glob)) {
+		if(auto stripped = path_strip_prefix(src_path, before_glob)) {
 			rel_outdir = outdir / *stripped;
 		}
 
 		fs::create_directories(rel_outdir, ec);
-		fs::copy(src.path, rel_outdir, ec);
+		fs::copy(src_path, rel_outdir, ec);
 
 		if(ec) {
 			ecsact::cli::report_error(
 				"Failed to copy source {} to {}: {}",
-				src.path.generic_string(),
+				src_path.generic_string(),
 				rel_outdir.generic_string(),
 				ec.message()
 			);
@@ -323,7 +331,7 @@ static auto handle_source( //
 		} else {
 			ecsact::cli::report_info(
 				"Copied source {} to {}",
-				src.path.generic_string(),
+				src_path.generic_string(),
 				rel_outdir.generic_string()
 			);
 		}
@@ -707,7 +715,9 @@ auto ecsact::cli::cook_recipe( //
 
 	for(auto& src : recipe.sources()) {
 		exit_code = std::visit(
-			[&](auto& src) { return handle_source(src, recipe_options); },
+			[&](auto& src) {
+				return handle_source(recipe.base_directory(), src, recipe_options);
+			},
 			src
 		);
 

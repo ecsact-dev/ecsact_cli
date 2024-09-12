@@ -33,6 +33,24 @@ imports: []
 exports: [ecsact_clear_registry]
 )yaml";
 
+constexpr auto RECIPE_D = R"yaml(
+name: D
+sources:
+- d.cc
+
+imports: []
+exports: [ecsact_clear_registry]
+)yaml";
+
+constexpr auto RECIPE_E = R"yaml(
+name: E
+sources:
+- e.cc
+
+imports: []
+exports: [ecsact_destroy_registry]
+)yaml";
+
 auto contains_source_path(auto&& r, auto p) -> bool {
 	using std::ranges::find_if;
 
@@ -104,4 +122,27 @@ TEST(RecipeMerge, Correct) {
 		contains_source_path(abc_m.sources(), "bonbon/quit/xilo/yama/vedder/dog.cc")
 	) << "Found:\n"
 		<< sources_path_str(abc_m.sources());
+}
+
+TEST(RecipeMerge, Correct2) {
+	auto d = std::get<build_recipe>(build_recipe::from_yaml_string( //
+		RECIPE_D,
+		"job/d.yml"
+	));
+	auto e = std::get<build_recipe>(build_recipe::from_yaml_string( //
+		RECIPE_E,
+		"job/e.yml"
+	));
+
+	auto de_m = std::get<build_recipe>(build_recipe::merge(d, e));
+
+	EXPECT_EQ(d.base_directory(), de_m.base_directory());
+
+	EXPECT_TRUE(contains_source_path(de_m.sources(), "d.cc"))
+		<< "Found:\n"
+		<< sources_path_str(de_m.sources());
+
+	EXPECT_TRUE(contains_source_path(de_m.sources(), "e.cc"))
+		<< "Found:\n"
+		<< sources_path_str(de_m.sources());
 }

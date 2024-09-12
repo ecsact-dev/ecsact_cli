@@ -4,6 +4,8 @@
 #include <cassert>
 #include "ecsact/cli/commands/build/build_recipe.hh"
 
+using ecsact::build_recipe;
+
 constexpr auto RECIPE_A = R"yaml(
 name: A
 sources:
@@ -35,7 +37,7 @@ auto contains_source_path(auto&& r, auto p) -> bool {
 	using std::ranges::find_if;
 
 	auto itr = find_if(r, [&](auto&& src) -> bool {
-		auto src_path = std::get_if<ecsact::build_recipe::source_path>(&src);
+		auto src_path = std::get_if<build_recipe::source_path>(&src);
 		if(!src_path) {
 			return false;
 		}
@@ -50,7 +52,7 @@ auto sources_path_str(auto&& r) -> std::string {
 	auto str = std::string{};
 
 	for(auto&& src : r) {
-		auto src_path = std::get_if<ecsact::build_recipe::source_path>(&src);
+		auto src_path = std::get_if<build_recipe::source_path>(&src);
 		if(!src_path) {
 			continue;
 		}
@@ -61,22 +63,20 @@ auto sources_path_str(auto&& r) -> std::string {
 }
 
 TEST(RecipeMerge, Correct) {
-	using std::ranges::find;
-	using std::ranges::find_if;
+	auto a = std::get<build_recipe>(build_recipe::from_yaml_string( //
+		RECIPE_A,
+		"zeke/apple.yml"
+	));
+	auto b = std::get<build_recipe>(build_recipe::from_yaml_string( //
+		RECIPE_B,
+		"ban.yml"
+	));
+	auto c = std::get<build_recipe>(build_recipe::from_yaml_string( //
+		RECIPE_C,
+		"zeke/bonbon/quit/cover.yml"
+	));
 
-	auto a = std::get<ecsact::build_recipe>(
-		ecsact::build_recipe::from_yaml_string(RECIPE_A, "zeke/apple.yml")
-	);
-	auto b = std::get<ecsact::build_recipe>(
-		ecsact::build_recipe::from_yaml_string(RECIPE_B, "ban.yml")
-	);
-	auto c =
-		std::get<ecsact::build_recipe>(ecsact::build_recipe::from_yaml_string(
-			RECIPE_C,
-			"zeke/bonbon/quit/cover.yml"
-		));
-
-	auto ab_m = std::get<ecsact::build_recipe>(ecsact::build_recipe::merge(a, b));
+	auto ab_m = std::get<build_recipe>(build_recipe::merge(a, b));
 
 	EXPECT_EQ(ab_m.base_directory(), a.base_directory());
 
@@ -88,8 +88,7 @@ TEST(RecipeMerge, Correct) {
 		<< "Found:\n"
 		<< sources_path_str(ab_m.sources());
 
-	auto abc_m =
-		std::get<ecsact::build_recipe>(ecsact::build_recipe::merge(ab_m, c));
+	auto abc_m = std::get<build_recipe>(build_recipe::merge(ab_m, c));
 
 	EXPECT_EQ(abc_m.base_directory(), ab_m.base_directory());
 

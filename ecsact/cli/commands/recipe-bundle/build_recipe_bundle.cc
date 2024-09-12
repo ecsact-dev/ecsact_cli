@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <vector>
+#include <cerrno>
 #include <span>
 #include <ratio>
 #include <cstddef>
@@ -117,15 +118,42 @@ static auto read_file(fs::path path) -> std::optional<std::vector<std::byte>> {
 	return file_buffer;
 }
 
-static auto write_file(fs::path path, std::span<std::byte> data) -> void {
+static auto write_file(fs::path path, std::span<std::byte> data) -> bool {
 	if(path.has_parent_path()) {
 		auto ec = std::error_code{};
 		fs::create_directories(path.parent_path(), ec);
+		if(ec) {
+			ecsact::cli::report_error(
+				"failed to create directory {}: {}",
+				path.generic_string(),
+				ec.message()
+			);
+			return false;
+		}
 	}
 	auto file = std::ofstream(path, std::ios_base::binary | std::ios_base::trunc);
-	assert(file);
+	if(!file) {
+		ecsact::cli::report_error(
+			"failed to open file {}: {}",
+			path.generic_string(),
+			std::strerror(errno)
+		);
+		return false;
+	}
 
 	file.write(reinterpret_cast<const char*>(data.data()), data.size());
+
+	if(!file) {
+		ecsact::cli::report_error(
+			"failed to write file {}: {}",
+			path.generic_string(),
+			std::strerror(errno)
+		);
+		return false;
+	}
+
+	file.flush();
+	return true;
 }
 
 ecsact::build_recipe_bundle::build_recipe_bundle() = default;
@@ -399,7 +427,11 @@ auto ecsact::build_recipe_bundle::extract( //
 			return std::logic_error{std::format("Failed to read {}", path)};
 		}
 
-		write_file(dir / path, data);
+		if(!write_file(dir / path, data)) {
+			return std::logic_error{
+				std::format("Failed to extract {}", (dir / path).generic_string())
+			};
+		}
 	}
 
 	archive_entry_free(entry);

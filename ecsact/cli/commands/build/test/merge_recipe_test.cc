@@ -7,7 +7,7 @@
 constexpr auto RECIPE_A = R"yaml(
 name: A
 sources:
-- x/y/z.cc
+- xilo/yama/zompers.cc
 
 imports: []
 exports: [ecsact_create_registry]
@@ -16,7 +16,7 @@ exports: [ecsact_create_registry]
 constexpr auto RECIPE_B = R"yaml(
 name: B
 sources:
-- bbb/b.cc
+- bad/beaver.cc
 
 imports: []
 exports: [ecsact_destroy_registry]
@@ -25,7 +25,7 @@ exports: [ecsact_destroy_registry]
 constexpr auto RECIPE_C = R"yaml(
 name: C
 sources:
-- x/y/v/d.cc
+- xilo/yama/vedder/dog.cc
 
 imports: []
 exports: [ecsact_clear_registry]
@@ -65,24 +65,26 @@ TEST(RecipeMerge, Correct) {
 	using std::ranges::find_if;
 
 	auto a = std::get<ecsact::build_recipe>(
-		ecsact::build_recipe::from_yaml_string(RECIPE_A, "z/a.yml")
+		ecsact::build_recipe::from_yaml_string(RECIPE_A, "zeke/apple.yml")
 	);
 	auto b = std::get<ecsact::build_recipe>(
-		ecsact::build_recipe::from_yaml_string(RECIPE_B, "b.yml")
+		ecsact::build_recipe::from_yaml_string(RECIPE_B, "ban.yml")
 	);
-	auto c = std::get<ecsact::build_recipe>(
-		ecsact::build_recipe::from_yaml_string(RECIPE_C, "z/b/q/c.yml")
-	);
+	auto c =
+		std::get<ecsact::build_recipe>(ecsact::build_recipe::from_yaml_string(
+			RECIPE_C,
+			"zeke/bonbon/quit/cover.yml"
+		));
 
 	auto ab_m = std::get<ecsact::build_recipe>(ecsact::build_recipe::merge(a, b));
 
 	EXPECT_EQ(ab_m.base_directory(), a.base_directory());
 
-	EXPECT_TRUE(contains_source_path(ab_m.sources(), "z/x/y/z.cc"))
+	EXPECT_TRUE(contains_source_path(ab_m.sources(), "zeke/xilo/yama/zompers.cc"))
 		<< "Found:\n"
 		<< sources_path_str(ab_m.sources());
 
-	EXPECT_TRUE(contains_source_path(ab_m.sources(), "../bbb/b.cc"))
+	EXPECT_TRUE(contains_source_path(ab_m.sources(), "../bad/beaver.cc"))
 		<< "Found:\n"
 		<< sources_path_str(ab_m.sources());
 
@@ -91,15 +93,16 @@ TEST(RecipeMerge, Correct) {
 
 	EXPECT_EQ(abc_m.base_directory(), ab_m.base_directory());
 
-	EXPECT_TRUE(contains_source_path(abc_m.sources(), "z/x/y/z.cc"))
+	EXPECT_TRUE(contains_source_path(abc_m.sources(), "zeke/xilo/yama/zompers.cc")
+	) << "Found:\n"
+		<< sources_path_str(abc_m.sources());
+
+	EXPECT_TRUE(contains_source_path(abc_m.sources(), "../bad/beaver.cc"))
 		<< "Found:\n"
 		<< sources_path_str(abc_m.sources());
 
-	EXPECT_TRUE(contains_source_path(abc_m.sources(), "../bbb/b.cc"))
-		<< "Found:\n"
-		<< sources_path_str(abc_m.sources());
-
-	EXPECT_TRUE(contains_source_path(abc_m.sources(), "b/q/x/y/v/d.cc"))
-		<< "Found:\n"
+	EXPECT_TRUE(
+		contains_source_path(abc_m.sources(), "bonbon/quit/xilo/yama/vedder/dog.cc")
+	) << "Found:\n"
 		<< sources_path_str(abc_m.sources());
 }

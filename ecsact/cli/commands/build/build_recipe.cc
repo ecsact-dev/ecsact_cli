@@ -242,8 +242,10 @@ static auto parse_sources( //
 					outdir = src["outdir"].as<std::string>();
 				}
 
-				if(!relative_to_cwd && !src_path.is_absolute()) {
-					src_path = recipe_path.parent_path() / src_path;
+				if(relative_to_cwd && !src_path.is_absolute()) {
+					src_path = (fs::current_path() / src_path).lexically_normal();
+				} else {
+					src_path = src_path.lexically_normal();
 				}
 
 				result.emplace_back(source_path{
@@ -252,10 +254,7 @@ static auto parse_sources( //
 				});
 			}
 		} else if(src.IsScalar()) {
-			auto path = fs::path{src.as<std::string>()};
-			if(!path.is_absolute()) {
-				path = recipe_path.parent_path() / path;
-			}
+			auto path = fs::path{src.as<std::string>()}.lexically_normal();
 			result.emplace_back(source_path{
 				.path = path,
 				.outdir = ".",
@@ -474,9 +473,10 @@ auto ecsact::build_recipe::merge( //
 		if(std::holds_alternative<source_path>(src)) {
 			source_path src_path = std::get<source_path>(src);
 			if(!src_path.path.is_absolute()) {
-				src_path.path =
-					fs::relative(target.base_directory(), base.base_directory()) /
-					fs::relative(src_path.path, target.base_directory());
+				src_path.path = fs::relative(
+					target.base_directory() / src_path.path,
+					base.base_directory()
+				);
 			}
 
 			merged_build_recipe._sources.emplace_back(std::move(src_path));

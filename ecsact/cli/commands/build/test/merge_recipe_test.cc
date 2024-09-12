@@ -61,8 +61,7 @@ auto contains_source_path(auto&& r, auto p) -> bool {
 			return false;
 		}
 
-		return src_path->path.generic_string() == p ||
-			src_path->path.generic_string() == "./"s + p;
+		return src_path->path.generic_string() == p;
 	});
 
 	return itr != r.end();
@@ -100,7 +99,7 @@ TEST(RecipeMerge, Correct) {
 
 	EXPECT_EQ(ab_m.base_directory(), a.base_directory());
 
-	EXPECT_TRUE(contains_source_path(ab_m.sources(), "zeke/xilo/yama/zompers.cc"))
+	EXPECT_TRUE(contains_source_path(ab_m.sources(), "xilo/yama/zompers.cc"))
 		<< "Found:\n"
 		<< sources_path_str(ab_m.sources());
 
@@ -112,8 +111,8 @@ TEST(RecipeMerge, Correct) {
 
 	EXPECT_EQ(abc_m.base_directory(), ab_m.base_directory());
 
-	EXPECT_TRUE(contains_source_path(abc_m.sources(), "zeke/xilo/yama/zompers.cc")
-	) << "Found:\n"
+	EXPECT_TRUE(contains_source_path(abc_m.sources(), "xilo/yama/zompers.cc"))
+		<< "Found:\n"
 		<< sources_path_str(abc_m.sources());
 
 	EXPECT_TRUE(contains_source_path(abc_m.sources(), "../bad/beaver.cc"))

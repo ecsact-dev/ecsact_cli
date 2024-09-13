@@ -6,6 +6,7 @@
 #include <string>
 #include <fstream>
 #include <cstdio>
+#include <future>
 #include <set>
 #include <curl/curl.h>
 #undef fopen
@@ -332,12 +333,6 @@ static auto handle_source( //
 				ec.message()
 			);
 			return 1;
-		} else {
-			ecsact::cli::report_info(
-				"Copied source {} to {}",
-				src_path.generic_string(),
-				rel_outdir.generic_string()
-			);
 		}
 	}
 
@@ -583,94 +578,6 @@ auto clang_gcc_compile(compile_options options) -> int {
 }
 
 auto cl_compile(compile_options options) -> int {
-	auto abs_from_wd = [&options](fs::path rel_path) {
-		assert(!rel_path.empty());
-		if(rel_path.is_absolute()) {
-			return rel_path;
-		}
-		return fs::canonical(
-			options.work_dir / fs::relative(rel_path, options.work_dir)
-		);
-	};
-
-	auto cl_args = std::vector<std::string>{};
-
-	cl_args.push_back("/nologo");
-	cl_args.push_back("/std:c++20");
-	cl_args.push_back("/diagnostics:column");
-	cl_args.push_back("/DECSACT_BUILD");
-
-	// TODO(zaucy): Add debug mode
-	// if(options.debug) {
-	// 	compile_proc_args.push_back("/DEBUG:FULL");
-	// 	compile_proc_args.push_back("/MDd");
-	// 	compile_proc_args.push_back("/Z7");
-	// 	compile_proc_args.push_back("/EHsc");
-	// 	compile_proc_args.push_back("/bigobj");
-	// }
-
-	// cl_args.push_back("/we4530"); // treat exceptions as errors
-	cl_args.push_back("/wd4530"); // ignore use of exceptions warning
-	cl_args.push_back("/MD");
-	cl_args.push_back("/DNDEBUG");
-	cl_args.push_back("/O2");
-	cl_args.push_back("/GL");
-	cl_args.push_back("/MP");
-	cl_args.push_back("/Fo:"); // typos:disable-line
-	cl_args.push_back(
-		std::format("{}\\", fs::path{options.work_dir}.lexically_normal().string())
-	);
-
-	auto generated_defines =
-		ecsact::cli::cc_defines_gen(options.imports, options.exports);
-
-	if(generated_defines.empty()) {
-		ecsact::cli::report_error("no defines (internal error)");
-		return 1;
-	}
-
-	for(auto def : generated_defines) {
-		cl_args.push_back(std::format("/D{}", def));
-	}
-
-	for(auto src : options.srcs) {
-		if(src.extension().string().starts_with(".h")) {
-			continue;
-		}
-
-		if(src.extension().string() == ".ipp") {
-			continue;
-		}
-
-		cl_args.push_back(abs_from_wd(src).string());
-	}
-
-	for(auto inc_dir : options.compiler.std_inc_paths) {
-		cl_args.push_back(std::format("/I{}", inc_dir.string()));
-	}
-
-	for(auto inc_dir : options.inc_dirs) {
-		cl_args.push_back(std::format("/I{}", inc_dir.string()));
-	}
-
-	for(auto sys_lib : options.system_libs) {
-		cl_args.push_back(std::format("/DEFAULTLIB:{}", sys_lib));
-	}
-
-	cl_args.push_back("/link");
-	if(options.debug) {
-		cl_args.push_back("/DEBUG");
-	}
-	cl_args.push_back("/DLL");
-
-	for(auto lib_dir : options.compiler.std_lib_paths) {
-		cl_args.push_back(std::format("/LIBPATH:{}", lib_dir.string()));
-	}
-
-	cl_args.push_back("/MACHINE:x64"); // TODO(zaucy): configure from triple
-
-	cl_args.push_back(std::format("/OUT:{}", options.output_path.string()));
-
 	struct : ecsact::cli::detail::spawn_reporter {
 		auto on_std_out(std::string_view line) -> std::optional<message_variant_t> {
 			if(line.find(": warning") != std::string::npos) {
@@ -698,6 +605,184 @@ auto cl_compile(compile_options options) -> int {
 			return {};
 		}
 	} reporter;
+
+	auto abs_from_wd = [&options](fs::path rel_path) {
+		assert(!rel_path.empty());
+		if(rel_path.is_absolute()) {
+			return rel_path;
+		}
+		return fs::canonical(
+			options.work_dir / fs::relative(rel_path, options.work_dir)
+		);
+	};
+
+	auto intermediate_dir =
+		fs::path{options.work_dir / "intermediate"}.lexically_normal();
+	auto ec = std::error_code{};
+	fs::create_directories(intermediate_dir);
+
+	auto cl_args = std::vector<std::string>{};
+
+	auto create_params_file = [&cl_args](fs::path params_file_path) -> fs::path {
+		auto params_file = std::ofstream{params_file_path};
+		for(auto arg : cl_args) {
+			params_file << std::format("\"{}\"\n", arg);
+		}
+
+		cl_args.clear();
+		return params_file_path;
+	};
+
+	cl_args.push_back("/nologo");
+	cl_args.push_back("/D_WIN32_WINNT=0x0A00");
+	cl_args.push_back("/diagnostics:column");
+	cl_args.push_back("/DECSACT_BUILD");
+
+	// TODO(zaucy): Add debug mode
+	// if(options.debug) {
+	// 	compile_proc_args.push_back("/DEBUG:FULL");
+	// 	compile_proc_args.push_back("/MDd");
+	// 	compile_proc_args.push_back("/Z7");
+	// 	compile_proc_args.push_back("/EHsc");
+	// 	compile_proc_args.push_back("/bigobj");
+	// }
+
+	// cl_args.push_back("/we4530"); // treat exceptions as errors
+	cl_args.push_back("/wd4530"); // ignore use of exceptions warning
+	cl_args.push_back("/MD");
+	cl_args.push_back("/DNDEBUG");
+	cl_args.push_back("/O2");
+	cl_args.push_back("/GL");
+	cl_args.push_back("/MP");
+
+	auto generated_defines =
+		ecsact::cli::cc_defines_gen(options.imports, options.exports);
+
+	if(generated_defines.empty()) {
+		ecsact::cli::report_error("no defines (internal error)");
+		return 1;
+	}
+
+	for(auto def : generated_defines) {
+		cl_args.push_back(std::format("/D{}", def));
+	}
+
+	for(auto inc_dir : options.compiler.std_inc_paths) {
+		cl_args.push_back(std::format("/I{}", inc_dir.string()));
+	}
+
+	for(auto inc_dir : options.inc_dirs) {
+		cl_args.push_back(std::format("/I{}", inc_dir.string()));
+	}
+
+	for(auto sys_lib : options.system_libs) {
+		cl_args.push_back(std::format("/DEFAULTLIB:{}", sys_lib));
+	}
+
+	auto main_params_file =
+		create_params_file(long_path_workaround(options.work_dir / "main.params"));
+
+	auto valid_srcs = std::vector<fs::path>{};
+	valid_srcs.reserve(options.srcs.size());
+
+	for(auto src : options.srcs) {
+		if(src.extension().string().starts_with(".h")) {
+			continue;
+		}
+
+		if(src.extension().string() == ".ipp") {
+			continue;
+		}
+
+		if(src.extension().empty()) {
+			continue;
+		}
+
+		if(src.string().empty()) {
+			continue;
+		}
+
+		valid_srcs.emplace_back(src);
+	}
+
+	auto src_compile_exit_code_futures = std::vector<std::future<int>>{};
+	src_compile_exit_code_futures.reserve(valid_srcs.size());
+
+	for(auto src : valid_srcs) {
+		src_compile_exit_code_futures
+			.emplace_back(std::async(std::launch::async, [&, src] {
+				auto src_cl_args = cl_args;
+				src_cl_args.push_back("/c");
+				src_cl_args.push_back(std::format("@{}", main_params_file.string()));
+				src_cl_args.push_back(abs_from_wd(src).string());
+				// src_cl_args.push_back(src.string());
+
+				if(src.extension() == ".c") {
+					src_cl_args.push_back("/std:c17");
+				} else {
+					src_cl_args.push_back("/std:c++20");
+				}
+
+				src_cl_args.push_back(std::format(
+					"/Fo{}\\",
+					long_path_workaround(intermediate_dir).string()
+				));
+
+				return ecsact::cli::detail::spawn_and_report(
+					options.compiler.compiler_path,
+					src_cl_args,
+					reporter
+				);
+			}));
+	}
+
+	auto any_src_compile_failures = false;
+	auto src_compile_exit_codes = std::vector<std::future<int>>{};
+	src_compile_exit_codes.reserve(src_compile_exit_code_futures.size());
+
+	for(auto i = 0; src_compile_exit_code_futures.size() > i; ++i) {
+		auto& fut = src_compile_exit_code_futures.at(i);
+		auto  compile_exit_code = fut.get();
+
+		if(compile_exit_code != 0) {
+			any_src_compile_failures = true;
+			ecsact::cli::report_error(
+				"Failed to compile {}. Compiler {} exited with code {}",
+				valid_srcs.at(i).generic_string(),
+				to_string(options.compiler.compiler_type),
+				compile_exit_code
+			);
+		}
+	}
+
+	if(any_src_compile_failures) {
+		return 1;
+	}
+
+	cl_args.push_back("@" + main_params_file.string());
+
+	for(fs::path obj_f : fs::recursive_directory_iterator(intermediate_dir)) {
+		cl_args.push_back(obj_f.string());
+	}
+
+	cl_args.push_back("/Fo:"); // typos:disable-line
+	cl_args.push_back(
+		std::format("{}\\", fs::path{options.work_dir}.lexically_normal().string())
+	);
+
+	cl_args.push_back("/link");
+	if(options.debug) {
+		cl_args.push_back("/DEBUG");
+	}
+	cl_args.push_back("/DLL");
+
+	for(auto lib_dir : options.compiler.std_lib_paths) {
+		cl_args.push_back(std::format("/LIBPATH:{}", lib_dir.string()));
+	}
+
+	cl_args.push_back("/MACHINE:x64"); // TODO(zaucy): configure from triple
+
+	cl_args.push_back(std::format("/OUT:{}", options.output_path.string()));
 
 	auto compile_exit_code = ecsact::cli::detail::spawn_and_report(
 		options.compiler.compiler_path,
@@ -842,7 +927,19 @@ auto ecsact::cli::cook_recipe( //
 		auto rel_hdr_path = hdr.substr("ecsact_runtime/"sv.size());
 		fs::create_directories((inc_dir / rel_hdr_path).parent_path(), ec);
 
-		fs::copy_file(full_hdr_path, inc_dir / rel_hdr_path, ec);
+		if(fs::exists(inc_dir / rel_hdr_path)) {
+			ecsact::cli::report_warning(
+				"Overwriting ecsact runtime header {} with runfiles header",
+				rel_hdr_path
+			);
+		}
+
+		fs::copy_file(
+			full_hdr_path,
+			inc_dir / rel_hdr_path,
+			fs::copy_options::overwrite_existing,
+			ec
+		);
 		if(ec) {
 			ecsact::cli::report_error(
 				"Failed to copy ecsact runtime header from runfiles. {} -> {}\n{}",

@@ -85,14 +85,34 @@ static auto is_valid_bundle_entry_path(std::string_view path) -> bool {
 	return valid_bundle_path_itr != valid_bundle_paths.end();
 }
 
-static auto read_file(fs::path path) -> std::vector<std::byte> {
-	auto file_size = fs::file_size(path);
+static auto read_file(fs::path path) -> std::optional<std::vector<std::byte>> {
+	auto ec = std::error_code{};
+	auto file_size = fs::file_size(path, ec);
+	if(ec) {
+		ecsact::cli::report_error(
+			"failed to read file size {}: {}",
+			path.generic_string(),
+			ec.message()
+		);
+		return {};
+	}
 	auto file = std::ifstream{path, std::ios_base::binary};
-	assert(file);
+	if(!file) {
+		ecsact::cli::report_error(
+			"failed to open file file for reading {}",
+			path.generic_string()
+		);
+		return {};
+	}
 
 	auto file_buffer =
 		std::vector<std::byte>{file_size, uninitialized<std::byte>{}};
 	file.read(reinterpret_cast<char*>(file_buffer.data()), file_size);
+
+	if(!file) {
+		ecsact::cli::report_error("failed to read file {}", path.generic_string());
+		return {};
+	}
 
 	return file_buffer;
 }
@@ -222,6 +242,11 @@ auto ecsact::build_recipe_bundle::create( //
 				}
 
 				auto plugin_file_data = read_file(*plugin_file_path);
+
+				if(!plugin_file_data) {
+					return std::logic_error{"read file fail"};
+				}
+
 				auto archive_rel_path =
 					(fs::path{"codegen"} / plugin_file_path->filename())
 						.lexically_normal();
@@ -229,7 +254,7 @@ auto ecsact::build_recipe_bundle::create( //
 				auto& p = new_archive_rel_plugin_paths.emplace_back(
 					archive_rel_path.generic_string()
 				);
-				add_simple_buffer(p, plugin_file_data);
+				add_simple_buffer(p, *plugin_file_data);
 			}
 
 			src.plugins = new_archive_rel_plugin_paths;
@@ -242,7 +267,12 @@ auto ecsact::build_recipe_bundle::create( //
 				(fs::path{"files"} / src.outdir.value_or(".") / src_path_basename)
 					.lexically_normal();
 			auto file_buffer = read_file(src.path);
-			add_simple_buffer(archive_rel_path.generic_string(), file_buffer);
+
+			if(!file_buffer) {
+				return std::logic_error{"read file fail"};
+			}
+
+			add_simple_buffer(archive_rel_path.generic_string(), *file_buffer);
 
 			return build_recipe::source_path{
 				.path = archive_rel_path,
@@ -280,7 +310,13 @@ auto ecsact::build_recipe_bundle::from_file( //
 	std::filesystem::path bundle_path
 ) -> create_result {
 	auto result = build_recipe_bundle{};
-	result._bundle_bytes = read_file(bundle_path);
+	auto bundle_bytes = read_file(bundle_path);
+
+	if(!bundle_bytes) {
+		return std::logic_error{"read bundle fail"};
+	}
+
+	result._bundle_bytes = std::move(*bundle_bytes);
 	return result;
 }
 

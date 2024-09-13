@@ -123,7 +123,7 @@ static auto read_file(fs::path path) -> std::optional<std::vector<std::byte>> {
 static auto write_file(fs::path path, std::span<std::byte> data) -> bool {
 	if(path.has_parent_path() && !fs::exists(path.parent_path())) {
 		auto ec = std::error_code{};
-		fs::create_directories(path.parent_path(), ec);
+		fs::create_directories(long_path_workaround(path.parent_path()), ec);
 		if(ec) {
 			ecsact::cli::report_error(
 				"failed to create directory {}: {}",

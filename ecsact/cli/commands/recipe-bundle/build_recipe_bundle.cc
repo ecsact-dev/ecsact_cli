@@ -19,10 +19,12 @@
 #include <archive.h>
 #include <archive_entry.h>
 #include "xxhash.h"
-
 #include "ecsact/cli/report.hh"
 #include "ecsact/cli/detail/download.hh"
+#include "ecsact/cli/detail/long_path_workaround.hh"
 #include "ecsact/cli/commands/codegen/codegen_util.hh"
+
+using ecsact::cli::detail::long_path_workaround;
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
@@ -88,7 +90,7 @@ static auto is_valid_bundle_entry_path(std::string_view path) -> bool {
 
 static auto read_file(fs::path path) -> std::optional<std::vector<std::byte>> {
 	auto ec = std::error_code{};
-	auto file_size = fs::file_size(path, ec);
+	auto file_size = fs::file_size(long_path_workaround(path), ec);
 	if(ec) {
 		ecsact::cli::report_error(
 			"failed to read file size {}: {}",
@@ -97,7 +99,7 @@ static auto read_file(fs::path path) -> std::optional<std::vector<std::byte>> {
 		);
 		return {};
 	}
-	auto file = std::ifstream{path, std::ios_base::binary};
+	auto file = std::ifstream{long_path_workaround(path), std::ios_base::binary};
 	if(!file) {
 		ecsact::cli::report_error(
 			"failed to open file file for reading {}",
@@ -119,7 +121,7 @@ static auto read_file(fs::path path) -> std::optional<std::vector<std::byte>> {
 }
 
 static auto write_file(fs::path path, std::span<std::byte> data) -> bool {
-	if(path.has_parent_path()) {
+	if(path.has_parent_path() && !fs::exists(path.parent_path())) {
 		auto ec = std::error_code{};
 		fs::create_directories(path.parent_path(), ec);
 		if(ec) {
@@ -131,7 +133,11 @@ static auto write_file(fs::path path, std::span<std::byte> data) -> bool {
 			return false;
 		}
 	}
-	auto file = std::ofstream(path, std::ios_base::binary | std::ios_base::trunc);
+
+	auto file = std::ofstream{
+		long_path_workaround(path),
+		std::ios::binary | std::ios::trunc
+	};
 	if(!file) {
 		ecsact::cli::report_error(
 			"failed to open file {}: {}",

@@ -24,6 +24,7 @@
 #include "ecsact/cli/detail/download.hh"
 #include "ecsact/cli/detail/glob.hh"
 #include "ecsact/cli/detail/archive.hh"
+#include "ecsact/cli/detail/long_path_workaround.hh"
 #ifndef ECSACT_CLI_USE_SDK_VERSION
 #	include "tools/cpp/runfiles/runfiles.h"
 #endif
@@ -34,6 +35,7 @@ using ecsact::cli::report_warning;
 using ecsact::cli::detail::download_file;
 using ecsact::cli::detail::expand_path_globs;
 using ecsact::cli::detail::integrity;
+using ecsact::cli::detail::long_path_workaround;
 using ecsact::cli::detail::path_before_glob;
 using ecsact::cli::detail::path_matches_glob;
 using ecsact::cli::detail::path_strip_prefix;
@@ -285,6 +287,8 @@ static auto handle_source( //
 	if(!src_path.is_absolute()) {
 		src_path = (base_directory / src_path).lexically_normal();
 	}
+
+	src_path = long_path_workaround(src_path);
 
 	auto outdir = src.outdir //
 		? options.work_dir / *src.outdir

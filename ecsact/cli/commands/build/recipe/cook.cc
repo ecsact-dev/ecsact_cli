@@ -494,6 +494,10 @@ auto clang_gcc_compile(compile_options options) -> int {
 			continue;
 		}
 
+		if(src.extension().string() == ".ipp") {
+			continue;
+		}
+
 		compile_proc_args.push_back(fs::relative(src, options.work_dir).string());
 	}
 
@@ -631,6 +635,10 @@ auto cl_compile(compile_options options) -> int {
 
 	for(auto src : options.srcs) {
 		if(src.extension().string().starts_with(".h")) {
+			continue;
+		}
+
+		if(src.extension().string() == ".ipp") {
 			continue;
 		}
 

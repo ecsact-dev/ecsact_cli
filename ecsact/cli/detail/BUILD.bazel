@@ -74,3 +74,10 @@ cc_library(
         "@boost.process",
     ],
 )
+
+cc_library(
+    name = "long_path_workaround",
+    copts = copts,
+    hdrs = ["long_path_workaround.hh"],
+    srcs = ["long_path_workaround.cc"],
+)

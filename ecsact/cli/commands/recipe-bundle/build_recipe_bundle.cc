@@ -7,6 +7,7 @@
 #include <filesystem>
 #include <fstream>
 #include <vector>
+#include <cerrno>
 #include <span>
 #include <ratio>
 #include <cstddef>
@@ -18,10 +19,12 @@
 #include <archive.h>
 #include <archive_entry.h>
 #include "xxhash.h"
-
 #include "ecsact/cli/report.hh"
 #include "ecsact/cli/detail/download.hh"
+#include "ecsact/cli/detail/long_path_workaround.hh"
 #include "ecsact/cli/commands/codegen/codegen_util.hh"
+
+using ecsact::cli::detail::long_path_workaround;
 
 using namespace std::string_literals;
 using namespace std::string_view_literals;
@@ -87,7 +90,7 @@ static auto is_valid_bundle_entry_path(std::string_view path) -> bool {
 
 static auto read_file(fs::path path) -> std::optional<std::vector<std::byte>> {
 	auto ec = std::error_code{};
-	auto file_size = fs::file_size(path, ec);
+	auto file_size = fs::file_size(long_path_workaround(path), ec);
 	if(ec) {
 		ecsact::cli::report_error(
 			"failed to read file size {}: {}",
@@ -96,7 +99,7 @@ static auto read_file(fs::path path) -> std::optional<std::vector<std::byte>> {
 		);
 		return {};
 	}
-	auto file = std::ifstream{path, std::ios_base::binary};
+	auto file = std::ifstream{long_path_workaround(path), std::ios_base::binary};
 	if(!file) {
 		ecsact::cli::report_error(
 			"failed to open file file for reading {}",
@@ -117,15 +120,46 @@ static auto read_file(fs::path path) -> std::optional<std::vector<std::byte>> {
 	return file_buffer;
 }
 
-static auto write_file(fs::path path, std::span<std::byte> data) -> void {
-	if(path.has_parent_path()) {
+static auto write_file(fs::path path, std::span<std::byte> data) -> bool {
+	if(path.has_parent_path() && !fs::exists(path.parent_path())) {
 		auto ec = std::error_code{};
-		fs::create_directories(path.parent_path(), ec);
+		fs::create_directories(long_path_workaround(path.parent_path()), ec);
+		if(ec) {
+			ecsact::cli::report_error(
+				"failed to create directory {}: {}",
+				path.generic_string(),
+				ec.message()
+			);
+			return false;
+		}
 	}
-	auto file = std::ofstream(path, std::ios_base::binary | std::ios_base::trunc);
-	assert(file);
+
+	auto file = std::ofstream{
+		long_path_workaround(path),
+		std::ios::binary | std::ios::trunc
+	};
+	if(!file) {
+		ecsact::cli::report_error(
+			"failed to open file {}: {}",
+			path.generic_string(),
+			std::strerror(errno)
+		);
+		return false;
+	}
 
 	file.write(reinterpret_cast<const char*>(data.data()), data.size());
+
+	if(!file) {
+		ecsact::cli::report_error(
+			"failed to write file {}: {}",
+			path.generic_string(),
+			std::strerror(errno)
+		);
+		return false;
+	}
+
+	file.flush();
+	return true;
 }
 
 ecsact::build_recipe_bundle::build_recipe_bundle() = default;
@@ -399,7 +433,11 @@ auto ecsact::build_recipe_bundle::extract( //
 			return std::logic_error{std::format("Failed to read {}", path)};
 		}
 
-		write_file(dir / path, data);
+		if(!write_file(dir / path, data)) {
+			return std::logic_error{
+				std::format("Failed to extract {}", (dir / path).generic_string())
+			};
+		}
 	}
 
 	archive_entry_free(entry);

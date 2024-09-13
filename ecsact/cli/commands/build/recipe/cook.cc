@@ -420,17 +420,23 @@ static auto generate_dylib_imports( //
 	output << "}\n\n";
 }
 
+struct compile_lib_options {
+	std::vector<std::string> system_libs;
+	std::vector<fs::path>    srcs;
+};
+
 struct compile_options {
 	fs::path work_dir;
 
-	ecsact::cli::cc_compiler compiler;
-	std::vector<fs::path>    inc_dirs;
-	std::vector<std::string> system_libs;
-	std::vector<fs::path>    srcs;
-	fs::path                 output_path;
-	std::vector<std::string> imports;
-	std::vector<std::string> exports;
-	bool                     debug;
+	ecsact::cli::cc_compiler         compiler;
+	std::vector<fs::path>            inc_dirs;
+	std::vector<std::string>         system_libs;
+	std::vector<fs::path>            srcs;
+	fs::path                         output_path;
+	std::vector<std::string>         imports;
+	std::vector<std::string>         exports;
+	std::vector<compile_lib_options> libs;
+	bool                             debug;
 };
 
 auto clang_gcc_compile(compile_options options) -> int {
@@ -583,6 +589,34 @@ auto clang_gcc_compile(compile_options options) -> int {
 }
 
 auto cl_compile(compile_options options) -> int {
+	struct : ecsact::cli::detail::spawn_reporter {
+		auto on_std_out(std::string_view line) -> std::optional<message_variant_t> {
+			if(line.find(": warning") != std::string::npos) {
+				return ecsact::cli::warning_message{
+					.content = std::string{line},
+				};
+			} else if(line.find(": error") != std::string::npos) {
+				return ecsact::cli::error_message{
+					.content = std::string{line},
+				};
+			} else if(line.find(": fatal error ") != std::string::npos) {
+				return ecsact::cli::error_message{
+					.content = std::string{line},
+				};
+			} else if(line.find(": Command line error ") != std::string::npos) {
+				return ecsact::cli::error_message{
+					.content = std::string{line},
+				};
+			}
+
+			return {};
+		}
+
+		auto on_std_err(std::string_view line) -> std::optional<message_variant_t> {
+			return {};
+		}
+	} reporter;
+
 	auto abs_from_wd = [&options](fs::path rel_path) {
 		assert(!rel_path.empty());
 		if(rel_path.is_absolute()) {
@@ -593,29 +627,81 @@ auto cl_compile(compile_options options) -> int {
 		);
 	};
 
-	auto cl_args = std::vector<std::string>{};
+	auto prepare_default_cl_args = [&] {
+		auto cl_args = std::vector<std::string>{};
 
-	cl_args.push_back("/nologo");
-	cl_args.push_back("/std:c++20");
-	cl_args.push_back("/diagnostics:column");
-	cl_args.push_back("/DECSACT_BUILD");
+		cl_args.push_back("/nologo");
+		cl_args.push_back("/std:c++20");
+		cl_args.push_back("/diagnostics:column");
+		cl_args.push_back("/DECSACT_BUILD");
 
-	// TODO(zaucy): Add debug mode
-	// if(options.debug) {
-	// 	compile_proc_args.push_back("/DEBUG:FULL");
-	// 	compile_proc_args.push_back("/MDd");
-	// 	compile_proc_args.push_back("/Z7");
-	// 	compile_proc_args.push_back("/EHsc");
-	// 	compile_proc_args.push_back("/bigobj");
-	// }
+		// TODO(zaucy): Add debug mode
+		// if(options.debug) {
+		// 	compile_proc_args.push_back("/DEBUG:FULL");
+		// 	compile_proc_args.push_back("/MDd");
+		// 	compile_proc_args.push_back("/Z7");
+		// 	compile_proc_args.push_back("/EHsc");
+		// 	compile_proc_args.push_back("/bigobj");
+		// }
 
-	// cl_args.push_back("/we4530"); // treat exceptions as errors
-	cl_args.push_back("/wd4530"); // ignore use of exceptions warning
-	cl_args.push_back("/MD");
-	cl_args.push_back("/DNDEBUG");
-	cl_args.push_back("/O2");
-	cl_args.push_back("/GL");
-	cl_args.push_back("/MP");
+		// cl_args.push_back("/we4530"); // treat exceptions as errors
+		cl_args.push_back("/wd4530"); // ignore use of exceptions warning
+		cl_args.push_back("/MD");
+		cl_args.push_back("/DNDEBUG");
+		cl_args.push_back("/O2");
+		cl_args.push_back("/GL");
+		cl_args.push_back("/MP");
+		return cl_args;
+	};
+
+	auto lib_objs = std::vector<fs::path>();
+
+	for(auto lib : options.libs) {
+		auto cl_args = prepare_default_cl_args();
+
+		cl_args.push_back("/LIB");
+
+		for(auto src : lib.srcs) {
+			if(src.extension().string().starts_with(".h")) {
+				continue;
+			}
+
+			if(src.extension().string() == ".ipp") {
+				continue;
+			}
+
+			cl_args.push_back(abs_from_wd(src).string());
+		}
+
+		for(auto inc_dir : options.compiler.std_inc_paths) {
+			cl_args.push_back(std::format("/I{}", inc_dir.string()));
+		}
+
+		for(auto inc_dir : options.inc_dirs) {
+			cl_args.push_back(std::format("/I{}", inc_dir.string()));
+		}
+
+		for(auto sys_lib : lib.system_libs) {
+			cl_args.push_back(std::format("/DEFAULTLIB:{}", sys_lib));
+		}
+
+		auto lib_compile_exit_code = ecsact::cli::detail::spawn_and_report(
+			options.compiler.compiler_path,
+			cl_args,
+			reporter
+		);
+
+		if(lib_compile_exit_code != 0) {
+			ecsact::cli::report_error(
+				"Failed to compile recipe lib. Compiler {} exited with code {}",
+				to_string(options.compiler.compiler_type),
+				lib_compile_exit_code
+			);
+			return 1;
+		}
+	}
+
+	auto cl_args = prepare_default_cl_args();
 	cl_args.push_back("/Fo:"); // typos:disable-line
 	cl_args.push_back(
 		std::format("{}\\", fs::path{options.work_dir}.lexically_normal().string())
@@ -670,34 +756,6 @@ auto cl_compile(compile_options options) -> int {
 	cl_args.push_back("/MACHINE:x64"); // TODO(zaucy): configure from triple
 
 	cl_args.push_back(std::format("/OUT:{}", options.output_path.string()));
-
-	struct : ecsact::cli::detail::spawn_reporter {
-		auto on_std_out(std::string_view line) -> std::optional<message_variant_t> {
-			if(line.find(": warning") != std::string::npos) {
-				return ecsact::cli::warning_message{
-					.content = std::string{line},
-				};
-			} else if(line.find(": error") != std::string::npos) {
-				return ecsact::cli::error_message{
-					.content = std::string{line},
-				};
-			} else if(line.find(": fatal error ") != std::string::npos) {
-				return ecsact::cli::error_message{
-					.content = std::string{line},
-				};
-			} else if(line.find(": Command line error ") != std::string::npos) {
-				return ecsact::cli::error_message{
-					.content = std::string{line},
-				};
-			}
-
-			return {};
-		}
-
-		auto on_std_err(std::string_view line) -> std::optional<message_variant_t> {
-			return {};
-		}
-	} reporter;
 
 	auto compile_exit_code = ecsact::cli::detail::spawn_and_report(
 		options.compiler.compiler_path,

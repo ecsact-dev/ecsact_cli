@@ -309,25 +309,34 @@ static auto handle_source( //
 	}
 
 	for(auto path : paths) {
-		if(!fs::exists(src_path)) {
+		if(!fs::exists(path)) {
 			ecsact::cli::report_error(
 				"Source file {} does not exist",
-				src_path.generic_string()
+				path.generic_string()
 			);
 			return 1;
 		}
+		if(fs::is_directory(path)) {
+			ecsact::cli::report_warning(
+				"Ignoring directory source {} ",
+				path.generic_string()
+			);
+			continue;
+		}
 		auto rel_outdir = outdir;
-		if(auto stripped = path_strip_prefix(src_path, before_glob)) {
+		if(auto stripped = path_strip_prefix(path, before_glob)) {
 			rel_outdir = outdir / *stripped;
 		}
 
+		rel_outdir = rel_outdir.lexically_normal();
+
 		fs::create_directories(rel_outdir, ec);
-		fs::copy(src_path, rel_outdir, ec);
+		fs::copy(path, rel_outdir, ec);
 
 		if(ec) {
 			ecsact::cli::report_error(
 				"Failed to copy source {} to {}: {}",
-				src_path.generic_string(),
+				path.generic_string(),
 				rel_outdir.generic_string(),
 				ec.message()
 			);
@@ -339,6 +348,13 @@ static auto handle_source( //
 				rel_outdir.generic_string()
 			);
 		}
+
+		ecsact::cli::report_info(
+			"Copied {} to {}",
+			path.string(),
+			rel_outdir.string(),
+			ec.message()
+		);
 	}
 
 	return 0;

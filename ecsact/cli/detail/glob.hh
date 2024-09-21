@@ -21,15 +21,19 @@ auto path_matches_glob(
 	const std::filesystem::path& glob_pattern
 ) -> bool;
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wcomment"
+#ifdef __clang__
+#	pragma clang diagnostic push
+#	pragma clang diagnostic ignored "-Wcomment"
+#endif
 /**
  * Gets the path before the first glob pattern. For example if your glob pattern
  * is `a/b/*` the returning path would be `a/b`. Or if you have multiple glob
  * patterns such as `a/b/*.txt/c/*.d` the returning path would still be `a/b`.
  */
 auto path_before_glob(std::filesystem::path) -> std::filesystem::path;
-#pragma clang diagnostic pop
+#ifdef __clang__
+#	pragma clang diagnostic pop
+#endif
 
 // not really a glob feature, but useful path util
 auto path_strip_prefix(

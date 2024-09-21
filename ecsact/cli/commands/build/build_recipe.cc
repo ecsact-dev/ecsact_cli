@@ -265,6 +265,41 @@ static auto parse_sources( //
 	return result;
 }
 
+static auto parse_libs( //
+	fs::path   recipe_path,
+	YAML::Node libs
+)
+	-> std::variant<
+		std::vector<ecsact::build_recipe::lib>,
+		ecsact::build_recipe_parse_error> {
+	auto result = std::vector<ecsact::build_recipe::lib>{};
+
+	for(auto lib_doc : libs) {
+		if(!lib_doc.IsMap()) {
+			return ecsact::build_recipe_parse_error::invalid_lib;
+		}
+
+		auto sources = parse_sources(recipe_path, lib_doc["sources"]);
+		if(auto err = get_if_error(sources)) {
+			return *err;
+		}
+
+		auto system_libs = parse_system_libs(lib_doc["system_libs"]);
+		if(auto err = get_if_error(system_libs)) {
+			return *err;
+		}
+
+		auto lib = ecsact::build_recipe::lib{};
+		lib.name = lib_doc["name"].as<std::string>();
+		lib.sources = get_value(sources);
+		lib.system_libs = get_value(system_libs);
+
+		result.emplace_back(std::move(lib));
+	}
+
+	return result;
+}
+
 auto ecsact::build_recipe::build_recipe_from_yaml_node( //
 	YAML::Node doc,
 	fs::path   p
@@ -293,6 +328,11 @@ auto ecsact::build_recipe::build_recipe_from_yaml_node( //
 		return *err;
 	}
 
+	auto libs = parse_libs(p, doc["libs"]);
+	if(auto err = get_if_error(libs)) {
+		return *err;
+	}
+
 	auto recipe = ecsact::build_recipe{};
 	if(doc["name"]) {
 		recipe._name = doc["name"].as<std::string>();
@@ -304,6 +344,7 @@ auto ecsact::build_recipe::build_recipe_from_yaml_node( //
 	recipe._imports = get_value(imports);
 	recipe._sources = get_value(sources);
 	recipe._system_libs = get_value(system_libs);
+	recipe._libs = get_value(libs);
 
 	if(recipe._exports.empty()) {
 		return build_recipe_parse_error::missing_exports;

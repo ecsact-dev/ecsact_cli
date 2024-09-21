@@ -23,6 +23,7 @@ enum class build_recipe_parse_error {
 	unknown_import_method,
 	unknown_export_method,
 	conflicting_import_export_method_modules,
+	invalid_lib,
 };
 
 enum class build_recipe_merge_error {
@@ -68,6 +69,12 @@ public:
 
 	using source = std::variant<source_path, source_fetch, source_codegen>;
 
+	struct lib {
+		std::string              name;
+		std::vector<source>      sources;
+		std::vector<std::string> system_libs;
+	};
+
 	build_recipe(build_recipe&&);
 	~build_recipe();
 
@@ -76,6 +83,7 @@ public:
 	auto exports() const -> std::span<const std::string>;
 	auto imports() const -> std::span<const std::string>;
 	auto sources() const -> std::span<const source>;
+	auto libs() const -> std::span<const lib>;
 	auto system_libs() const -> std::span<const std::string>;
 
 	auto to_yaml_string() const -> std::string;
@@ -90,6 +98,7 @@ private:
 	std::vector<std::string> _exports;
 	std::vector<std::string> _imports;
 	std::vector<source>      _sources;
+	std::vector<lib>         _libs;
 	std::vector<std::string> _system_libs;
 
 	build_recipe();

@@ -307,7 +307,6 @@ auto ecsact::build_recipe_bundle::create( //
 			auto file_buffer = read_file(src_path);
 
 			if(!file_buffer) {
-				__debugbreak();
 				return std::logic_error{"read file fail"};
 			}
 

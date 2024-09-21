@@ -296,13 +296,18 @@ auto ecsact::build_recipe_bundle::create( //
 			return src;
 		},
 		[&](build_recipe::source_path src) -> source_visitor_result_t {
+			auto src_path = src.path;
+			if(!src_path.is_absolute()) {
+				src_path = recipe.base_directory() / src.path;
+			}
 			auto src_path_basename = src.path.filename();
 			auto archive_rel_path =
 				(fs::path{"files"} / src.outdir.value_or(".") / src_path_basename)
 					.lexically_normal();
-			auto file_buffer = read_file(src.path);
+			auto file_buffer = read_file(src_path);
 
 			if(!file_buffer) {
+				__debugbreak();
 				return std::logic_error{"read file fail"};
 			}
 

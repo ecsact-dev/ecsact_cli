@@ -473,7 +473,7 @@ auto ecsact::build_recipe::merge( //
 		if(std::holds_alternative<source_path>(src)) {
 			source_path src_path = std::get<source_path>(src);
 			if(!src_path.path.is_absolute()) {
-				src_path.path = fs::relative(
+				src_path.path = fs::proximate(
 					target.base_directory() / src_path.path,
 					base.base_directory()
 				);

@@ -2,6 +2,23 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.17 - 2024-09-23
+#### Bug Fixes
+- relative recipe paths correctly resolved (#130) - (87474a3) - Ezekiel Warren
+- add create file error handling (#127) - (1a6c689) - Ezekiel Warren
+- 3way merge fix and merge recipe tests (#126) - (ce4e4f6) - Ezekiel Warren
+#### Features
+- compiling each c/c++ file individually for msvc (#129) - (f789048) - Ezekiel Warren
+- add error reporting when reading a file fails - (ce7836b) - Ezekiel Warren
+#### Miscellaneous Chores
+- **(deps)** update dependency ecsact_runtime to v0.6.9 (#124) - (8281d27) - renovate[bot]
+- **(deps)** update dependency ecsact_runtime to v0.6.8 (#122) - (08108b5) - renovate[bot]
+- **(deps)** update dependency ecsact_runtime to v0.6.7 (#114) - (3b19c59) - renovate[bot]
+- remove some warnings on msvc #108 - (614d537) - Ezekiel Warren
+- sync with ecsact_common (#123) - (1d3155d) - seaubot
+
+- - -
+
 ## 0.3.16 - 2024-08-09
 #### Features
 - support new codegen api for multi output (#120) - (f14dff8) - Ezekiel Warren

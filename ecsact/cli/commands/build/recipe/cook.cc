@@ -739,7 +739,7 @@ auto cl_compile(compile_options options) -> int {
 				}
 
 				src_cl_args.push_back(std::format(
-					"/Fo{}\\",
+					"/Fo{}\\", // typos:disable-line
 					long_path_workaround(intermediate_dir).string()
 				));
 

@@ -2,6 +2,13 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.18 - 2024-10-14
+#### Miscellaneous Chores
+- **(deps)** update dependency ecsact_codegen to v0.4.2 (#131) - (477a26d) - renovate[bot]
+- update ecsact deps - (fe6724c) - Ezekiel Warren
+
+- - -
+
 ## 0.3.17 - 2024-09-23
 #### Bug Fixes
 - relative recipe paths correctly resolved (#130) - (87474a3) - Ezekiel Warren

@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.19 - 2024-10-15
+#### Miscellaneous Chores
+- update ecsact_interpret - (865739f) - Ezekiel Warren
+
+- - -
+
 ## 0.3.18 - 2024-10-14
 #### Miscellaneous Chores
 - **(deps)** update dependency ecsact_codegen to v0.4.2 (#131) - (477a26d) - renovate[bot]

@@ -27,6 +27,16 @@ cc_library(
 )
 
 cc_library(
+    name = "cook_runfiles",
+    hdrs = ["cook_runfiles.cc"],
+    srcs = ["cook_runfiles.hh"],
+    deps = [
+        "@bazel_tools//tools/cpp/runfiles",
+        "//ecsact/cli:report",
+    ]
+)
+
+cc_library(
     name = "cook",
     copts = copts,
     srcs = ["cook.cc"],
@@ -43,6 +53,7 @@ cc_library(
     }),
     deps = [
         ":integrity",
+        ":cook_runfiles",
         "//ecsact/cli:report",
         "//ecsact/cli/detail:argv0",
         "//ecsact/cli/detail:download",
@@ -62,7 +73,6 @@ cc_library(
     ] + select({
         "//:use_sdk_version_enabled": [],
         "//:use_sdk_version_disabled": [
-            "@bazel_tools//tools/cpp/runfiles",
         ],
     }),
     data = select({

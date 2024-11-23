@@ -46,4 +46,8 @@ cc_binary(
         "//ecsact/cli/commands:build",
         "//ecsact/cli/commands:recipe-bundle",
     ],
+    data = [
+        "@tracy//:tracy_srcs",
+    ],
 )
+

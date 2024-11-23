@@ -4,7 +4,7 @@ module(
     compatibility_level = 3,
 )
 
-bazel_dep(name = "rules_cc", version = "0.0.9")
+bazel_dep(name = "rules_cc", version = "0.0.17")
 bazel_dep(name = "nlohmann_json", version = "3.11.3")
 bazel_dep(name = "platforms", version = "0.0.10")
 bazel_dep(name = "rules_pkg", version = "0.10.1")
@@ -21,6 +21,7 @@ bazel_dep(name = "boost.algorithm", version = "1.83.0.bzl.1")
 bazel_dep(name = "boost.url", version = "1.83.0.bzl.2")
 bazel_dep(name = "yaml-cpp", version = "0.8.0")
 bazel_dep(name = "libarchive", version = "3.7.4.bcr.2")
+bazel_dep(name = "tracy", version = "0.11.1")
 
 bazel_dep(name = "googletest", version = "1.15.2", dev_dependency = True)
 bazel_dep(name = "toolchains_llvm", version = "1.0.0", dev_dependency = True)
@@ -33,6 +34,12 @@ git_override(
     module_name = "hedron_compile_commands",
     commit = "204aa593e002cbd177d30f11f54cff3559110bb9",
     remote = "https://github.com/hedronvision/bazel-compile-commands-extractor.git",
+)
+
+git_override(
+    module_name = "tracy",
+    commit = "9e3ab98805fec8f1fbcfd7747af4117bb984be19",
+    remote = "git@github.com:seaube/tracy.git",
 )
 
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm", dev_dependency = True)

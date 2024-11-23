@@ -27,7 +27,7 @@
 #include "ecsact/cli/detail/archive.hh"
 #include "ecsact/cli/detail/long_path_workaround.hh"
 #ifndef ECSACT_CLI_USE_SDK_VERSION
-#	include "tools/cpp/runfiles/runfiles.h"
+#	include "cook_runfiles.hh"
 #endif
 
 using ecsact::cli::message_variant_t;
@@ -653,6 +653,8 @@ auto cl_compile(compile_options options) -> int {
 	cl_args.push_back("/D_WIN32_WINNT=0x0A00");
 	cl_args.push_back("/diagnostics:column");
 	cl_args.push_back("/DECSACT_BUILD");
+	cl_args.push_back("/DTRACY_ENABLE");
+	cl_args.push_back("/DTRACY_MANUAL_LIFETIME");
 
 	if(options.debug) {
 		cl_args.push_back("/DEBUG:FULL");
@@ -688,10 +690,6 @@ auto cl_compile(compile_options options) -> int {
 
 	for(auto inc_dir : options.inc_dirs) {
 		cl_args.push_back(std::format("/I{}", inc_dir.string()));
-	}
-
-	for(auto sys_lib : options.system_libs) {
-		cl_args.push_back(std::format("/DEFAULTLIB:{}", sys_lib));
 	}
 
 	auto main_params_file =
@@ -774,22 +772,35 @@ auto cl_compile(compile_options options) -> int {
 		return 1;
 	}
 
-	cl_args.push_back("@" + main_params_file.string());
-
 	for(fs::path obj_f : fs::recursive_directory_iterator(intermediate_dir)) {
 		cl_args.push_back(obj_f.string());
 	}
+
+	auto obj_params_file =
+		create_params_file(long_path_workaround(options.work_dir / "object.params")
+		);
 
 	cl_args.push_back("/Fo:"); // typos:disable-line
 	cl_args.push_back(
 		std::format("{}\\", fs::path{options.work_dir}.lexically_normal().string())
 	);
 
+	cl_args.push_back("@" + obj_params_file.string());
+	cl_args.push_back("@" + main_params_file.string());
+
 	cl_args.push_back("/link");
 	if(options.debug) {
 		cl_args.push_back("/DEBUG");
 	}
 	cl_args.push_back("/DLL");
+
+	cl_args.push_back("/DEFAULTLIB:Dbghelp");
+	cl_args.push_back("/DEFAULTLIB:User32");
+	cl_args.push_back("/DEFAULTLIB:Advapi32");
+
+	for(auto sys_lib : options.system_libs) {
+		cl_args.push_back(std::format("/DEFAULTLIB:{}", sys_lib));
+	}
 
 	for(auto lib_dir : options.compiler.std_lib_paths) {
 		cl_args.push_back(std::format("/LIBPATH:{}", lib_dir.string()));
@@ -898,73 +909,7 @@ auto ecsact::cli::cook_recipe( //
 	}
 
 #ifndef ECSACT_CLI_USE_SDK_VERSION
-	using bazel::tools::cpp::runfiles::Runfiles;
-	auto runfiles_error = std::string{};
-	auto runfiles = std::unique_ptr<Runfiles>(
-		Runfiles::Create(argv0, BAZEL_CURRENT_REPOSITORY, &runfiles_error)
-	);
-	if(!runfiles) {
-		ecsact::cli::report_error("Failed to load runfiles: {}", runfiles_error);
-		return {};
-	}
-
-	ecsact::cli::report_info("Using ecsact headers from runfiles");
-
-	auto ecsact_runtime_headers_from_runfiles = std::vector<std::string>{
-		"ecsact_runtime/ecsact/lib.hh",
-		"ecsact_runtime/ecsact/runtime.h",
-		"ecsact_runtime/ecsact/runtime/async.h",
-		"ecsact_runtime/ecsact/runtime/async.hh",
-		"ecsact_runtime/ecsact/runtime/common.h",
-		"ecsact_runtime/ecsact/runtime/core.h",
-		"ecsact_runtime/ecsact/runtime/core.hh",
-		"ecsact_runtime/ecsact/runtime/definitions.h",
-		"ecsact_runtime/ecsact/runtime/dylib.h",
-		"ecsact_runtime/ecsact/runtime/dynamic.h",
-		"ecsact_runtime/ecsact/runtime/meta.h",
-		"ecsact_runtime/ecsact/runtime/meta.hh",
-		"ecsact_runtime/ecsact/runtime/serialize.h",
-		"ecsact_runtime/ecsact/runtime/serialize.hh",
-		"ecsact_runtime/ecsact/runtime/static.h",
-	};
-
-	for(auto hdr : ecsact_runtime_headers_from_runfiles) {
-		auto full_hdr_path = runfiles->Rlocation(hdr);
-
-		if(full_hdr_path.empty()) {
-			ecsact::cli::report_error(
-				"Cannot find ecsact_runtime header in runfiles: {}",
-				hdr
-			);
-			return {};
-		}
-
-		auto rel_hdr_path = hdr.substr("ecsact_runtime/"sv.size());
-		fs::create_directories((inc_dir / rel_hdr_path).parent_path(), ec);
-
-		if(fs::exists(inc_dir / rel_hdr_path)) {
-			ecsact::cli::report_warning(
-				"Overwriting ecsact runtime header {} with runfiles header",
-				rel_hdr_path
-			);
-		}
-
-		fs::copy_file(
-			full_hdr_path,
-			inc_dir / rel_hdr_path,
-			fs::copy_options::overwrite_existing,
-			ec
-		);
-		if(ec) {
-			ecsact::cli::report_error(
-				"Failed to copy ecsact runtime header from runfiles. {} -> {}\n{}",
-				full_hdr_path,
-				(inc_dir / rel_hdr_path).generic_string(),
-				ec.message()
-			);
-			return {};
-		}
-	}
+	ecsact::cli::cook::load_runfiles();
 #else
 	auto exec_path = ecsact::cli::detail::canon_argv0(argv0);
 	auto install_prefix = exec_path.parent_path().parent_path();

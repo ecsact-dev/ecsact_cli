@@ -28,8 +28,9 @@ cc_library(
 
 cc_library(
     name = "cook_runfiles",
-    hdrs = ["cook_runfiles.cc"],
-    srcs = ["cook_runfiles.hh"],
+    copts = copts,
+    hdrs = ["cook_runfiles.hh"],
+    srcs = ["cook_runfiles.cc"],
     deps = [
         "@bazel_tools//tools/cpp/runfiles",
         "//ecsact/cli:report",

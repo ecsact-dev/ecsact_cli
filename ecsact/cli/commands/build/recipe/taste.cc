@@ -111,7 +111,8 @@ static auto check_runtime_info(
 	ecsact::cli::report_info("HELP MEEEEEEEEEEEEEEEEEEEEE");
 	auto ec = std::error_code{};
 
-	auto cookie = AddDllDirectory(library_path.parent_path().c_str());
+	auto cookie =
+		AddDllDirectory(fs::absolute(library_path).parent_path().c_str());
 
 	auto runtime_lib = boost::dll::shared_library{
 		library_path.string(),

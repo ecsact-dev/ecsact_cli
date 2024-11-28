@@ -3,14 +3,7 @@ bazel_dep(name = "rules_ecsact", version = "0.5.0")
 bazel_dep(name = "ecsact_codegen", version = "0.4.1")
 bazel_dep(name = "boost.dll", version = "1.83.0.bzl.2")
 bazel_dep(name = "boost.process", version = "1.83.0.bzl.2")
-bazel_dep(name = "ecsact_runtime", version = "0.6.5")
-
-# TODO: https://github.com/bazelbuild/bazel-central-registry/pull/1916
-git_override(
-    module_name = "libarchive",
-    commit = "7c331f92acea5243c195cdc6fb46ecfa11ce1ce2",
-    remote = "https://github.com/zaucy/libarchive.git",
-)
+bazel_dep(name = "ecsact_runtime", version = "0.7.0")
 
 bazel_dep(name = "toolchains_llvm", version = "1.0.0", dev_dependency = True)
 bazel_dep(name = "hedron_compile_commands", dev_dependency = True)
@@ -36,4 +29,10 @@ use_repo(llvm, "llvm_toolchain", "llvm_toolchain_llvm")
 register_toolchains(
     "@llvm_toolchain//:all",
     dev_dependency = True,
+)
+
+git_override(
+    module_name = "tracy",
+    commit = "9e3ab98805fec8f1fbcfd7747af4117bb984be19",
+    remote = "git@github.com:seaube/tracy.git",
 )

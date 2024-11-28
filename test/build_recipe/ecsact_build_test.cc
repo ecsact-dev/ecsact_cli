@@ -23,7 +23,7 @@ ecsact_execute_systems_error ecsact_execute_systems( //
 	local_dep::example();
 	// This is an incorrect way to use this function, but this test is only caring
 	// about the import
-	ecsact_system_execution_context_get(nullptr, {}, nullptr);
+	ecsact_system_execution_context_get(nullptr, {}, nullptr, nullptr);
 	ecsact_system_execution_context_action(nullptr, nullptr);
 	return ECSACT_EXEC_SYS_OK;
 }

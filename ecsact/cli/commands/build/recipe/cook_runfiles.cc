@@ -219,4 +219,5 @@ auto ecsact::cli::cook::load_tracy_runfiles(
 			return false;
 		}
 	}
+	return true;
 }

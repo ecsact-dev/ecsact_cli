@@ -32,8 +32,6 @@ auto ecsact::cli::detail::spawn_and_report( //
 	auto proc_stdout = bp::ipstream{};
 	auto proc_stderr = bp::ipstream{};
 
-	ecsact::cli::report_error("REPORT 1");
-
 	auto proc = bp::child{
 		bp::exe(fs::absolute(exe).string()),
 		bp::start_dir(start_dir.string()),
@@ -41,8 +39,6 @@ auto ecsact::cli::detail::spawn_and_report( //
 		bp::std_out > proc_stdout,
 		bp::std_err > proc_stderr,
 	};
-
-	ecsact::cli::report_error("REPORT 2");
 
 	auto subcommand_id = static_cast<subcommand_id_t>(proc.id());
 
@@ -62,8 +58,6 @@ auto ecsact::cli::detail::spawn_and_report( //
 		ecsact::cli::report(msg);
 	}
 
-	ecsact::cli::report_error("REPORT 3");
-
 	while(proc_stderr && std::getline(proc_stderr, line)) {
 		auto msg = reporter.on_std_err(line).value_or(subcommand_stderr_message{
 			.id = subcommand_id,
@@ -75,13 +69,11 @@ auto ecsact::cli::detail::spawn_and_report( //
 	proc.wait();
 
 	auto proc_exit_code = proc.exit_code();
-	ecsact::cli::report_error("REPORT 4");
 
 	ecsact::cli::report(subcommand_end_message{
 		.id = subcommand_id,
 		.exit_code = proc_exit_code,
 	});
-	ecsact::cli::report_error("REPORT 5?");
 
 	return proc_exit_code;
 }

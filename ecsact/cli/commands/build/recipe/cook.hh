@@ -12,6 +12,7 @@ struct cook_recipe_options {
 	std::filesystem::path              work_dir;
 	std::filesystem::path              output_path;
 	bool                               debug;
+	bool                               tracy;
 
 	/** Other directories to check for codegen plugins */
 	std::vector<std::filesystem::path> additional_plugin_dirs;

@@ -108,11 +108,16 @@ static auto check_runtime_info(
 	fs::path                    library_path,
 	const ecsact::build_recipe& recipe
 ) -> bool {
-	ecsact::cli::report_info("HELP MEEEEEEEEEEEEEEEEEEEEE");
 	auto ec = std::error_code{};
 
 	auto cookie =
 		AddDllDirectory(fs::absolute(library_path).parent_path().c_str());
+
+	auto profile_lib = boost::dll::shared_library{
+		((library_path.parent_path() / "profiler.dll").c_str()),
+		boost::dll::load_mode::default_mode,
+		ec,
+	};
 
 	auto runtime_lib = boost::dll::shared_library{
 		library_path.string(),

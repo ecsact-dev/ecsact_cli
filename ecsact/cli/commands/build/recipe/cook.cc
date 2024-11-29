@@ -441,7 +441,14 @@ struct compile_options {
 	fs::path                 output_path;
 	std::vector<std::string> imports;
 	std::vector<std::string> exports;
+	std::optional<fs::path>  tracy_dir;
 	bool                     debug;
+};
+
+struct tracy_compile_options {
+	fs::path                 tracy_dir;
+	fs::path                 output_path;
+	ecsact::cli::cc_compiler compiler;
 };
 
 auto clang_gcc_compile(compile_options options) -> int {
@@ -593,12 +600,7 @@ auto clang_gcc_compile(compile_options options) -> int {
 	return 0;
 }
 
-auto cl_tracy_compile(
-	compile_options options,
-	// TODO(Kelwan): Get rid of this, load runfiles sooner with a macro then pass
-	// in the tracy dir instead of making it here
-	const char* argv0
-) -> int {
+auto cl_tracy_compile(tracy_compile_options options) -> int {
 	struct : ecsact::cli::detail::spawn_reporter {
 		auto on_std_out(std::string_view line) -> std::optional<message_variant_t> {
 			if(line.find(": warning") != std::string::npos) {
@@ -627,9 +629,6 @@ auto cl_tracy_compile(
 		}
 	} reporter;
 
-	auto tracy_dir = options.work_dir / "third_party" / "tracy";
-	auto success = ecsact::cli::cook::load_tracy_runfiles(argv0, tracy_dir);
-
 	auto cl_args = std::vector<std::string>{};
 
 	cl_args.push_back("/DTRACY_ENABLE");
@@ -637,14 +636,13 @@ auto cl_tracy_compile(
 	cl_args.push_back("/DTRACY_MANUAL_LIFETIME");
 	cl_args.push_back("/DTRACY_EXPORTS");
 
-	// TODO(Kelwan): Add macro so only added to valid_srcs conditionally
 	cl_args.push_back("/O2");
 
 	for(auto inc_dir : options.compiler.std_inc_paths) {
 		cl_args.push_back(std::format("/I{}", inc_dir.string()));
 	}
 
-	auto src = fs::path{tracy_dir / "TracyClient.cpp"};
+	auto src = fs::path{options.tracy_dir / "TracyClient.cpp"};
 	cl_args.push_back(src.string());
 
 	cl_args.push_back("/std:c++20");
@@ -657,9 +655,6 @@ auto cl_tracy_compile(
 	}
 
 	auto profiler_path = options.output_path.parent_path() / "profiler.dll";
-	// TODO(Kelwan): Make tracy optional
-
-	ecsact::cli::report_info("pre spawn");
 
 	cl_args.push_back("/MACHINE:x64"); // TODO(zaucy): configure from triple
 	cl_args.push_back(std::format("/OUT:{}", profiler_path.string()));
@@ -731,11 +726,12 @@ auto cl_compile(compile_options options) -> int {
 	cl_args.push_back("/D_WIN32_WINNT=0x0A00");
 	cl_args.push_back("/diagnostics:column");
 	cl_args.push_back("/DECSACT_BUILD");
-	// TODO(Kelwan): Make tracy conditional
-	cl_args.push_back("/DTRACY_ENABLE");
-	cl_args.push_back("/DTRACY_DELAYED_INIT");
-	cl_args.push_back("/DTRACY_MANUAL_LIFETIME");
-	cl_args.push_back("/DTRACY_IMPORTS");
+	if(options.tracy_dir) {
+		cl_args.push_back("/DTRACY_ENABLE");
+		cl_args.push_back("/DTRACY_DELAYED_INIT");
+		cl_args.push_back("/DTRACY_MANUAL_LIFETIME");
+		cl_args.push_back("/DTRACY_IMPORTS");
+	}
 	if(options.debug) {
 		cl_args.push_back("/DEBUG:FULL");
 		cl_args.push_back("/MDd");
@@ -771,9 +767,10 @@ auto cl_compile(compile_options options) -> int {
 	for(auto inc_dir : options.inc_dirs) {
 		cl_args.push_back(std::format("/I{}", inc_dir.string()));
 	}
-	// TODO(Kelwan): Make Tracy conditional
-	auto tracy_dir = options.work_dir / "third_party" / "tracy";
-	cl_args.push_back(std::format("/I{}", tracy_dir.string()));
+
+	if(options.tracy_dir) {
+		cl_args.push_back(std::format("/I{}", options.tracy_dir->string()));
+	}
 
 	auto main_params_file =
 		create_params_file(long_path_workaround(options.work_dir / "main.params"));
@@ -871,8 +868,11 @@ auto cl_compile(compile_options options) -> int {
 	cl_args.push_back("@" + obj_params_file.string());
 	cl_args.push_back("@" + main_params_file.string());
 
-	auto tracy_lib = fs::path{options.output_path.parent_path() / "profiler.lib"};
-	cl_args.push_back(tracy_lib.string());
+	if(options.tracy_dir) {
+		auto tracy_lib =
+			fs::path{options.output_path.parent_path() / "profiler.lib"};
+		cl_args.push_back(tracy_lib.string());
+	}
 
 	cl_args.push_back("/link");
 	if(options.debug) {
@@ -967,6 +967,7 @@ auto ecsact::cli::cook_recipe( //
 
 	auto source_files = std::vector<fs::path>{};
 
+	ecsact::cli::report_info("PHASE 1");
 	{
 		// No need to add to source_files since it will be grabbed in the directory
 		// iterator
@@ -998,30 +999,28 @@ auto ecsact::cli::cook_recipe( //
 #else
 	auto exec_path = ecsact::cli::detail::canon_argv0(argv0);
 	auto install_prefix = exec_path.parent_path().parent_path();
+	ecsact::cli::report_info("PHASE 2");
 
 	inc_dirs.push_back(install_prefix / "include");
 #endif
+	std::optional<fs::path> tracy_dir;
+	if(recipe_options.tracy) {
+		tracy_dir = recipe_options.work_dir / "third_party" / "tracy";
+		auto success = ecsact::cli::cook::load_tracy_runfiles(argv0, *tracy_dir);
+	}
 
 	if(is_cl_like(compiler.compiler_type)) {
-		exit_code = cl_tracy_compile(
-			{
-				.work_dir = recipe_options.work_dir,
-				.compiler = compiler,
-				.inc_dirs = inc_dirs,
-				.system_libs = as_vec(recipe.system_libs()),
-				.srcs = source_files,
+		if(recipe_options.tracy) {
+			exit_code = cl_tracy_compile({
+				.tracy_dir = *tracy_dir,
 				.output_path = output_path,
-				.imports = as_vec(recipe.imports()),
-				.exports = as_vec(recipe.exports()),
-				.debug = recipe_options.debug,
-			},
-			argv0
-		);
-
-		if(exit_code != 0) {
-			return {};
+				.compiler = compiler,
+			});
+			if(exit_code != 0) {
+				return {};
+			}
 		}
-		ecsact::cli::report_info("TRACY DONE");
+		ecsact::cli::report_info("PHASE 3");
 		exit_code = cl_compile({
 			.work_dir = recipe_options.work_dir,
 			.compiler = compiler,
@@ -1031,11 +1030,10 @@ auto ecsact::cli::cook_recipe( //
 			.output_path = output_path,
 			.imports = as_vec(recipe.imports()),
 			.exports = as_vec(recipe.exports()),
+			.tracy_dir = tracy_dir,
 			.debug = recipe_options.debug,
 		});
-
-		ecsact::cli::report_info("CL COMPILE DONE");
-
+		ecsact::cli::report_info("PHASE 4");
 	} else {
 		exit_code = clang_gcc_compile({
 			.work_dir = recipe_options.work_dir,

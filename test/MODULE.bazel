@@ -36,5 +36,5 @@ register_toolchains(
 git_override(
     module_name = "tracy",
     commit = "9e3ab98805fec8f1fbcfd7747af4117bb984be19",
-    remote = "git@github.com:seaube/tracy.git",
+    remote = "https://github.com/seaube/tracy.git",
 )

@@ -40,7 +40,7 @@ git_override(
 git_override(
     module_name = "tracy",
     commit = "b75f30a3823bc290b4d2359234d10ff69855d046",
-    remote = "git@github.com:seaube/tracy.git",
+    remote = "https://github.com/seaube/tracy.git",
 )
 
 llvm = use_extension("@toolchains_llvm//toolchain/extensions:llvm.bzl", "llvm", dev_dependency = True)

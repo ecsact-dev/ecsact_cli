@@ -304,7 +304,7 @@ auto ecsact::cli::detail::build_command( //
 		.work_dir = work_dir,
 		.output_path = output_path,
 		.debug = args["--debug"].asBool(),
-		.tracy = args["--debug"].asBool(),
+		.tracy = args["--tracy"].asBool(),
 		.additional_plugin_dirs = additional_plugin_dirs,
 	};
 	auto runtime_output_path =

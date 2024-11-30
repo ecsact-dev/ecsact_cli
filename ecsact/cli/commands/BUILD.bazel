@@ -42,7 +42,6 @@ cc_library(
     ],
 )
 
-
 cc_library(
     name = "codegen",
     srcs = ["codegen.cc"],
@@ -94,6 +93,7 @@ cc_library(
         "@ecsact_interpret",
         "@docopt.cpp//:docopt",
         "@magic_enum",
+        "@boost.regex",
     ],
 )
 

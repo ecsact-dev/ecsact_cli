@@ -12,8 +12,8 @@ using ecsact::cli::subcommand_end_message;
 using ecsact::cli::subcommand_id_t;
 using ecsact::cli::subcommand_start_message;
 
-auto ecsact::cli::detail::which(std::string_view prog
-) -> std::optional<fs::path> {
+auto ecsact::cli::detail::which(std::string_view prog)
+	-> std::optional<fs::path> {
 	auto result = bp::search_path(prog);
 
 	if(result.empty()) {

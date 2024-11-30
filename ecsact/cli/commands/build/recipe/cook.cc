@@ -27,7 +27,7 @@
 #include "ecsact/cli/detail/archive.hh"
 #include "ecsact/cli/detail/long_path_workaround.hh"
 #ifndef ECSACT_CLI_USE_SDK_VERSION
-#	include "tools/cpp/runfiles/runfiles.h"
+#	include "ecsact/cli/commands/build/recipe/cook_runfiles.hh"
 #endif
 
 using ecsact::cli::message_variant_t;
@@ -441,7 +441,14 @@ struct compile_options {
 	fs::path                 output_path;
 	std::vector<std::string> imports;
 	std::vector<std::string> exports;
+	std::optional<fs::path>  tracy_dir;
 	bool                     debug;
+};
+
+struct tracy_compile_options {
+	fs::path                 tracy_dir;
+	fs::path                 output_path;
+	ecsact::cli::cc_compiler compiler;
 };
 
 auto clang_gcc_compile(compile_options options) -> int {
@@ -593,6 +600,72 @@ auto clang_gcc_compile(compile_options options) -> int {
 	return 0;
 }
 
+auto cl_tracy_compile(tracy_compile_options options) -> int {
+	struct : ecsact::cli::detail::spawn_reporter {
+		auto on_std_out(std::string_view line) -> std::optional<message_variant_t> {
+			if(line.find(": warning") != std::string::npos) {
+				return ecsact::cli::warning_message{
+					.content = std::string{line},
+				};
+			} else if(line.find(": error") != std::string::npos) {
+				return ecsact::cli::error_message{
+					.content = std::string{line},
+				};
+			} else if(line.find(": fatal error ") != std::string::npos) {
+				return ecsact::cli::error_message{
+					.content = std::string{line},
+				};
+			} else if(line.find(": Command line error ") != std::string::npos) {
+				return ecsact::cli::error_message{
+					.content = std::string{line},
+				};
+			}
+
+			return {};
+		}
+
+		auto on_std_err(std::string_view line) -> std::optional<message_variant_t> {
+			return {};
+		}
+	} reporter;
+
+	auto cl_args = std::vector<std::string>{};
+
+	cl_args.push_back("/DTRACY_ENABLE");
+	cl_args.push_back("/DTRACY_DELAYED_INIT");
+	cl_args.push_back("/DTRACY_MANUAL_LIFETIME");
+	cl_args.push_back("/DTRACY_EXPORTS");
+
+	cl_args.push_back("/O2");
+
+	for(auto inc_dir : options.compiler.std_inc_paths) {
+		cl_args.push_back(std::format("/I{}", inc_dir.string()));
+	}
+
+	auto src = fs::path{options.tracy_dir / "TracyClient.cpp"};
+	cl_args.push_back(src.string());
+
+	cl_args.push_back("/std:c++20");
+
+	cl_args.push_back("/link");
+	cl_args.push_back("/DLL");
+
+	for(auto lib_dir : options.compiler.std_lib_paths) {
+		cl_args.push_back(std::format("/LIBPATH:{}", lib_dir.string()));
+	}
+
+	auto profiler_path = options.output_path.parent_path() / "profiler.dll";
+
+	cl_args.push_back("/MACHINE:x64"); // TODO(zaucy): configure from triple
+	cl_args.push_back(std::format("/OUT:{}", profiler_path.string()));
+
+	return ecsact::cli::detail::spawn_and_report(
+		options.compiler.compiler_path,
+		cl_args,
+		reporter
+	);
+}
+
 auto cl_compile(compile_options options) -> int {
 	struct : ecsact::cli::detail::spawn_reporter {
 		auto on_std_out(std::string_view line) -> std::optional<message_variant_t> {
@@ -653,7 +726,12 @@ auto cl_compile(compile_options options) -> int {
 	cl_args.push_back("/D_WIN32_WINNT=0x0A00");
 	cl_args.push_back("/diagnostics:column");
 	cl_args.push_back("/DECSACT_BUILD");
-
+	if(options.tracy_dir) {
+		cl_args.push_back("/DTRACY_ENABLE");
+		cl_args.push_back("/DTRACY_DELAYED_INIT");
+		cl_args.push_back("/DTRACY_MANUAL_LIFETIME");
+		cl_args.push_back("/DTRACY_IMPORTS");
+	}
 	if(options.debug) {
 		cl_args.push_back("/DEBUG:FULL");
 		cl_args.push_back("/MDd");
@@ -690,8 +768,8 @@ auto cl_compile(compile_options options) -> int {
 		cl_args.push_back(std::format("/I{}", inc_dir.string()));
 	}
 
-	for(auto sys_lib : options.system_libs) {
-		cl_args.push_back(std::format("/DEFAULTLIB:{}", sys_lib));
+	if(options.tracy_dir) {
+		cl_args.push_back(std::format("/I{}", options.tracy_dir->string()));
 	}
 
 	auto main_params_file =
@@ -774,22 +852,37 @@ auto cl_compile(compile_options options) -> int {
 		return 1;
 	}
 
-	cl_args.push_back("@" + main_params_file.string());
-
 	for(fs::path obj_f : fs::recursive_directory_iterator(intermediate_dir)) {
 		cl_args.push_back(obj_f.string());
 	}
+
+	auto obj_params_file =
+		create_params_file(long_path_workaround(options.work_dir / "object.params")
+		);
 
 	cl_args.push_back("/Fo:"); // typos:disable-line
 	cl_args.push_back(
 		std::format("{}\\", fs::path{options.work_dir}.lexically_normal().string())
 	);
 
+	cl_args.push_back("@" + obj_params_file.string());
+	cl_args.push_back("@" + main_params_file.string());
+
+	if(options.tracy_dir) {
+		auto tracy_lib =
+			fs::path{options.output_path.parent_path() / "profiler.lib"};
+		cl_args.push_back(tracy_lib.string());
+	}
+
 	cl_args.push_back("/link");
 	if(options.debug) {
 		cl_args.push_back("/DEBUG");
 	}
 	cl_args.push_back("/DLL");
+
+	for(auto sys_lib : options.system_libs) {
+		cl_args.push_back(std::format("/DEFAULTLIB:{}", sys_lib));
+	}
 
 	for(auto lib_dir : options.compiler.std_lib_paths) {
 		cl_args.push_back(std::format("/LIBPATH:{}", lib_dir.string()));
@@ -898,72 +991,9 @@ auto ecsact::cli::cook_recipe( //
 	}
 
 #ifndef ECSACT_CLI_USE_SDK_VERSION
-	using bazel::tools::cpp::runfiles::Runfiles;
-	auto runfiles_error = std::string{};
-	auto runfiles = std::unique_ptr<Runfiles>(
-		Runfiles::Create(argv0, BAZEL_CURRENT_REPOSITORY, &runfiles_error)
-	);
-	if(!runfiles) {
-		ecsact::cli::report_error("Failed to load runfiles: {}", runfiles_error);
+	auto loaded_runfiles = ecsact::cli::cook::load_runfiles(argv0, inc_dir);
+	if(!loaded_runfiles) {
 		return {};
-	}
-
-	ecsact::cli::report_info("Using ecsact headers from runfiles");
-
-	auto ecsact_runtime_headers_from_runfiles = std::vector<std::string>{
-		"ecsact_runtime/ecsact/lib.hh",
-		"ecsact_runtime/ecsact/runtime.h",
-		"ecsact_runtime/ecsact/runtime/async.h",
-		"ecsact_runtime/ecsact/runtime/async.hh",
-		"ecsact_runtime/ecsact/runtime/common.h",
-		"ecsact_runtime/ecsact/runtime/core.h",
-		"ecsact_runtime/ecsact/runtime/core.hh",
-		"ecsact_runtime/ecsact/runtime/definitions.h",
-		"ecsact_runtime/ecsact/runtime/dylib.h",
-		"ecsact_runtime/ecsact/runtime/dynamic.h",
-		"ecsact_runtime/ecsact/runtime/meta.h",
-		"ecsact_runtime/ecsact/runtime/meta.hh",
-		"ecsact_runtime/ecsact/runtime/serialize.h",
-		"ecsact_runtime/ecsact/runtime/serialize.hh",
-		"ecsact_runtime/ecsact/runtime/static.h",
-	};
-
-	for(auto hdr : ecsact_runtime_headers_from_runfiles) {
-		auto full_hdr_path = runfiles->Rlocation(hdr);
-
-		if(full_hdr_path.empty()) {
-			ecsact::cli::report_error(
-				"Cannot find ecsact_runtime header in runfiles: {}",
-				hdr
-			);
-			return {};
-		}
-
-		auto rel_hdr_path = hdr.substr("ecsact_runtime/"sv.size());
-		fs::create_directories((inc_dir / rel_hdr_path).parent_path(), ec);
-
-		if(fs::exists(inc_dir / rel_hdr_path)) {
-			ecsact::cli::report_warning(
-				"Overwriting ecsact runtime header {} with runfiles header",
-				rel_hdr_path
-			);
-		}
-
-		fs::copy_file(
-			full_hdr_path,
-			inc_dir / rel_hdr_path,
-			fs::copy_options::overwrite_existing,
-			ec
-		);
-		if(ec) {
-			ecsact::cli::report_error(
-				"Failed to copy ecsact runtime header from runfiles. {} -> {}\n{}",
-				full_hdr_path,
-				(inc_dir / rel_hdr_path).generic_string(),
-				ec.message()
-			);
-			return {};
-		}
 	}
 #else
 	auto exec_path = ecsact::cli::detail::canon_argv0(argv0);
@@ -971,8 +1001,27 @@ auto ecsact::cli::cook_recipe( //
 
 	inc_dirs.push_back(install_prefix / "include");
 #endif
+	std::optional<fs::path> tracy_dir;
+#ifndef ECSACT_CLI_USE_SDK_VERSION
+	if(recipe_options.tracy) {
+		tracy_dir = recipe_options.work_dir / "third_party" / "tracy";
+		auto success = ecsact::cli::cook::load_tracy_runfiles(argv0, *tracy_dir);
+	}
+#endif
 
 	if(is_cl_like(compiler.compiler_type)) {
+#ifndef ECSACT_CLI_USE_SDK_VERSION
+		if(recipe_options.tracy) {
+			exit_code = cl_tracy_compile({
+				.tracy_dir = *tracy_dir,
+				.output_path = output_path,
+				.compiler = compiler,
+			});
+			if(exit_code != 0) {
+				return {};
+			}
+		}
+#endif
 		exit_code = cl_compile({
 			.work_dir = recipe_options.work_dir,
 			.compiler = compiler,
@@ -982,6 +1031,7 @@ auto ecsact::cli::cook_recipe( //
 			.output_path = output_path,
 			.imports = as_vec(recipe.imports()),
 			.exports = as_vec(recipe.exports()),
+			.tracy_dir = tracy_dir,
 			.debug = recipe_options.debug,
 		});
 	} else {

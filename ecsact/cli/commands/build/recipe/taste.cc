@@ -12,6 +12,11 @@
 #include "ecsact/cli/report.hh"
 #include "ecsact/runtime/dylib.h"
 
+#ifdef _WIN32
+#	define WIN32_LEAN_AND_MEAN
+#	include <windows.h>
+#endif
+
 namespace fs = std::filesystem;
 
 static auto maybe_library_info( //
@@ -106,6 +111,20 @@ static auto check_runtime_info(
 	const ecsact::build_recipe& recipe
 ) -> bool {
 	auto ec = std::error_code{};
+
+#if defined(_WIN32) && !defined(ECSACT_CLI_USE_SDK_VERSION)
+	auto cookie =
+		AddDllDirectory(fs::absolute(library_path).parent_path().c_str());
+
+	auto profile_lib = boost::dll::shared_library{
+		((library_path.parent_path() / "profiler.dll").c_str()),
+		boost::dll::load_mode::default_mode,
+		ec,
+	};
+
+	RemoveDllDirectory(cookie);
+#endif
+
 	auto runtime_lib = boost::dll::shared_library{
 		library_path.string(),
 		boost::dll::load_mode::default_mode,

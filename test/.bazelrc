@@ -5,6 +5,8 @@ build --@boost.process//:use_std_fs
 query --@boost.dll//:use_std_fs
 query --@boost.process//:use_std_fs
 
+common --@docopt.cpp//:use_boost_regex
+
 build --nocheck_visibility
 
 try-import %workspace%/user.bazelrc

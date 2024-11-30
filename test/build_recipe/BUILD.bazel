@@ -60,6 +60,7 @@ cc_test(
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
+    args = ["--gtest_catch_exceptions=0"],
 )
 
 cc_test(
@@ -122,4 +123,5 @@ cc_test(
         "@googletest//:gtest",
         "@googletest//:gtest_main",
     ],
+    args = ["--gtest_catch_exceptions=0"],
 )

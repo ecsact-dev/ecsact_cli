@@ -967,7 +967,6 @@ auto ecsact::cli::cook_recipe( //
 
 	auto source_files = std::vector<fs::path>{};
 
-	ecsact::cli::report_info("PHASE 1");
 	{
 		// No need to add to source_files since it will be grabbed in the directory
 		// iterator
@@ -999,17 +998,19 @@ auto ecsact::cli::cook_recipe( //
 #else
 	auto exec_path = ecsact::cli::detail::canon_argv0(argv0);
 	auto install_prefix = exec_path.parent_path().parent_path();
-	ecsact::cli::report_info("PHASE 2");
 
 	inc_dirs.push_back(install_prefix / "include");
 #endif
 	std::optional<fs::path> tracy_dir;
+#ifndef ECSACT_CLI_USE_SDK_VERSION
 	if(recipe_options.tracy) {
 		tracy_dir = recipe_options.work_dir / "third_party" / "tracy";
 		auto success = ecsact::cli::cook::load_tracy_runfiles(argv0, *tracy_dir);
 	}
+#endif
 
 	if(is_cl_like(compiler.compiler_type)) {
+#ifndef ECSACT_CLI_USE_SDK_VERSION
 		if(recipe_options.tracy) {
 			exit_code = cl_tracy_compile({
 				.tracy_dir = *tracy_dir,
@@ -1020,7 +1021,7 @@ auto ecsact::cli::cook_recipe( //
 				return {};
 			}
 		}
-		ecsact::cli::report_info("PHASE 3");
+#endif
 		exit_code = cl_compile({
 			.work_dir = recipe_options.work_dir,
 			.compiler = compiler,
@@ -1033,7 +1034,6 @@ auto ecsact::cli::cook_recipe( //
 			.tracy_dir = tracy_dir,
 			.debug = recipe_options.debug,
 		});
-		ecsact::cli::report_info("PHASE 4");
 	} else {
 		exit_code = clang_gcc_compile({
 			.work_dir = recipe_options.work_dir,

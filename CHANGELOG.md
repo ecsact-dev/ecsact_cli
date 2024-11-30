@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.21 - 2024-11-30
+#### Bug Fixes
+- Typo on bool check for Tracy - (1d10cf9) - Kelwan
+
+- - -
+
 ## 0.3.20 - 2024-11-30
 #### Features
 - Add tracy option for profiling on recipes (#134) - (5554887) - Austin Kelway

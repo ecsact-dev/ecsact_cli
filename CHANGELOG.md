@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.22 - 2024-12-06
+#### Miscellaneous Chores
+- update ecsact_runtime - (98fcbb6) - Ezekiel Warren
+
+- - -
+
 ## 0.3.21 - 2024-11-30
 #### Bug Fixes
 - Typo on bool check for Tracy - (1d10cf9) - Kelwan

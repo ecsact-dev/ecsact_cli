@@ -1,6 +1,6 @@
 module(
     name = "ecsact_cli",
-    version = "0.3.21",
+    version = "0.3.22",
     compatibility_level = 3,
 )
 

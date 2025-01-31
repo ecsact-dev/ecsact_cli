@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.24 - 2025-01-31
+#### Features
+- support new ecsact si modules (#140) - (dd68309) - Ezekiel Warren
+
+- - -
+
 ## 0.3.23 - 2025-01-22
 #### Miscellaneous Chores
 - allow ecsact_runtime 0.8.x - (9bc03cf) - Ezekiel Warren

@@ -20,17 +20,31 @@ auto ecsact::cli::cc_defines_gen( //
 	auto defines = std::vector<std::string>{};
 
 	for(auto&& [mod, _] : export_modules.module_methods) {
-		defines.push_back(std::format( //
-			"ECSACT_{}_API_EXPORT",
-			boost::to_upper_copy(mod)
-		));
+		if(mod.starts_with("si_")) {
+			defines.push_back(std::format( //
+				"ECSACTSI_{}_API_EXPORT",
+				boost::to_upper_copy(mod)
+			));
+		} else {
+			defines.push_back(std::format( //
+				"ECSACT_{}_API_EXPORT",
+				boost::to_upper_copy(mod)
+			));
+		}
 	}
 
 	for(auto&& [mod, _] : import_modules.module_methods) {
-		defines.push_back(std::format( //
-			"ECSACT_{}_API_LOAD_AT_RUNTIME",
-			boost::to_upper_copy(mod)
-		));
+		if(mod.starts_with("si_")) {
+			defines.push_back(std::format( //
+				"ECSACTSI_{}_API_LOAD_AT_RUNTIME",
+				boost::to_upper_copy(mod)
+			));
+		} else {
+			defines.push_back(std::format( //
+				"ECSACT_{}_API_LOAD_AT_RUNTIME",
+				boost::to_upper_copy(mod)
+			));
+		}
 	}
 	return defines;
 }

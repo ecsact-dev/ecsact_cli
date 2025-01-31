@@ -5,6 +5,7 @@
 #include "ecsact/runtime/dynamic.h"
 #include "ecsact/runtime/meta.h"
 #include "ecsact/runtime/serialize.h"
+#include "ecsact/si/wasm.h"
 
 auto ecsact::cli::detail::get_ecsact_modules( //
 	std::vector<std::string> methods
@@ -24,6 +25,7 @@ auto ecsact::cli::detail::get_ecsact_modules( //
 		FOR_EACH_ECSACT_DYNAMIC_API_FN(CHECK_MODULE, "dynamic");
 		FOR_EACH_ECSACT_META_API_FN(CHECK_MODULE, "meta");
 		FOR_EACH_ECSACT_SERIALIZE_API_FN(CHECK_MODULE, "serialize");
+		FOR_EACH_ECSACT_SI_WASM_API_FN(CHECK_MODULE, "si_wasm");
 
 		result.unknown_module_methods.emplace_back(method);
 	}

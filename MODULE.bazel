@@ -9,9 +9,14 @@ bazel_dep(name = "nlohmann_json", version = "3.11.3")
 bazel_dep(name = "platforms", version = "0.0.10")
 bazel_dep(name = "rules_pkg", version = "0.10.1")
 bazel_dep(name = "bazel_skylib", version = "1.6.1")
-bazel_dep(name = "ecsact_runtime", version = "0.7.1", max_compatibility_level = 8)
-bazel_dep(name = "ecsact_interpret", version = "0.6.6")
-bazel_dep(name = "ecsact_codegen", version = "0.4.3")
+bazel_dep(name = "ecsact_runtime", version = "0.8.2")
+single_version_override(
+    module_name = "ecsact_runtime",
+    version = "0.8.2",
+)
+
+bazel_dep(name = "ecsact_interpret", version = "0.6.7")
+bazel_dep(name = "ecsact_codegen", version = "0.4.4")
 bazel_dep(name = "boost.dll", version = "1.83.0.bzl.2")
 bazel_dep(name = "magic_enum", version = "0.9.3")
 bazel_dep(name = "curl", version = "8.7.1.bcr.1")

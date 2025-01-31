@@ -46,6 +46,8 @@ auto ecsact::cli::cook::load_runfiles(
 		"ecsact_runtime/ecsact/runtime/serialize.h",
 		"ecsact_runtime/ecsact/runtime/serialize.hh",
 		"ecsact_runtime/ecsact/runtime/static.h",
+		"ecsact_runtime/ecsact/si/wasm.h",
+		"ecsact_runtime/ecsact/si/wasm.hh",
 	};
 
 	for(auto hdr : ecsact_runtime_headers_from_runfiles) {

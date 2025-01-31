@@ -120,6 +120,24 @@ static auto write_file(fs::path path, std::span<std::byte> data) -> void {
 	file.write(reinterpret_cast<const char*>(data.data()), data.size());
 }
 
+static auto find_wasmer_dir() -> std::optional<fs::path> {
+	auto wasmer_dir_env = std::getenv("WASMER_DIR");
+	if(wasmer_dir_env) {
+		if(fs::exists(wasmer_dir_env)) {
+			return wasmer_dir_env;
+		} else {
+			report_warning(
+				"WASMER_DIR is set, but could not be found: {}",
+				wasmer_dir_env
+			);
+		}
+	} else {
+		report_warning("WASMER_DIR environment variable is unset");
+	}
+
+	return std::nullopt;
+}
+
 static auto handle_source( //
 	fs::path                                base_directory,
 	ecsact::build_recipe::source_fetch      src,
@@ -722,6 +740,18 @@ auto cl_compile(compile_options options) -> int {
 		return params_file_path;
 	};
 
+	const bool wants_wasmer = std::ranges::find(options.system_libs, "wasmer"s) !=
+		options.system_libs.end();
+	const auto wasmer_dir = wants_wasmer ? find_wasmer_dir() : std::nullopt;
+
+	if(wants_wasmer && !wasmer_dir) {
+		report_error(
+			"Recipe wants 'wasmer' system lib, but wasmer directory could not be "
+			"found"
+		);
+		return 1;
+	}
+
 	cl_args.push_back("/nologo");
 	cl_args.push_back("/D_WIN32_WINNT=0x0A00");
 	cl_args.push_back("/diagnostics:column");
@@ -766,6 +796,10 @@ auto cl_compile(compile_options options) -> int {
 
 	for(auto inc_dir : options.inc_dirs) {
 		cl_args.push_back(std::format("/I{}", inc_dir.string()));
+	}
+
+	if(wants_wasmer && wasmer_dir) {
+		cl_args.push_back(std::format("/I{}", (*wasmer_dir / "include").string()));
 	}
 
 	if(options.tracy_dir) {
@@ -868,6 +902,10 @@ auto cl_compile(compile_options options) -> int {
 	cl_args.push_back("@" + obj_params_file.string());
 	cl_args.push_back("@" + main_params_file.string());
 
+	if(wants_wasmer && wasmer_dir) {
+		cl_args.push_back((*wasmer_dir / "lib" / "wasmer.lib").string());
+	}
+
 	if(options.tracy_dir) {
 		auto tracy_lib =
 			fs::path{options.output_path.parent_path() / "profiler.lib"};
@@ -881,6 +919,19 @@ auto cl_compile(compile_options options) -> int {
 	cl_args.push_back("/DLL");
 
 	for(auto sys_lib : options.system_libs) {
+		if(sys_lib == "wasmer" && wasmer_dir) {
+			// Wasmer has some special treatment
+			cl_args.push_back(std::format("/DEFAULTLIB:{}", "ws2_32"));
+			cl_args.push_back(std::format("/DEFAULTLIB:{}", "Advapi32"));
+			cl_args.push_back(std::format("/DEFAULTLIB:{}", "Userenv"));
+			cl_args.push_back(std::format("/DEFAULTLIB:{}", "Bcrypt"));
+			cl_args.push_back(std::format("/DEFAULTLIB:{}", "ntdll"));
+			cl_args.push_back(std::format("/DEFAULTLIB:{}", "Shell32"));
+			cl_args.push_back(std::format("/DEFAULTLIB:{}", "Ole32"));
+			cl_args.push_back(std::format("/DEFAULTLIB:{}", "OleAut32"));
+			cl_args.push_back(std::format("/DEFAULTLIB:{}", "RuntimeObject"));
+			continue;
+		}
 		cl_args.push_back(std::format("/DEFAULTLIB:{}", sys_lib));
 	}
 

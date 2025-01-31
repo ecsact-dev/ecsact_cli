@@ -95,6 +95,8 @@ cc_library(
             "@ecsact_runtime//:ecsact/runtime/serialize.h",
             "@ecsact_runtime//:ecsact/runtime/serialize.hh",
             "@ecsact_runtime//:ecsact/runtime/static.h",
+            "@ecsact_runtime//:ecsact/si/wasm.h",
+            "@ecsact_runtime//:ecsact/si/wasm.hh",
         ],
     }),
 )

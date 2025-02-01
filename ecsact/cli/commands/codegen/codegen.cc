@@ -256,20 +256,34 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 				// We're filling this in the for loop. We shouldn't have any in here.
 				assert(file_write_streams.empty());
 
-				for(auto filename_index = 0;
-						plugin_output_paths.size() > filename_index;
-						++filename_index) {
-					auto output_file_path = plugin_output_paths.at(filename_index);
-					output_paths.emplace(output_file_path.string(), plugin_name);
-					if(fs::exists(output_file_path)) {
-						fs::permissions(output_file_path, fs::perms::all);
+				if(options.write_fn) {
+					if(plugin_output_paths.size() > 1) {
+						// TODO: this error can be misleading if a non-stdout custom
+						// write_fn is used
+						report_error("cannot use --stdout with multiple output files");
+						return 1;
 					}
 
-					auto& file_write_stream = file_write_streams.emplace_back();
-					file_write_stream.open(output_file_path);
+					plugin_fn(package_id, *options.write_fn, &codegen_report_fn);
+				} else {
+					auto write_fn = options.write_fn.value_or(&file_write_fn);
+
+					for(auto filename_index = 0;
+							plugin_output_paths.size() > filename_index;
+							++filename_index) {
+						auto output_file_path = plugin_output_paths.at(filename_index);
+						output_paths.emplace(output_file_path.string(), plugin_name);
+						if(fs::exists(output_file_path)) {
+							fs::permissions(output_file_path, fs::perms::all);
+						}
+
+						auto& file_write_stream = file_write_streams.emplace_back();
+						file_write_stream.open(output_file_path);
+					}
+
+					plugin_fn(package_id, &file_write_fn, &codegen_report_fn);
 				}
 
-				plugin_fn(package_id, &file_write_fn, &codegen_report_fn);
 				if(received_fatal_codegen_report) {
 					received_fatal_codegen_report = false;
 					has_plugin_error = true;

@@ -36,29 +36,40 @@ using ecsact::cli::warning_message;
 #endif
 
 namespace {
-auto print_text_report(const alert_message& msg) -> void {
-	std::cout << std::format( //
+constexpr auto get_outputstream(auto&& stream, auto&& preferred)
+	-> decltype(auto) {
+	if constexpr(std::is_same_v<
+								 std::nullptr_t,
+								 std::remove_cvref_t<decltype(stream)>>) {
+		return preferred;
+	} else {
+		return stream;
+	}
+}
+
+auto print_text_report(auto&& output, const alert_message& msg) -> void {
+	get_outputstream(output, std::cout) << std::format( //
 		COLOR_RED "ALERT:" COLOR_RESET " {}\n",
 		msg.content
 	);
 }
 
-auto print_text_report(const info_message& msg) -> void {
-	std::cout << std::format( //
+auto print_text_report(auto&& output, const info_message& msg) -> void {
+	get_outputstream(output, std::cout) << std::format( //
 		COLOR_GRN "INFO:" COLOR_RESET " {}\n",
 		msg.content
 	);
 }
 
-auto print_text_report(const error_message& msg) -> void {
-	std::cout << std::format( //
+auto print_text_report(auto&& output, const error_message& msg) -> void {
+	get_outputstream(output, std::cerr) << std::format( //
 		COLOR_RED "ERROR:" COLOR_RESET " {}\n",
 		msg.content
 	);
 }
 
-auto print_text_report(const ecsact_error_message& msg) -> void {
-	std::cerr << std::format( //
+auto print_text_report(auto&& output, const ecsact_error_message& msg) -> void {
+	get_outputstream(output, std::cerr) << std::format( //
 		COLOR_RED "ERROR:" COLOR_RESET " {}:{}:{}\n        {}\n",
 		msg.ecsact_source_path,
 		msg.line,
@@ -67,22 +78,24 @@ auto print_text_report(const ecsact_error_message& msg) -> void {
 	);
 }
 
-auto print_text_report(const warning_message& msg) -> void {
-	std::cout << std::format( //
+auto print_text_report(auto&& output, const warning_message& msg) -> void {
+	get_outputstream(output, std::cout) << std::format( //
 		COLOR_YEL "WARNING:" COLOR_RESET " {}\n",
 		msg.content
 	);
 }
 
-auto print_text_report(const success_message& msg) -> void {
-	std::cout << std::format( //
+auto print_text_report(auto&& output, const success_message& msg) -> void {
+	get_outputstream(output, std::cout) << std::format( //
 		COLOR_GRN "SUCCESS:" COLOR_RESET " {}\n",
 		msg.content
 	);
 }
 
-auto print_text_report(const module_methods_message& msg) -> void {
-	std::cout << "MODULE METHODS FOR " << msg.module_name << ":\n";
+auto print_text_report(auto&& output, const module_methods_message& msg)
+	-> void {
+	get_outputstream(output, std::cout)
+		<< "MODULE METHODS FOR " << msg.module_name << ":\n";
 	for(auto& method : msg.methods) {
 		std::cout //
 			<< "    " << (method.available ? COLOR_GRN "YES  " : COLOR_RED " NO  ")
@@ -90,8 +103,9 @@ auto print_text_report(const module_methods_message& msg) -> void {
 	}
 }
 
-auto print_text_report(const subcommand_start_message& msg) -> void {
-	std::cout << std::format( //
+auto print_text_report(auto&& output, const subcommand_start_message& msg)
+	-> void {
+	get_outputstream(output, std::cout) << std::format( //
 		COLOR_BLU "SUBCOMMAND({}) START >>" COLOR_RESET " {} ",
 		msg.id,
 		msg.executable
@@ -102,32 +116,36 @@ auto print_text_report(const subcommand_start_message& msg) -> void {
 	std::cout << "\n";
 }
 
-auto print_text_report(const subcommand_stdout_message& msg) -> void {
-	std::cout << std::format( //
+auto print_text_report(auto&& output, const subcommand_stdout_message& msg)
+	-> void {
+	get_outputstream(output, std::cout) << std::format( //
 		COLOR_BLU "SUBCOMMAND({}) STDOUT:" COLOR_RESET " {}\n",
 		msg.id,
 		msg.line
 	);
 }
 
-auto print_text_report(const subcommand_stderr_message& msg) -> void {
-	std::cout << std::format( //
+auto print_text_report(auto&& output, const subcommand_stderr_message& msg)
+	-> void {
+	get_outputstream(output, std::cout) << std::format( //
 		COLOR_RED "SUBCOMMAND({}) STDERR:" COLOR_RESET " {}\n",
 		msg.id,
 		msg.line
 	);
 }
 
-auto print_text_report(const subcommand_progress_message& msg) -> void {
-	std::cout << std::format( //
+auto print_text_report(auto&& output, const subcommand_progress_message& msg)
+	-> void {
+	get_outputstream(output, std::cout) << std::format( //
 		COLOR_BLU "SUBCOMMAND({}) PROG:" COLOR_RESET " {}\n",
 		msg.id,
 		msg.description
 	);
 }
 
-auto print_text_report(const subcommand_end_message& msg) -> void {
-	std::cout << std::format( //
+auto print_text_report(auto&& output, const subcommand_end_message& msg)
+	-> void {
+	get_outputstream(output, std::cout) << std::format( //
 		COLOR_BLU "SUBCOMMAND({})   END << " COLOR_RESET " exit code {}\n",
 		msg.id,
 		msg.exit_code
@@ -138,5 +156,17 @@ auto print_text_report(const subcommand_end_message& msg) -> void {
 auto ecsact::cli::detail::text_report::operator()( //
 	const message_variant_t& message
 ) const -> void {
-	std::visit([](const auto& message) { print_text_report(message); }, message);
+	std::visit(
+		[](const auto& message) { print_text_report(nullptr, message); },
+		message
+	);
+}
+
+auto ecsact::cli::detail::text_report_stderr_only::operator()( //
+	const message_variant_t& message
+) const -> void {
+	std::visit(
+		[](const auto& message) { print_text_report(std::cerr, message); },
+		message
+	);
 }

@@ -14,38 +14,38 @@ _TEST_PLUGINS = [
 
 [cc_binary(
     name = "{}.so".format(plugin),
-    linkshared = True,
-    copts = copts,
-    tags = ["manual"],
     srcs = [
         "{}.cc".format(plugin),
         "@ecsact_runtime//dylib:dylib.cc",
     ],
+    copts = copts,
+    defines = ["ECSACT_META_API_LOAD_AT_RUNTIME"],
+    linkshared = True,
+    tags = ["manual"],
     deps = [
         "@ecsact_codegen//:plugin",
         "@ecsact_runtime//:dylib",
         "@ecsact_runtime//dylib:meta",
         "@ecsact_runtime//dylib:util",
     ],
-    defines = ["ECSACT_META_API_LOAD_AT_RUNTIME"],
 ) for plugin in _TEST_PLUGINS]
 
 [cc_binary(
     name = "{}.dll".format(plugin),
-    linkshared = True,
-    copts = copts,
-    tags = ["manual"],
     srcs = [
         "{}.cc".format(plugin),
         "@ecsact_runtime//dylib:dylib.cc",
     ],
+    copts = copts,
+    defines = ["ECSACT_META_API_LOAD_AT_RUNTIME"],
+    linkshared = True,
+    tags = ["manual"],
     deps = [
         "@ecsact_codegen//:plugin",
         "@ecsact_runtime//:dylib",
         "@ecsact_runtime//dylib:meta",
         "@ecsact_runtime//dylib:util",
     ],
-    defines = ["ECSACT_META_API_LOAD_AT_RUNTIME"],
 ) for plugin in _TEST_PLUGINS]
 
 [alias(
@@ -58,12 +58,12 @@ _TEST_PLUGINS = [
 
 cc_test(
     name = "test_codegen",
-    copts = copts,
     srcs = ["test_codegen.cc"],
+    copts = copts,
     data = [
-        "@ecsact_cli",
         "test.ecsact",
         ":test_codegen_plugin",
+        "@ecsact_cli",
     ],
     env = {
         "TEST_ECSACT_CLI": "$(rootpath @ecsact_cli)",
@@ -79,13 +79,35 @@ cc_test(
 )
 
 cc_test(
-    name = "test_codegen_multi_output",
+    name = "test_codegen_stdout",
+    srcs = ["test_codegen_stdout.cc"],
     copts = copts,
-    srcs = ["test_codegen_multi_output.cc"],
     data = [
+        "test.ecsact",
+        ":test_codegen_plugin",
         "@ecsact_cli",
+    ],
+    env = {
+        "TEST_ECSACT_CLI": "$(rootpath @ecsact_cli)",
+        "TEST_ECSACT_FILE_PATH": "$(rootpath test.ecsact)",
+        "TEST_CODEGEN_PLUGIN_PATH": "$(rootpath :test_codegen_plugin)",
+    },
+    deps = [
+        "@bazel_tools//tools/cpp/runfiles",
+        "@boost.process",
+        "@googletest//:gtest",
+        "@googletest//:gtest_main",
+    ],
+)
+
+cc_test(
+    name = "test_codegen_multi_output",
+    srcs = ["test_codegen_multi_output.cc"],
+    copts = copts,
+    data = [
         "test.ecsact",
         ":test_codegen_plugin_multi_output",
+        "@ecsact_cli",
     ],
     env = {
         "TEST_ECSACT_CLI": "$(rootpath @ecsact_cli)",

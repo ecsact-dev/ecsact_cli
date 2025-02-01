@@ -22,15 +22,27 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(subcommand_end_message, id, exit_code)
 } // namespace ecsact::cli
 
 template<typename MessageT>
-void print_json_report(const MessageT& message) {
+void print_json_report(auto&& outstream, const MessageT& message) {
 	auto message_json = "{}"_json;
 	to_json(message_json, message);
 	message_json["type"] = MessageT::type;
-	std::cout << message_json.dump() + "\n";
+	outstream << message_json.dump() + "\n";
 }
 
 auto ecsact::cli::detail::json_report::operator()( //
 	const message_variant_t& message
 ) const -> void {
-	std::visit([](const auto& message) { print_json_report(message); }, message);
+	std::visit(
+		[](const auto& message) { print_json_report(std::cout, message); },
+		message
+	);
+}
+
+auto ecsact::cli::detail::json_report_stderr_only::operator()( //
+	const message_variant_t& message
+) const -> void {
+	std::visit(
+		[](const auto& message) { print_json_report(std::cerr, message); },
+		message
+	);
 }

@@ -10,11 +10,20 @@ auto ecsact::cli::detail::process_common_args( //
 	const docopt::Options& args
 ) -> int {
 	auto format = args.at("--format").asString();
+	auto uses_stdout = args.contains("--stdout") && args.at("--stdout").asBool();
 
 	if(format == "text") {
-		set_report_handler(text_report{});
+		if(uses_stdout) {
+			set_report_handler(text_report_stderr_only{});
+		} else {
+			set_report_handler(text_report{});
+		}
 	} else if(format == "json") {
-		set_report_handler(json_report{});
+		if(uses_stdout) {
+			set_report_handler(json_report_stderr_only{});
+		} else {
+			set_report_handler(json_report{});
+		}
 	} else if(format == "none") {
 		set_report_handler({});
 	} else {

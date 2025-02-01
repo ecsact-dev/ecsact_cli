@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.25 - 2025-02-01
+#### Bug Fixes
+- --stdout works as intended again - (bdf39e1) - Ezekiel Warren
+
+- - -
+
 ## 0.3.24 - 2025-01-31
 #### Features
 - support new ecsact si modules (#140) - (dd68309) - Ezekiel Warren

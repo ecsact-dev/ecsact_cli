@@ -18,6 +18,7 @@ NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(subcommand_stdout_message, id, line)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(subcommand_stderr_message, id, line)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(subcommand_progress_message, id, description)
 NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(subcommand_end_message, id, exit_code)
+NLOHMANN_DEFINE_TYPE_NON_INTRUSIVE(output_path_message, output_path)
 // clang-format on
 } // namespace ecsact::cli
 

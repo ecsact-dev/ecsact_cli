@@ -2,6 +2,12 @@
 All notable changes to this project will be documented in this file. See [conventional commits](https://www.conventionalcommits.org/) for commit guidelines.
 
 - - -
+## 0.3.26 - 2025-02-07
+#### Features
+- new codegen flag for printing output paths (#141) - (c327d24) - Ezekiel Warren
+
+- - -
+
 ## 0.3.25 - 2025-02-01
 #### Bug Fixes
 - --stdout works as intended again - (bdf39e1) - Ezekiel Warren

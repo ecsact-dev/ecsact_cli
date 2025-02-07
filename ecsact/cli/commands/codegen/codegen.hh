@@ -11,6 +11,7 @@ struct codegen_options {
 	std::vector<std::filesystem::path>       plugin_paths;
 	std::optional<std::filesystem::path>     outdir;
 	std::optional<ecsact_codegen_write_fn_t> write_fn;
+	bool                                     only_print_output_files;
 };
 
 auto codegen(codegen_options options) -> int;

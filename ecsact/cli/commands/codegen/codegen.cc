@@ -256,6 +256,14 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 				// We're filling this in the for loop. We shouldn't have any in here.
 				assert(file_write_streams.empty());
 
+				if(options.only_print_output_files) {
+					for(auto& output_file_path : plugin_output_paths) {
+						report(output_path_message{output_file_path.generic_string()});
+					}
+					plugin.unload();
+					continue;
+				}
+
 				if(options.write_fn) {
 					if(plugin_output_paths.size() > 1) {
 						// TODO: this error can be misleading if a non-stdout custom
@@ -266,8 +274,6 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 
 					plugin_fn(package_id, *options.write_fn, &codegen_report_fn);
 				} else {
-					auto write_fn = options.write_fn.value_or(&file_write_fn);
-
 					for(auto filename_index = 0;
 							plugin_output_paths.size() > filename_index;
 							++filename_index) {

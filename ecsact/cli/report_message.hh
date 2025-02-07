@@ -101,6 +101,11 @@ struct subcommand_end_message {
 	int                   exit_code;
 };
 
+struct output_path_message {
+	static constexpr auto type = std::string_view{"output_path"};
+	std::string           output_path;
+};
+
 using message_variant_t = std::variant<
 	alert_message,
 	info_message,
@@ -113,5 +118,6 @@ using message_variant_t = std::variant<
 	subcommand_stdout_message,
 	subcommand_stderr_message,
 	subcommand_progress_message,
-	subcommand_end_message>;
+	subcommand_end_message,
+	output_path_message>;
 } // namespace ecsact::cli

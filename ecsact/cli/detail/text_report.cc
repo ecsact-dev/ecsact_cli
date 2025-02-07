@@ -8,6 +8,7 @@ using ecsact::cli::ecsact_error_message;
 using ecsact::cli::error_message;
 using ecsact::cli::info_message;
 using ecsact::cli::module_methods_message;
+using ecsact::cli::output_path_message;
 using ecsact::cli::subcommand_end_message;
 using ecsact::cli::subcommand_progress_message;
 using ecsact::cli::subcommand_start_message;
@@ -150,6 +151,10 @@ auto print_text_report(auto&& output, const subcommand_end_message& msg)
 		msg.id,
 		msg.exit_code
 	);
+}
+
+auto print_text_report(auto&& output, const output_path_message& msg) -> void {
+	get_outputstream(output, std::cout) << msg.output_path;
 }
 } // namespace
 

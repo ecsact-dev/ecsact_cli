@@ -28,7 +28,7 @@ constexpr auto USAGE = R"(Ecsact Codegen Command
 
 Usage:
   ecsact codegen <files>... --plugin=<plugin> [--stdout]
-  ecsact codegen <files>... --plugin=<plugin>... [--outdir=<directory>] [--format=<type>] [--report_filter=<filter>]
+  ecsact codegen <files>... --plugin=<plugin>... [--outdir=<directory>] [--format=<type>] [--report_filter=<filter>] [--print-output-files]
 
 Options:
   -p, --plugin=<plugin>     Name of bundled plugin or path to plugin.
@@ -36,6 +36,7 @@ Options:
   -o, --outdir=<directory>  Specify directory generated files should be written to. By default generated files are written next to source files.
   -f --format=<type>        The format used to report progress of the build [default: text]
   --report_filter=<filter>  Filtering out report logs [default: none]
+  --print-output-files      Simply print output file paths to stdout. No codegen will occur.
 )";
 
 static auto stdout_write_fn(
@@ -53,6 +54,8 @@ int ecsact::cli::detail::codegen_command(int argc, const char* argv[]) {
 	if(auto exit_code = process_common_args(args); exit_code != 0) {
 		return exit_code;
 	}
+
+	auto only_print_output_files = args.at("--print-output-files").asBool();
 
 	auto files_error = false;
 	auto files_str = args.at("<files>").asStringList();
@@ -158,6 +161,7 @@ int ecsact::cli::detail::codegen_command(int argc, const char* argv[]) {
 	auto codegen_options = ecsact::cli::codegen_options{
 		.plugin_paths = plugin_paths,
 		.outdir = outdir,
+		.only_print_output_files = only_print_output_files,
 	};
 
 	if(args.at("--stdout").asBool()) {

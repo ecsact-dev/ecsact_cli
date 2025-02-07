@@ -258,7 +258,9 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 
 				if(options.only_print_output_files) {
 					for(auto& output_file_path : plugin_output_paths) {
-						report(output_path_message{output_file_path.generic_string()});
+						report(output_path_message{
+							fs::weakly_canonical(output_file_path).generic_string()
+						});
 					}
 					plugin.unload();
 					continue;

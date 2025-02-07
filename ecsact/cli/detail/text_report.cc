@@ -154,7 +154,7 @@ auto print_text_report(auto&& output, const subcommand_end_message& msg)
 }
 
 auto print_text_report(auto&& output, const output_path_message& msg) -> void {
-	get_outputstream(output, std::cout) << msg.output_path;
+	get_outputstream(output, std::cout) << msg.output_path << "\n";
 }
 } // namespace
 

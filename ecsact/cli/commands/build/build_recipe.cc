@@ -225,13 +225,15 @@ static auto parse_sources( //
 				if(src["outdir"]) {
 					outdir = src["outdir"].as<std::string>();
 				}
-				result.emplace_back(source_fetch{
-					.url = fetch.as<std::string>(),
-					.integrity = integrity,
-					.strip_prefix = strip_prefix,
-					.outdir = outdir,
-					.paths = paths,
-				});
+				result.emplace_back(
+					source_fetch{
+						.url = fetch.as<std::string>(),
+						.integrity = integrity,
+						.strip_prefix = strip_prefix,
+						.outdir = outdir,
+						.paths = paths,
+					}
+				);
 			} else if(path) {
 				auto src_path = fs::path{path.as<std::string>()};
 				auto outdir = std::optional<std::string>{};
@@ -248,17 +250,21 @@ static auto parse_sources( //
 					src_path = src_path.lexically_normal();
 				}
 
-				result.emplace_back(source_path{
-					.path = src_path,
-					.outdir = outdir,
-				});
+				result.emplace_back(
+					source_path{
+						.path = src_path,
+						.outdir = outdir,
+					}
+				);
 			}
 		} else if(src.IsScalar()) {
 			auto path = fs::path{src.as<std::string>()}.lexically_normal();
-			result.emplace_back(source_path{
-				.path = path,
-				.outdir = ".",
-			});
+			result.emplace_back(
+				source_path{
+					.path = path,
+					.outdir = ".",
+				}
+			);
 		}
 	}
 

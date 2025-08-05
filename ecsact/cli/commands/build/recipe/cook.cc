@@ -836,8 +836,8 @@ auto cl_compile(compile_options options) -> int {
 	src_compile_exit_code_futures.reserve(valid_srcs.size());
 
 	for(auto src : valid_srcs) {
-		src_compile_exit_code_futures
-			.emplace_back(std::async(std::launch::async, [&, src] {
+		src_compile_exit_code_futures.emplace_back(
+			std::async(std::launch::async, [&, src] {
 				auto src_cl_args = cl_args;
 				src_cl_args.push_back("/c");
 				src_cl_args.push_back(std::format("@{}", main_params_file.string()));
@@ -850,17 +850,20 @@ auto cl_compile(compile_options options) -> int {
 					src_cl_args.push_back("/std:c++20");
 				}
 
-				src_cl_args.push_back(std::format(
-					"/Fo{}\\", // typos:disable-line
-					long_path_workaround(intermediate_dir).string()
-				));
+				src_cl_args.push_back(
+					std::format(
+						"/Fo{}\\", // typos:disable-line
+						long_path_workaround(intermediate_dir).string()
+					)
+				);
 
 				return ecsact::cli::detail::spawn_and_report(
 					options.compiler.compiler_path,
 					src_cl_args,
 					reporter
 				);
-			}));
+			})
+		);
 	}
 
 	auto any_src_compile_failures = false;
@@ -890,9 +893,9 @@ auto cl_compile(compile_options options) -> int {
 		cl_args.push_back(obj_f.string());
 	}
 
-	auto obj_params_file =
-		create_params_file(long_path_workaround(options.work_dir / "object.params")
-		);
+	auto obj_params_file = create_params_file(
+		long_path_workaround(options.work_dir / "object.params")
+	);
 
 	cl_args.push_back("/Fo:"); // typos:disable-line
 	cl_args.push_back(

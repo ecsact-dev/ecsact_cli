@@ -133,9 +133,9 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 				plugin.get<decltype(ecsact_dylib_has_fn)>("ecsact_dylib_has_fn");
 		}
 
-		auto dylib_set_fn_addr =
-			plugin.get<decltype(ecsact_dylib_set_fn_addr)>("ecsact_dylib_set_fn_addr"
-			);
+		auto dylib_set_fn_addr = plugin.get<decltype(ecsact_dylib_set_fn_addr)>(
+			"ecsact_dylib_set_fn_addr"
+		);
 
 		auto set_meta_fn_ptr = [&](const char* fn_name, auto fn_ptr) {
 			if(dylib_has_fn && !dylib_has_fn(fn_name)) {
@@ -258,9 +258,11 @@ auto ecsact::cli::codegen(codegen_options options) -> int {
 
 				if(options.only_print_output_files) {
 					for(auto& output_file_path : plugin_output_paths) {
-						report(output_path_message{
-							fs::weakly_canonical(output_file_path).generic_string()
-						});
+						report(
+							output_path_message{
+								fs::weakly_canonical(output_file_path).generic_string()
+							}
+						);
 					}
 					plugin.unload();
 					continue;

@@ -119,6 +119,11 @@ auto ecsact::build_recipe::system_libs() const -> std::span<const std::string> {
 	return _system_libs;
 }
 
+auto ecsact::build_recipe::defines() const
+	-> std::unordered_map<std::string, std::string> {
+	return _defines;
+}
+
 static auto get_if_error( //
 	const auto& result
 ) -> std::optional<ecsact::build_recipe_parse_error> {
@@ -164,6 +169,19 @@ static auto parse_system_libs( //
 	}
 
 	return system_libs.as<std::vector<std::string>>();
+}
+
+static auto parse_defines( //
+	YAML::Node defines
+)
+	-> std::variant<
+		std::unordered_map<std::string, std::string>,
+		ecsact::build_recipe_parse_error> {
+	if(!defines) {
+		return {};
+	}
+
+	return defines.as<std::unordered_map<std::string, std::string>>();
 }
 
 static auto parse_sources( //
@@ -225,13 +243,15 @@ static auto parse_sources( //
 				if(src["outdir"]) {
 					outdir = src["outdir"].as<std::string>();
 				}
-				result.emplace_back(source_fetch{
-					.url = fetch.as<std::string>(),
-					.integrity = integrity,
-					.strip_prefix = strip_prefix,
-					.outdir = outdir,
-					.paths = paths,
-				});
+				result.emplace_back(
+					source_fetch{
+						.url = fetch.as<std::string>(),
+						.integrity = integrity,
+						.strip_prefix = strip_prefix,
+						.outdir = outdir,
+						.paths = paths,
+					}
+				);
 			} else if(path) {
 				auto src_path = fs::path{path.as<std::string>()};
 				auto outdir = std::optional<std::string>{};
@@ -248,17 +268,21 @@ static auto parse_sources( //
 					src_path = src_path.lexically_normal();
 				}
 
-				result.emplace_back(source_path{
-					.path = src_path,
-					.outdir = outdir,
-				});
+				result.emplace_back(
+					source_path{
+						.path = src_path,
+						.outdir = outdir,
+					}
+				);
 			}
 		} else if(src.IsScalar()) {
 			auto path = fs::path{src.as<std::string>()}.lexically_normal();
-			result.emplace_back(source_path{
-				.path = path,
-				.outdir = ".",
-			});
+			result.emplace_back(
+				source_path{
+					.path = path,
+					.outdir = ".",
+				}
+			);
 		}
 	}
 
@@ -293,6 +317,11 @@ auto ecsact::build_recipe::build_recipe_from_yaml_node( //
 		return *err;
 	}
 
+	auto defines = parse_defines(doc["defines"]);
+	if(auto err = get_if_error(defines)) {
+		return *err;
+	}
+
 	auto recipe = ecsact::build_recipe{};
 	if(doc["name"]) {
 		recipe._name = doc["name"].as<std::string>();
@@ -304,6 +333,7 @@ auto ecsact::build_recipe::build_recipe_from_yaml_node( //
 	recipe._imports = get_value(imports);
 	recipe._sources = get_value(sources);
 	recipe._system_libs = get_value(system_libs);
+	recipe._defines = get_value(defines);
 
 	if(recipe._exports.empty()) {
 		return build_recipe_parse_error::missing_exports;
@@ -370,6 +400,13 @@ auto ecsact::build_recipe::to_yaml_string() const -> std::string {
 	emitter << YAML::Key << "system_libs";
 	emitter << YAML::Value << _system_libs;
 
+	emitter << YAML::Key << "defines";
+	emitter << YAML::Value << YAML::BeginMap;
+	for(auto&& [key, value] : _defines) {
+		emitter << YAML::Key << key << YAML::Value << value;
+	}
+	emitter << YAML::EndMap;
+
 	emitter << YAML::Key << "sources";
 	emitter << YAML::Value << _sources;
 
@@ -422,6 +459,18 @@ auto ecsact::build_recipe::merge( //
 		target._system_libs.begin(),
 		target._system_libs.end()
 	);
+
+	merged_build_recipe._defines.reserve(
+		merged_build_recipe._defines.size() + target._defines.size()
+	);
+
+	for(auto&& [k, v] : base._defines) {
+		merged_build_recipe._defines[k] = v;
+	}
+
+	for(auto&& [k, v] : target._defines) {
+		merged_build_recipe._defines[k] = v;
+	}
 
 	merged_build_recipe._exports.reserve(
 		merged_build_recipe._exports.size() + target._exports.size()

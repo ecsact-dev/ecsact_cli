@@ -129,11 +129,13 @@ static auto vsdevcmd_env_var(
 
 	auto subcommand_id =
 		static_cast<ecsact::cli::subcommand_id_t>(extract_script_proc.id());
-	ecsact::cli::report(subcommand_start_message{
-		.id = subcommand_id,
-		.executable = vsdevcmd_path.string(),
-		.arguments = {env_var_name},
-	});
+	ecsact::cli::report(
+		subcommand_start_message{
+			.id = subcommand_id,
+			.executable = vsdevcmd_path.string(),
+			.arguments = {env_var_name},
+		}
+	);
 
 	auto line = std::string{};
 	while(std::getline(std_is, line, ';')) {
@@ -146,19 +148,23 @@ static auto vsdevcmd_env_var(
 	while(std::getline(err_is, line)) {
 		boost::trim(line);
 		if(!line.empty()) {
-			ecsact::cli::report(ecsact::cli::subcommand_stderr_message{
-				.id = subcommand_id,
-				.line = line
-			});
+			ecsact::cli::report(
+				ecsact::cli::subcommand_stderr_message{
+					.id = subcommand_id,
+					.line = line
+				}
+			);
 		}
 	}
 
 	extract_script_proc.wait();
 
-	ecsact::cli::report(subcommand_end_message{
-		.id = subcommand_id,
-		.exit_code = extract_script_proc.exit_code(),
-	});
+	ecsact::cli::report(
+		subcommand_end_message{
+			.id = subcommand_id,
+			.exit_code = extract_script_proc.exit_code(),
+		}
+	);
 
 	return result;
 }
@@ -235,21 +241,25 @@ static auto cc_vswhere( //
 
 	auto subcommand_id =
 		static_cast<ecsact::cli::subcommand_id_t>(vswhere_proc.id());
-	ecsact::cli::report(subcommand_start_message{
-		.id = subcommand_id,
-		.executable = vswhere->generic_string(),
-		.arguments = vswhere_proc_args,
-	});
+	ecsact::cli::report(
+		subcommand_start_message{
+			.id = subcommand_id,
+			.executable = vswhere->generic_string(),
+			.arguments = vswhere_proc_args,
+		}
+	);
 
 	auto vswhere_output = nlohmann::json::parse(vswhere_output_stream);
 
 	vswhere_proc.wait();
 	auto vswhere_exit_code = vswhere_proc.exit_code();
 
-	ecsact::cli::report(subcommand_end_message{
-		.id = subcommand_id,
-		.exit_code = vswhere_exit_code,
-	});
+	ecsact::cli::report(
+		subcommand_end_message{
+			.id = subcommand_id,
+			.exit_code = vswhere_exit_code,
+		}
+	);
 
 	if(!vswhere_output.is_array()) {
 		ecsact::cli::report_error(

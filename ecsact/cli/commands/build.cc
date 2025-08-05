@@ -248,12 +248,14 @@ auto ecsact::cli::detail::build_command( //
 	if(!eval_errors.empty()) {
 		for(auto eval_error : eval_errors) {
 			auto err_source_path = file_paths[eval_error.source_index];
-			ecsact::cli::report(ecsact_error_message{
-				.ecsact_source_path = err_source_path.generic_string(),
-				.message = eval_error.error_message,
-				.line = eval_error.line,
-				.character = eval_error.character,
-			});
+			ecsact::cli::report(
+				ecsact_error_message{
+					.ecsact_source_path = err_source_path.generic_string(),
+					.message = eval_error.error_message,
+					.line = eval_error.line,
+					.character = eval_error.character,
+				}
+			);
 		}
 
 		return 1;

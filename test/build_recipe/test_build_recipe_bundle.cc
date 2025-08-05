@@ -32,24 +32,28 @@ TEST(Build, Success) {
 	ASSERT_TRUE(fs::exists(test_ecsact_file_path));
 	ASSERT_TRUE(fs::exists(test_build_recipe_path));
 
-	auto exit_code = recipe_bundle_command(std::vector{
-		"ecsact"s,
-		"recipe-bundle"s,
-		std::string{test_build_recipe_path},
-		std::string{test_build_merge_recipe_path},
-		"--output=test"s,
-	});
+	auto exit_code = recipe_bundle_command(
+		std::vector{
+			"ecsact"s,
+			"recipe-bundle"s,
+			std::string{test_build_recipe_path},
+			std::string{test_build_merge_recipe_path},
+			"--output=test"s,
+		}
+	);
 
 	ASSERT_EQ(exit_code, 0);
 
-	exit_code = build_command(std::vector{
-		"ecsact"s,
-		"build"s,
-		std::string{test_ecsact_file_path},
-		"--recipe=test"s,
-		"--output=test_bundle_runtime"s,
-		"--temp_dir=_test_bundle_runtime_temp"s,
-	});
+	exit_code = build_command(
+		std::vector{
+			"ecsact"s,
+			"build"s,
+			std::string{test_ecsact_file_path},
+			"--recipe=test"s,
+			"--output=test_bundle_runtime"s,
+			"--temp_dir=_test_bundle_runtime_temp"s,
+		}
+	);
 
 	ASSERT_EQ(exit_code, 0);
 }

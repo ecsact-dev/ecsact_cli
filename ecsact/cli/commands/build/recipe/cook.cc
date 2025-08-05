@@ -452,15 +452,16 @@ static auto generate_dylib_imports( //
 struct compile_options {
 	fs::path work_dir;
 
-	ecsact::cli::cc_compiler compiler;
-	std::vector<fs::path>    inc_dirs;
-	std::vector<std::string> system_libs;
-	std::vector<fs::path>    srcs;
-	fs::path                 output_path;
-	std::vector<std::string> imports;
-	std::vector<std::string> exports;
-	std::optional<fs::path>  tracy_dir;
-	bool                     debug;
+	ecsact::cli::cc_compiler                     compiler;
+	std::vector<fs::path>                        inc_dirs;
+	std::vector<std::string>                     system_libs;
+	std::unordered_map<std::string, std::string> defines;
+	std::vector<fs::path>                        srcs;
+	fs::path                                     output_path;
+	std::vector<std::string>                     imports;
+	std::vector<std::string>                     exports;
+	std::optional<fs::path>                      tracy_dir;
+	bool                                         debug;
 };
 
 struct tracy_compile_options {
@@ -518,6 +519,14 @@ auto clang_gcc_compile(compile_options options) -> int {
 	}
 
 	compile_proc_args.push_back("-DECSACT_BUILD");
+
+	for(auto&& [name, value] : options.defines) {
+		if(value.empty()) {
+			compile_proc_args.push_back(std::format("-D{}", name));
+		} else {
+			compile_proc_args.push_back(std::format("-D{}={}", name, value));
+		}
+	}
 
 	for(auto def : generated_defines) {
 		compile_proc_args.push_back(std::format("-D{}", def));
@@ -756,6 +765,15 @@ auto cl_compile(compile_options options) -> int {
 	cl_args.push_back("/D_WIN32_WINNT=0x0A00");
 	cl_args.push_back("/diagnostics:column");
 	cl_args.push_back("/DECSACT_BUILD");
+
+	for(auto&& [name, value] : options.defines) {
+		if(value.empty()) {
+			cl_args.push_back(std::format("/D{}", name));
+		} else {
+			cl_args.push_back(std::format("/D{}={}", name, value));
+		}
+	}
+
 	if(options.tracy_dir) {
 		cl_args.push_back("/DTRACY_ENABLE");
 		cl_args.push_back("/DTRACY_DELAYED_INIT");
@@ -836,8 +854,8 @@ auto cl_compile(compile_options options) -> int {
 	src_compile_exit_code_futures.reserve(valid_srcs.size());
 
 	for(auto src : valid_srcs) {
-		src_compile_exit_code_futures
-			.emplace_back(std::async(std::launch::async, [&, src] {
+		src_compile_exit_code_futures.emplace_back(
+			std::async(std::launch::async, [&, src] {
 				auto src_cl_args = cl_args;
 				src_cl_args.push_back("/c");
 				src_cl_args.push_back(std::format("@{}", main_params_file.string()));
@@ -850,17 +868,20 @@ auto cl_compile(compile_options options) -> int {
 					src_cl_args.push_back("/std:c++20");
 				}
 
-				src_cl_args.push_back(std::format(
-					"/Fo{}\\", // typos:disable-line
-					long_path_workaround(intermediate_dir).string()
-				));
+				src_cl_args.push_back(
+					std::format(
+						"/Fo{}\\", // typos:disable-line
+						long_path_workaround(intermediate_dir).string()
+					)
+				);
 
 				return ecsact::cli::detail::spawn_and_report(
 					options.compiler.compiler_path,
 					src_cl_args,
 					reporter
 				);
-			}));
+			})
+		);
 	}
 
 	auto any_src_compile_failures = false;
@@ -890,9 +911,9 @@ auto cl_compile(compile_options options) -> int {
 		cl_args.push_back(obj_f.string());
 	}
 
-	auto obj_params_file =
-		create_params_file(long_path_workaround(options.work_dir / "object.params")
-		);
+	auto obj_params_file = create_params_file(
+		long_path_workaround(options.work_dir / "object.params")
+	);
 
 	cl_args.push_back("/Fo:"); // typos:disable-line
 	cl_args.push_back(
@@ -1078,6 +1099,7 @@ auto ecsact::cli::cook_recipe( //
 			.compiler = compiler,
 			.inc_dirs = inc_dirs,
 			.system_libs = as_vec(recipe.system_libs()),
+			.defines = recipe.defines(),
 			.srcs = source_files,
 			.output_path = output_path,
 			.imports = as_vec(recipe.imports()),
@@ -1091,6 +1113,7 @@ auto ecsact::cli::cook_recipe( //
 			.compiler = compiler,
 			.inc_dirs = inc_dirs,
 			.system_libs = as_vec(recipe.system_libs()),
+			.defines = recipe.defines(),
 			.srcs = source_files,
 			.output_path = output_path,
 			.imports = as_vec(recipe.imports()),

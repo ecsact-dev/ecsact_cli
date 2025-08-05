@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <optional>
 #include <filesystem>
+#include <unordered_map>
 
 namespace YAML {
 class Node;
@@ -77,6 +78,7 @@ public:
 	auto imports() const -> std::span<const std::string>;
 	auto sources() const -> std::span<const source>;
 	auto system_libs() const -> std::span<const std::string>;
+	auto defines() const -> std::unordered_map<std::string, std::string>;
 
 	auto to_yaml_string() const -> std::string;
 	auto to_yaml_bytes() const -> std::vector<std::byte>;
@@ -91,6 +93,8 @@ private:
 	std::vector<std::string> _imports;
 	std::vector<source>      _sources;
 	std::vector<std::string> _system_libs;
+
+	std::unordered_map<std::string, std::string> _defines;
 
 	build_recipe();
 	build_recipe(const build_recipe&);
